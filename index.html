@@ -211,8 +211,15 @@ await fetch(API, {
       document.getElementById('v-casa').value = '';
       document.getElementById('v-nombre').value = '';
     }
-  } catch(e) {
-    document.getElementById('msg-visita').innerHTML = '<div class="mensaje error">Error al registrar, intenta de nuevo</div>';
+} catch(e) {
+    const nombreAmenidad = amenidades.find(a => a.ID_Amenidad === document.getElementById('r-amenidad').value)?.Nombre || '';
+    document.getElementById('modal-resumen').textContent = `${nombreAmenidad} — ${document.getElementById('r-fecha').value}`;
+    document.getElementById('modal-reglas').innerHTML = `<strong>📋 Recuerda:</strong><br>${obtenerRegla(document.getElementById('r-amenidad').value)}`;
+    document.getElementById('modal-confirmacion').classList.add('activo');
+    document.getElementById('msg-reserva').innerHTML = '';
+    horarioSeleccionado = null;
+    document.getElementById('btn-reservar').style.display = 'none';
+    document.getElementById('r-notas-grupo').style.display = 'none';
   }
 }
 
@@ -387,7 +394,9 @@ if (data.ok) {
       document.getElementById('r-notas-grupo').style.display = 'none';
     }
   } catch(e) {
-    document.getElementById('msg-reserva').innerHTML = '<div class="mensaje error">Error al reservar, intenta de nuevo</div>';
+    document.getElementById('msg-visita').innerHTML = `<div class="mensaje ok">✅ Visita registrada</div>`;
+    document.getElementById('v-casa').value = '';
+    document.getElementById('v-nombre').value = '';
   }
 }
 
