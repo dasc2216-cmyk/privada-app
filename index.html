@@ -213,7 +213,7 @@ await fetch(API, {
     }
 } catch(e) {
     const nombreAmenidad = amenidades.find(a => a.ID_Amenidad === document.getElementById('r-amenidad').value)?.Nombre || '';
-    document.getElementById('modal-resumen').textContent = `${nombreAmenidad} — ${document.getElementById('r-fecha').value}`;
+   document.getElementById('modal-resumen').textContent = `${nombreAmenidad} — ${document.getElementById('r-fecha').value} — ${horarioSeleccionado.Hora_Inicio} a ${horarioSeleccionado.Hora_Fin}`;
     document.getElementById('modal-reglas').innerHTML = `<strong>📋 Recuerda:</strong><br>${obtenerRegla(document.getElementById('r-amenidad').value)}`;
     document.getElementById('modal-confirmacion').classList.add('activo');
     document.getElementById('msg-reserva').innerHTML = '';
