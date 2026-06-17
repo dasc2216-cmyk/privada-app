@@ -323,7 +323,7 @@ function verificarDisponibilidad() {
   const duracion = parseInt(document.getElementById('r-duracion').value);
   const div = document.getElementById('disponibilidad-mesa');
   if (isNaN(horaInicio) || !duracion) return;
-  const horaFin = horaInicio === 0 ? 1 : horaInicio + duracion;
+  const horaFin = horaInicio === 0 ? 1 : Math.min(horaInicio + duracion, 25);
   const reservasAmenidad = reservas.filter(r => r.ID_Amenidad === amenidad && r.Fecha === fecha && r.Estatus === 'Activa');
   let conflicto = false;
   reservasAmenidad.forEach(r => {
@@ -338,7 +338,7 @@ function verificarDisponibilidad() {
     horarioSeleccionado = null;
   } else {
     const horaInicioStr = horaInicio === 0 ? '00:00' : `${horaInicio}:00`;
-    const horaFinStr = horaFin === 24 ? '00:00' : `${horaFin}:00`;
+  const horaFinStr = horaFin >= 24 ? '00:00' : `${horaFin}:00`;
     div.innerHTML = `<div class="mensaje ok">✅ Disponible: ${horaInicioStr} - ${horaFinStr}</div>`;
     horarioSeleccionado = { ID_Horario: `MESA-${horaInicio}-${duracion}`, Hora_Inicio: horaInicioStr, Hora_Fin: horaFinStr, Duracion_Hrs: duracion };
     document.getElementById('r-notas-grupo').style.display = 'block';
