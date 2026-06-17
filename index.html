@@ -114,8 +114,8 @@ function registrarVisita(datos) {
     datos.trae_auto,
     'Activa'
   ]);
-return ContentService.createTextOutput(JSON.stringify({ok: true, id: nuevoID}))
-  .setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(JSON.stringify({ok: true, id: nuevoID}))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function registrarReserva(datos) {
