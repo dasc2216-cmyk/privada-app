@@ -416,13 +416,16 @@ async function cargarMisReservas() {
     lista.innerHTML = '<p style="color:#666">No tienes reservas activas</p>';
     return;
   }
-  lista.innerHTML = misReservas.map(r => `
+ lista.innerHTML = misReservas.map(r => {
+    const fecha = r.Fecha ? new Date(r.Fecha).toLocaleDateString('es-MX') : '';
+    const hora = r.Hora_Inicio ? (typeof r.Hora_Inicio === 'string' ? r.Hora_Inicio : new Date(r.Hora_Inicio).toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'})) : '';
+    return `
     <div class="card">
-      <strong>${r.ID_Amenidad}</strong> — ${r.Fecha}<br>
-      <small style="color:#666">${r.Hora_Inicio} ${r.Duracion_Hrs ? '— ' + r.Duracion_Hrs + ' hrs' : ''}</small><br>
+      <strong>${r.ID_Amenidad}</strong> — ${fecha}<br>
+      <small style="color:#666">${hora} ${r.Duracion_Hrs ? '— ' + r.Duracion_Hrs + ' hrs' : ''}</small><br>
       <button onclick="cancelar('${r.ID_Reserva}')" style="background:#c5221f;color:white;border:none;border-radius:6px;padding:8px 12px;margin-top:8px;cursor:pointer">Cancelar</button>
     </div>
-  `).join('');
+`;}).join('');
 }
 
 async function cancelar(id) {
