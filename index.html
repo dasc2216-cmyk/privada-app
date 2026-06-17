@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privada App</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f0f2f5; color: #333; }
+    .header { background: #1a73e8; color: white; padding: 16px; text-align: center; }
+    .header h1 { font-size: 20px; }
+    .menu { display: flex; flex-direction: column; gap: 16px; padding: 24px; max-width: 400px; margin: 0 auto; }
+    .btn { background: white; border: none; border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 16px; font-size: 16px; }
+    .btn:hover { background: #e8f0fe; }
+    .btn .icono { font-size: 32px; }
+    .btn .texto h3 { font-size: 16px; color: #1a73e8; }
+    .btn .texto p { font-size: 13px; color: #666; margin-top: 4px; }
+    .pantalla { display: none; padding: 16px; max-width: 400px; margin: 0 auto; }
+    .pantalla.activa { display: block; }
+    .back { background: none; border: none; color: #1a73e8; font-size: 16px; cursor: pointer; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 14px; color: #666; margin-bottom: 6px; }
+    .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+    .submit { background: #1a73e8; color: white; border: none; border-radius: 8px; padding: 14px; width: 100%; font-size: 16px; cursor: pointer; margin-top: 8px; }
+    .submit:hover { background: #1557b0; }
+    .card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .bloque { background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; border: 2px solid transparent; }
+    .bloque:hover { border-color: #1a73e8; }
+    .bloque.ocupado { background: #fce8e6; cursor: not-allowed; }
+    .bloque.seleccionado { border-color: #1a73e8; background: #e8f0fe; }
+    .tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; margin-top: 8px; }
+    .tag.disponible { background: #e6f4ea; color: #137333; }
+    .tag.ocupado { background: #fce8e6; color: #c5221f; }
+    .mensaje { padding: 16px; border-radius: 8px; margin-bottom: 16px; text-align: center; }
+    .mensaje.ok { background: #e6f4ea; color: #137333; }
+    .mensaje.error { background: #fce8e6; color: #c5221f; }
+    h2 { font-size: 18px; margin-bottom: 16px; color: #333; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🏘️ Privada App</h1>
+  <p style="font-size:13px; margin-top:4px; opacity:0.8;">Bienvenido vecino</p>
+</div>
+
+<div id="menu" class="menu">
+  <button class="btn" onclick="mostrar('visitas')">
+    <span class="icono">🚗</span>
+    <div class="texto">
+      <h3>Registrar Visita</h3>
+      <p>Avisa que viene alguien a tu casa</p>
+    </div>
+  </button>
+  <button class="btn" onclick="mostrar('reservas')">
+    <span class="icono">📅</span>
+    <div class="texto">
+      <h3>Reservar Amenidad</h3>
+      <p>Palapa, mesas y más</p>
+    </div>
+  </button>
+  <button class="btn" onclick="mostrar('mis-reservas')">
+    <span class="icono">📋</span>
+    <div class="texto">
+      <h3>Mis Reservas</h3>
+      <p>Ver y cancelar tus reservas</p>
+    </div>
+  </button>
+</div>
+
+<!-- PANTALLA VISITAS -->
+<div id="visitas" class="pantalla">
+  <button class="back" onclick="mostrar('menu')">← Regresar</button>
+  <h2>🚗 Registrar Visita</h2>
+  <div id="msg-visita"></div>
+  <div class="form-group">
+    <label>Tu número de casa</label>
+    <input type="text" id="v-casa" placeholder="Ej: 4A">
+  </div>
+  <div class="form-group">
+    <label>Nombre del visitante</label>
+    <input type="text" id="v-nombre" placeholder="Nombre completo">
+  </div>
+  <div class="form-group">
+    <label>Fecha de llegada</label>
+    <input type="date" id="v-fecha">
+  </div>
+  <div class="form-group">
+    <label>Hora estimada</label>
+    <input type="time" id="v-hora">
+  </div>
+  <div class="form-group">
+    <label>¿Trae auto?</label>
+    <select id="v-auto">
+      <option value="No">No</option>
+      <option value="Si">Sí</option>
+    </select>
+  </div>
+  <button class="submit" onclick="registrarVisita()">Registrar Visita</button>
+</div>
+
+<!-- PANTALLA RESERVAS -->
+<div id="reservas" class="pantalla">
+  <button class="back" onclick="mostrar('menu')">← Regresar</button>
+  <h2>📅 Reservar Amenidad</h2>
+  <div id="msg-reserva"></div>
+  <div class="form-group">
+    <label>Tu número de casa</label>
+    <input type="text" id="r-casa" placeholder="Ej: 4A">
+  </div>
+  <div class="form-group">
+    <label>¿Qué quieres reservar?</label>
+    <select id="r-amenidad" onchange="cargarHorarios()">
+      <option value="">Selecciona...</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>Fecha</label>
+    <input type="date" id="r-fecha" onchange="cargarHorarios()">
+  </div>
+  <div id="horarios-container"></div>
+  <div class="form-group" style="display:none" id="r-notas-grupo">
+    <label>Notas (opcional)</label>
+    <input type="text" id="r-notas" placeholder="Algún comentario...">
+  </div>
+  <button class="submit" onclick="registrarReserva()" style="display:none" id="btn-reservar">Confirmar Reserva</button>
+</div>
+
+<!-- PANTALLA MIS RESERVAS -->
+<div id="mis-reservas" class="pantalla">
+  <button class="back" onclick="mostrar('menu')">← Regresar</button>
+  <h2>📋 Mis Reservas</h2>
+  <div class="form-group">
+    <label>Tu número de casa</label>
+    <input type="text" id="mr-casa" placeholder="Ej: 4A">
+  </div>
+  <button class="submit" onclick="cargarMisReservas()">Buscar</button>
+  <div id="mis-reservas-lista" style="margin-top:16px"></div>
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbwHYpnp-pLU6AI82_zEtPuvF6l8tvkoT-R6n-sMbG7oVX867UI4J8GriJwqLW7bBWLOxQ/exec';
+let horarioSeleccionado = null;
+let horariosDisponibles = [];
+
+function mostrar(id) {
+  document.getElementById('menu').style.display = id === 'menu' ? 'flex' : 'none';
+  document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+  if (id !== 'menu') document.getElementById(id).classList.add('activa');
+  horarioSeleccionado = null;
+}
+
+async function registrarVisita() {
+  const casa = document.getElementById('v-casa').value.trim();
+  const nombre = document.getElementById('v-nombre').value.trim();
+  const fecha = document.getElementById('v-fecha').value;
+  const hora = document.getElementById('v-hora').value;
+  const auto = document.getElementById('v-auto').value;
+  if (!casa || !nombre || !fecha || !hora) {
+    document.getElementById('msg-visita').innerHTML = '<div class="mensaje error">Por favor llena todos los campos</div>';
+    return;
+  }
+  document.getElementById('msg-visita').innerHTML = '<div class="mensaje ok">Registrando...</div>';
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify({ accion: 'registrarVisita', casa, nombre_visitante: nombre, fecha, hora_estimada: hora, trae_auto: auto })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById('msg-visita').innerHTML = `<div class="mensaje ok">✅ Visita registrada (${data.id})</div>`;
+      document.getElementById('v-casa').value = '';
+      document.getElementById('v-nombre').value = '';
+    }
+  } catch(e) {
+    document.getElementById('msg-visita').innerHTML = '<div class="mensaje error">Error al registrar, intenta de nuevo</div>';
+  }
+}
+
+async function cargarAmenidades() {
+  const res = await fetch(`${API}?accion=getAmenidades`);
+  const data = await res.json();
+  const sel = document.getElementById('r-amenidad');
+  data.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a.ID_Amenidad;
+    opt.textContent = a.Nombre;
+    sel.appendChild(opt);
+  });
+}
+
+async function cargarHorarios() {
+  const amenidad = document.getElementById('r-amenidad').value;
+  const fecha = document.getElementById('r-fecha').value;
+  const container = document.getElementById('horarios-container');
+  if (!amenidad || !fecha) { container.innerHTML = ''; return; }
+  container.innerHTML = '<p style="color:#666; font-size:14px">Cargando disponibilidad...</p>';
+  const [horariosRes, reservasRes] = await Promise.all([
+    fetch(`${API}?accion=getHorarios`),
+    fetch(`${API}?accion=getReservas`)
+  ]);
+  const horarios = await horariosRes.json();
+  const reservas = await reservasRes.json();
+  const reservasHoy = reservas.filter(r => r.Casa && r.ID_Amenidad === amenidad && r.Fecha === fecha && r.Estatus === 'Activa');
+  const horariosAmenidad = horarios.filter(h => h.ID_Amenidad === amenidad && h.Activo === 'SI');
+  horariosDisponibles = horariosAmenidad;
+  if (horariosAmenidad.length === 0) {
+    container.innerHTML = '<p style="color:#666">No hay horarios disponibles</p>';
+    return;
+  }
+  container.innerHTML = '<div class="form-group"><label>Selecciona horario</label></div>';
+  horariosAmenidad.forEach(h => {
+    const ocupado = reservasHoy.some(r => r.ID_Horario === h.ID_Horario);
+    const div = document.createElement('div');
+    div.className = `bloque ${ocupado ? 'ocupado' : ''}`;
+    div.id = `bloque-${h.ID_Horario}`;
+    div.innerHTML = `
+      <strong>${h.Hora_Inicio} - ${h.Hora_Fin}</strong>
+      <span class="tag ${ocupado ? 'ocupado' : 'disponible'}">${ocupado ? 'Ocupado' : 'Disponible'}</span>
+    `;
+    if (!ocupado) div.onclick = () => seleccionarHorario(h);
+    container.appendChild(div);
+  });
+}
+
+function seleccionarHorario(horario) {
+  document.querySelectorAll('.bloque').forEach(b => b.classList.remove('seleccionado'));
+  document.getElementById(`bloque-${horario.ID_Horario}`).classList.add('seleccionado');
+  horarioSeleccionado = horario;
+  document.getElementById('r-notas-grupo').style.display = 'block';
+  document.getElementById('btn-reservar').style.display = 'block';
+}
+
+async function registrarReserva() {
+  const casa = document.getElementById('r-casa').value.trim();
+  const amenidad = document.getElementById('r-amenidad').value;
+  const fecha = document.getElementById('r-fecha').value;
+  const notas = document.getElementById('r-notas').value;
+  if (!casa || !amenidad || !fecha || !horarioSeleccionado) {
+    document.getElementById('msg-reserva').innerHTML = '<div class="mensaje error">Por favor completa todos los campos</div>';
+    return;
+  }
+  document.getElementById('msg-reserva').innerHTML = '<div class="mensaje ok">Registrando reserva...</div>';
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify({ accion: 'registrarReserva', casa, id_amenidad: amenidad, fecha, id_horario: horarioSeleccionado.ID_Horario, hora_inicio: horarioSeleccionado.Hora_Inicio, notas })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById('msg-reserva').innerHTML = `<div class="mensaje ok">✅ Reserva confirmada (${data.id})</div>`;
+      horarioSeleccionado = null;
+      document.getElementById('btn-reservar').style.display = 'none';
+      cargarHorarios();
+    }
+  } catch(e) {
+    document.getElementById('msg-reserva').innerHTML = '<div class="mensaje error">Error al reservar, intenta de nuevo</div>';
+  }
+}
+
+async function cargarMisReservas() {
+  const casa = document.getElementById('mr-casa').value.trim();
+  if (!casa) return;
+  const lista = document.getElementById('mis-reservas-lista');
+  lista.innerHTML = '<p style="color:#666">Buscando...</p>';
+  const res = await fetch(`${API}?accion=getReservas`);
+  const data = await res.json();
+  const misReservas = data.filter(r => r.Casa === casa && r.Estatus === 'Activa');
+  if (misReservas.length === 0) {
+    lista.innerHTML = '<p style="color:#666">No tienes reservas activas</p>';
+    return;
+  }
+  lista.innerHTML = misReservas.map(r => `
+    <div class="card">
+      <strong>${r.ID_Amenidad}</strong> — ${r.Fecha}<br>
+      <small style="color:#666">Horario: ${r.ID_Horario}</small><br>
+      <button onclick="cancelar('${r.ID_Reserva}')" style="background:#c5221f;color:white;border:none;border-radius:6px;padding:8px 12px;margin-top:8px;cursor:pointer">Cancelar</button>
+    </div>
+  `).join('');
+}
+
+async function cancelar(id) {
+  if (!confirm('¿Seguro que quieres cancelar esta reserva?')) return;
+  const res = await fetch(API, {
+    method: 'POST',
+    body: JSON.stringify({ accion: 'cancelarReserva', id_reserva: id })
+  });
+  const data = await res.json();
+  if (data.ok) cargarMisReservas();
+}
+
+cargarAmenidades();
+</script>
+</body>
+</html>
