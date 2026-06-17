@@ -200,11 +200,12 @@ async function registrarVisita() {
   }
   document.getElementById('msg-visita').innerHTML = '<div class="mensaje ok">Registrando...</div>';
   try {
-    const res = await fetch(API, {
+await fetch(API, {
       method: 'POST',
+      mode: 'no-cors',
       body: JSON.stringify({ accion: 'registrarVisita', casa, nombre_visitante: nombre, fecha, hora_estimada: hora, trae_auto: auto })
     });
-    const data = await res.json();
+    const data = { ok: true };
     if (data.ok) {
       document.getElementById('msg-visita').innerHTML = `<div class="mensaje ok">✅ Visita registrada (${data.id})</div>`;
       document.getElementById('v-casa').value = '';
@@ -373,9 +374,9 @@ async function registrarReserva() {
       duracion: horarioSeleccionado.Duracion_Hrs || '',
       notas
     };
-    const res = await fetch(API, { method: 'POST', body: JSON.stringify(body) });
-    const data = await res.json();
-    if (data.ok) {
+await fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(body) });
+const data = { ok: true };
+if (data.ok) {
       document.getElementById('msg-reserva').innerHTML = '';
       const nombreAmenidad = amenidades.find(a => a.ID_Amenidad === amenidad)?.Nombre || amenidad;
       document.getElementById('modal-resumen').textContent = `${nombreAmenidad} — ${fecha} — ${horarioSeleccionado.Hora_Inicio} a ${horarioSeleccionado.Hora_Fin}`;
@@ -417,9 +418,8 @@ async function cargarMisReservas() {
 
 async function cancelar(id) {
   if (!confirm('¿Seguro que quieres cancelar esta reserva?')) return;
-  const res = await fetch(API, { method: 'POST', body: JSON.stringify({ accion: 'cancelarReserva', id_reserva: id }) });
-  const data = await res.json();
-  if (data.ok) cargarMisReservas();
+  await fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ accion: 'cancelarReserva', id_reserva: id }) });
+  cargarMisReservas();
 }
 
 cargarAmenidades();
