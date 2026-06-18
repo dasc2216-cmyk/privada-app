@@ -133,13 +133,9 @@
       </select>
     </div>
     <div class="form-group" id="duracion-grupo">
-      <label>¿Cuántas horas? (máx 4)</label>
+      <label>¿Cuántas horas?</label>
       <select id="r-duracion" onchange="verificarDisponibilidad()">
         <option value="">Selecciona...</option>
-        <option value="1">1 hora</option>
-        <option value="2">2 horas</option>
-        <option value="3">3 horas</option>
-        <option value="4">4 horas</option>
       </select>
     </div>
     <div id="disponibilidad-mesa"></div>
@@ -177,9 +173,9 @@
 const API = 'https://script.google.com/macros/s/AKfycbwHYpnp-pLU6AI82_zEtPuvF6l8tvkoT-R6n-sMbG7oVX867UI4J8GriJwqLW7bBWLOxQ/exec';
 let horarioSeleccionado = null;
 let amenidades = [];
-let horarios = [];
-let reservas = [];
 let reglas = [];
+let reservas = [];
+let horarios = [];
 
 function mostrar(id) {
   document.getElementById('menu').style.display = id === 'menu' ? 'flex' : 'none';
@@ -200,41 +196,36 @@ async function registrarVisita() {
   }
   document.getElementById('msg-visita').innerHTML = '<div class="mensaje ok">Registrando...</div>';
   try {
-await fetch(API, {
-      method: 'POST',
-      mode: 'no-cors',
+    await fetch(API, {
+      method: 'POST', mode: 'no-cors',
       body: JSON.stringify({ accion: 'registrarVisita', casa, nombre_visitante: nombre, fecha, hora_estimada: hora, trae_auto: auto })
     });
-    const data = { ok: true };
-    if (data.ok) {
-      document.getElementById('msg-visita').innerHTML = `<div class="mensaje ok">✅ Visita registrada (${data.id})</div>`;
-      document.getElementById('v-casa').value = '';
-      document.getElementById('v-nombre').value = '';
-    }
-} catch(e) {
-    const nombreAmenidad = amenidades.find(a => a.ID_Amenidad === document.getElementById('r-amenidad').value)?.Nombre || '';
-   document.getElementById('modal-resumen').textContent = `${nombreAmenidad} — ${document.getElementById('r-fecha').value} — ${horarioSeleccionado.Hora_Inicio} a ${horarioSeleccionado.Hora_Fin}`;
-    document.getElementById('modal-reglas').innerHTML = `<strong>📋 Recuerda:</strong><br>${obtenerRegla(document.getElementById('r-amenidad').value)}`;
-    document.getElementById('modal-confirmacion').classList.add('activo');
-    document.getElementById('msg-reserva').innerHTML = '';
-    horarioSeleccionado = null;
-    document.getElementById('btn-reservar').style.display = 'none';
-    document.getElementById('r-notas-grupo').style.display = 'none';
+    document.getElementById('msg-visita').innerHTML = '<div class="mensaje ok">✅ Visita registrada correctamente</div>';
+    document.getElementById('v-casa').value = '';
+    document.getElementById('v-nombre').value = '';
+    document.getElementById('v-fecha').value = '';
+    document.getElementById('v-hora').value = '';
+  } catch(e) {
+    document.getElementById('msg-visita').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
   }
 }
 
 async function cargarAmenidades() {
-  const res = await fetch(`${API}?accion=getAmenidades`);
-  amenidades = await res.json();
-  const sel = document.getElementById('r-amenidad');
-  amenidades.forEach(a => {
-    const opt = document.createElement('option');
-    opt.value = a.ID_Amenidad;
-    opt.textContent = a.Nombre;
-    sel.appendChild(opt);
-  });
-  const resReglas = await fetch(`${API}?accion=getReglas`);
-  reglas = await resReglas.json();
+  try {
+    const [resA, resR] = await Promise.all([
+      fetch(`${API}?accion=getAmenidades`),
+      fetch(`${API}?accion=getReglas`)
+    ]);
+    amenidades = await resA.json();
+    reglas = await resR.json();
+    const sel = document.getElementById('r-amenidad');
+    amenidades.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a.ID_Amenidad;
+      opt.textContent = a.Nombre;
+      sel.appendChild(opt);
+    });
+  } catch(e) { console.error('Error cargando amenidades', e); }
 }
 
 function onAmenidadChange() {
@@ -244,24 +235,27 @@ function onAmenidadChange() {
   document.getElementById('btn-reservar').style.display = 'none';
   document.getElementById('disponibilidad-mesa').innerHTML = '';
   horarioSeleccionado = null;
-  onFechaChange();
+  const fecha = document.getElementById('r-fecha').value;
+  if (fecha) onFechaChange();
 }
 
 async function onFechaChange() {
   const amenidad = document.getElementById('r-amenidad').value;
   const fecha = document.getElementById('r-fecha').value;
   if (!amenidad || !fecha) return;
-  const [horariosRes, reservasRes] = await Promise.all([
-    fetch(`${API}?accion=getHorarios`),
-    fetch(`${API}?accion=getReservas`)
-  ]);
-  horarios = await horariosRes.json();
-  reservas = await reservasRes.json();
-  if (amenidad === 'PAL-01') {
-    mostrarBloquesPalapa(amenidad, fecha);
-  } else {
-    mostrarSelectorMesas(amenidad, fecha);
-  }
+  try {
+    const [resH, resR] = await Promise.all([
+      fetch(`${API}?accion=getHorarios`),
+      fetch(`${API}?accion=getReservas`)
+    ]);
+    horarios = await resH.json();
+    reservas = await resR.json();
+    if (amenidad === 'PAL-01') {
+      mostrarBloquesPalapa(amenidad, fecha);
+    } else {
+      mostrarSelectorMesas(amenidad, fecha);
+    }
+  } catch(e) { console.error('Error cargando horarios', e); }
 }
 
 function mostrarBloquesPalapa(amenidad, fecha) {
@@ -295,28 +289,34 @@ function seleccionarBloque(horario) {
 
 function mostrarSelectorMesas(amenidad, fecha) {
   document.getElementById('horarios-container').innerHTML = '';
-  const mesasContainer = document.getElementById('mesas-container');
-  mesasContainer.style.display = 'block';
-  const horaInicio = document.getElementById('r-hora-inicio');
-  horaInicio.innerHTML = '<option value="">Selecciona hora...</option>';
+  document.getElementById('mesas-container').style.display = 'block';
+  const sel = document.getElementById('r-hora-inicio');
+  sel.innerHTML = '<option value="">Selecciona hora...</option>';
   for (let h = 8; h <= 24; h++) {
+    const val = h === 24 ? 0 : h;
+    const txt = h === 24 ? '00:00 (medianoche)' : `${String(h).padStart(2,'0')}:00`;
     const opt = document.createElement('option');
-    opt.value = h === 24 ? 0 : h;
-    opt.textContent = h === 24 ? '00:00 (medianoche)' : `${h}:00`;
-    horaInicio.appendChild(opt);
+    opt.value = val;
+    opt.textContent = txt;
+    sel.appendChild(opt);
   }
+  document.getElementById('r-duracion').innerHTML = '<option value="">Selecciona...</option>';
+  document.getElementById('disponibilidad-mesa').innerHTML = '';
+  document.getElementById('r-notas-grupo').style.display = 'none';
+  document.getElementById('btn-reservar').style.display = 'none';
+  horarioSeleccionado = null;
 }
 
 function onHoraChange() {
   const hora = parseInt(document.getElementById('r-hora-inicio').value);
-  const duracionSel = document.getElementById('r-duracion');
-  duracionSel.innerHTML = '<option value="">Selecciona...</option>';
-  const maxHoras = hora === 0 ? 1 : 4;
-  for (let i = 1; i <= maxHoras; i++) {
+  const sel = document.getElementById('r-duracion');
+  sel.innerHTML = '<option value="">Selecciona...</option>';
+  const max = hora === 0 ? 1 : 4;
+  for (let i = 1; i <= max; i++) {
     const opt = document.createElement('option');
     opt.value = i;
     opt.textContent = i === 1 ? '1 hora' : `${i} horas`;
-    duracionSel.appendChild(opt);
+    sel.appendChild(opt);
   }
   document.getElementById('disponibilidad-mesa').innerHTML = '';
   document.getElementById('r-notas-grupo').style.display = 'none';
@@ -331,22 +331,22 @@ function verificarDisponibilidad() {
   const duracion = parseInt(document.getElementById('r-duracion').value);
   const div = document.getElementById('disponibilidad-mesa');
   if (isNaN(horaInicio) || !duracion) return;
-  const horaFin = horaInicio === 0 ? 1 : Math.min(horaInicio + duracion, 25);
+  const horaFin = horaInicio === 0 ? 1 : horaInicio + duracion;
   const reservasAmenidad = reservas.filter(r => r.ID_Amenidad === amenidad && r.Fecha === fecha && r.Estatus === 'Activa');
   let conflicto = false;
   reservasAmenidad.forEach(r => {
-    const rInicio = parseInt(r.Hora_Inicio.split(':')[0]);
-    const rDuracion = parseInt(r.Duracion_Hrs) || 1;
-    const rFin = rInicio === 0 ? 1 : rInicio + rDuracion;
-    if (horaInicio < rFin && horaFin > rInicio) conflicto = true;
+    const rH = parseInt(String(r.Hora_Inicio).split(':')[0]);
+    const rD = parseInt(r.Duracion_Hrs) || 1;
+    const rF = rH === 0 ? 1 : rH + rD;
+    if (horaInicio < rF && horaFin > rH) conflicto = true;
   });
+  const horaInicioStr = horaInicio === 0 ? '00:00' : `${String(horaInicio).padStart(2,'0')}:00`;
+  const horaFinStr = horaFin >= 24 ? '00:00' : `${String(horaFin).padStart(2,'0')}:00`;
   if (conflicto) {
     div.innerHTML = '<div class="mensaje error">⚠️ Ese horario ya está reservado, elige otro</div>';
     document.getElementById('btn-reservar').style.display = 'none';
     horarioSeleccionado = null;
   } else {
-    const horaInicioStr = horaInicio === 0 ? '00:00' : `${horaInicio}:00`;
-  const horaFinStr = horaFin >= 24 ? '00:00' : `${horaFin}:00`;
     div.innerHTML = `<div class="mensaje ok">✅ Disponible: ${horaInicioStr} - ${horaFinStr}</div>`;
     horarioSeleccionado = { ID_Horario: `MESA-${horaInicio}-${duracion}`, Hora_Inicio: horaInicioStr, Hora_Fin: horaFinStr, Duracion_Hrs: duracion };
     document.getElementById('r-notas-grupo').style.display = 'block';
@@ -355,8 +355,8 @@ function verificarDisponibilidad() {
 }
 
 function obtenerRegla(amenidad) {
-  const nombreAmenidad = amenidad === 'PAL-01' ? 'Palapa' : 'Juego de Mesa, Sillas y Sombrilla';
-  const regla = reglas.find(r => r.Amenidad === nombreAmenidad);
+  const nombre = amenidad === 'PAL-01' ? 'Palapa' : 'Juego de Mesa, Sillas y Sombrilla';
+  const regla = reglas.find(r => r.Amenidad === nombre);
   return regla ? regla.Regla : '';
 }
 
@@ -369,34 +369,29 @@ async function registrarReserva() {
     document.getElementById('msg-reserva').innerHTML = '<div class="mensaje error">Por favor completa todos los campos</div>';
     return;
   }
-  document.getElementById('msg-reserva').innerHTML = '<div class="mensaje ok">Registrando reserva...</div>';
+  document.getElementById('msg-reserva').innerHTML = '<div class="mensaje ok">Registrando...</div>';
   try {
-    const body = {
-      accion: 'registrarReserva',
-      casa,
-      id_amenidad: amenidad,
-      fecha,
-      id_horario: horarioSeleccionado.ID_Horario,
-      hora_inicio: horarioSeleccionado.Hora_Inicio,
-      duracion: horarioSeleccionado.Duracion_Hrs || '',
-      notas
-    };
-await fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(body) });
-const data = { ok: true };
-if (data.ok) {
-      document.getElementById('msg-reserva').innerHTML = '';
-      const nombreAmenidad = amenidades.find(a => a.ID_Amenidad === amenidad)?.Nombre || amenidad;
-      document.getElementById('modal-resumen').textContent = `${nombreAmenidad} — ${fecha} — ${horarioSeleccionado.Hora_Inicio} a ${horarioSeleccionado.Hora_Fin}`;
-      document.getElementById('modal-reglas').innerHTML = `<strong>📋 Recuerda:</strong><br>${obtenerRegla(amenidad)}`;
-      document.getElementById('modal-confirmacion').classList.add('activo');
-      horarioSeleccionado = null;
-      document.getElementById('btn-reservar').style.display = 'none';
-      document.getElementById('r-notas-grupo').style.display = 'none';
-    }
+    await fetch(API, {
+      method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({
+        accion: 'registrarReserva', casa,
+        id_amenidad: amenidad, fecha,
+        id_horario: horarioSeleccionado.ID_Horario,
+        hora_inicio: horarioSeleccionado.Hora_Inicio,
+        duracion: horarioSeleccionado.Duracion_Hrs || '',
+        notas
+      })
+    });
+    const nombreAmenidad = amenidades.find(a => a.ID_Amenidad === amenidad)?.Nombre || amenidad;
+    document.getElementById('modal-resumen').textContent = `${nombreAmenidad} — ${fecha} — ${horarioSeleccionado.Hora_Inicio} a ${horarioSeleccionado.Hora_Fin}`;
+    document.getElementById('modal-reglas').innerHTML = `<strong>📋 Recuerda:</strong><br>${obtenerRegla(amenidad)}`;
+    document.getElementById('modal-confirmacion').classList.add('activo');
+    document.getElementById('msg-reserva').innerHTML = '';
+    horarioSeleccionado = null;
+    document.getElementById('btn-reservar').style.display = 'none';
+    document.getElementById('r-notas-grupo').style.display = 'none';
   } catch(e) {
-    document.getElementById('msg-visita').innerHTML = `<div class="mensaje ok">✅ Visita registrada</div>`;
-    document.getElementById('v-casa').value = '';
-    document.getElementById('v-nombre').value = '';
+    document.getElementById('msg-reserva').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
   }
 }
 
@@ -407,31 +402,39 @@ function cerrarModal() {
 async function cargarMisReservas() {
   const casa = document.getElementById('mr-casa').value.trim();
   if (!casa) return;
-  const lista = document.getElementById('mis-reservas-lista');
+statistical const lista = document.getElementById('mis-reservas-lista');
   lista.innerHTML = '<p style="color:#666">Buscando...</p>';
-  const res = await fetch(`${API}?accion=getReservas`);
-  const data = await res.json();
-  const misReservas = data.filter(r => r.Casa === casa && r.Estatus === 'Activa');
-  if (misReservas.length === 0) {
-    lista.innerHTML = '<p style="color:#666">No tienes reservas activas</p>';
-    return;
+  try {
+    const res = await fetch(`${API}?accion=getReservas`);
+    const data = await res.json();
+    const misReservas = data.filter(r => String(r.Casa) === casa && r.Estatus === 'Activa');
+    if (misReservas.length === 0) {
+      lista.innerHTML = '<p style="color:#666">No tienes reservas activas</p>';
+      return;
+    }
+    lista.innerHTML = misReservas.map(r => `
+      <div class="card">
+        <strong>${r.ID_Amenidad}</strong> — ${r.Fecha}<br>
+        <small style="color:#666">${r.Hora_Inicio}${r.Duracion_Hrs ? ' — ' + r.Duracion_Hrs + ' hrs' : ''}</small><br>
+        <button onclick="cancelar('${r.ID_Reserva}')" style="background:#c5221f;color:white;border:none;border-radius:6px;padding:8px 12px;margin-top:8px;cursor:pointer">Cancelar</button>
+      </div>
+    `).join('');
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c5221f">Error al cargar reservas</p>';
   }
- lista.innerHTML = misReservas.map(r => {
-    const fecha = r.Fecha ? new Date(r.Fecha).toLocaleDateString('es-MX') : '';
-    const hora = r.Hora_Inicio ? (typeof r.Hora_Inicio === 'string' ? r.Hora_Inicio : new Date(r.Hora_Inicio).toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'})) : '';
-    return `
-    <div class="card">
-      <strong>${r.ID_Amenidad}</strong> — ${fecha}<br>
-      <small style="color:#666">${hora} ${r.Duracion_Hrs ? '— ' + r.Duracion_Hrs + ' hrs' : ''}</small><br>
-      <button onclick="cancelar('${r.ID_Reserva}')" style="background:#c5221f;color:white;border:none;border-radius:6px;padding:8px 12px;margin-top:8px;cursor:pointer">Cancelar</button>
-    </div>
-`;}).join('');
 }
 
 async function cancelar(id) {
   if (!confirm('¿Seguro que quieres cancelar esta reserva?')) return;
-  await fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ accion: 'cancelarReserva', id_reserva: id }) });
-  cargarMisReservas();
+  try {
+    await fetch(API, {
+      method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({ accion: 'cancelarReserva', id_reserva: id })
+    });
+    setTimeout(() => cargarMisReservas(), 1500);
+  } catch(e) {
+    alert('Error al cancelar, intenta de nuevo');
+  }
 }
 
 cargarAmenidades();
