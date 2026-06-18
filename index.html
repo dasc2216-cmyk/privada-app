@@ -110,9 +110,9 @@
   <button class="back" onclick="mostrar('menu')">← Regresar</button>
   <h2>📅 Reservar Amenidad</h2>
   <div id="msg-reserva"></div>
-  <div class="form-group">
-    <label>Tu número de casa</label>
-    <input type="text" id="r-casa" placeholder="Ej: 4A">
+ <div class="form-group">
+    <label>Tu nombre completo</label>
+    <input type="text" id="v-nombre-residente" placeholder="Nombre y apellido">
   </div>
   <div class="form-group">
     <label>¿Qué quieres reservar?</label>
@@ -151,9 +151,9 @@
 <div id="mis-reservas" class="pantalla">
   <button class="back" onclick="mostrar('menu')">← Regresar</button>
   <h2>📋 Mis Reservas</h2>
-  <div class="form-group">
-    <label>Tu número de casa</label>
-    <input type="text" id="mr-casa" placeholder="Ej: 4A">
+<div class="form-group">
+    <label>Tu nombre completo</label>
+    <input type="text" id="r-nombre" placeholder="Nombre y apellido">
   </div>
   <button class="submit" onclick="cargarMisReservas()">Buscar</button>
   <div id="mis-reservas-lista" style="margin-top:16px"></div>
@@ -197,7 +197,8 @@ async function registrarVisita() {
   const fecha = document.getElementById('v-fecha').value;
   const hora = document.getElementById('v-hora').value;
   const auto = document.getElementById('v-auto').value;
-  if (!casa || !nombre || !fecha || !hora) {
+const nombreResidente = document.getElementById('v-nombre-residente').value.trim();
+  if (!casa || !nombre || !fecha || !hora || !nombreResidente) {
     document.getElementById('msg-visita').innerHTML = '<div class="mensaje error">Por favor llena todos los campos</div>';
     return;
   }
@@ -205,7 +206,7 @@ async function registrarVisita() {
   try {
     await fetch(API, {
       method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion: 'registrarVisita', casa, nombre_visitante: nombre, fecha, hora_estimada: hora, trae_auto: auto })
+      body: JSON.stringify({ accion: 'registrarVisita', casa, nombre_residente: nombreResidente, nombre_visitante: nombre, fecha, hora_estimada: hora, trae_auto: auto })
     });
     document.getElementById('msg-visita').innerHTML = '<div class="mensaje ok">✅ Visita registrada correctamente</div>';
     document.getElementById('v-casa').value = '';
@@ -252,11 +253,15 @@ async function onFechaChange() {
   if (!amenidad || !fecha) return;
 
   // Bloquear fechas futuras para mesas
-  if (amenidad !== 'PAL-01') {
-    const hoy = new Date().toISOString().split('T')[0];
-    if (fecha !== hoy) {
+if (amenidad !== 'PAL-01') {
+    const ahora = new Date();
+    const hoy = ahora.toISOString().split('T')[0];
+    const manana = new Date(ahora);
+    manana.setDate(manana.getDate() + 1);
+    const mananaStr = manana.toISOString().split('T')[0];
+    if (fecha !== hoy && fecha !== mananaStr) {
       document.getElementById('mesas-container').style.display = 'none';
-      document.getElementById('horarios-container').innerHTML = '<div class="mensaje error">Las mesas solo se pueden reservar para hoy</div>';
+      document.getElementById('horarios-container').innerHTML = '<div class="mensaje error">Las mesas solo se pueden reservar para hoy o mañana</div>';
       return;
     }
   }
@@ -313,6 +318,9 @@ function mostrarSelectorMesas(amenidad, fecha) {
   const ahora = new Date();
   const horaActual = ahora.getHours();
   const hoy = ahora.toISOString().split('T')[0];
+  const manana = new Date(ahora);
+  manana.setDate(manana.getDate() + 1);
+  const mananaStr = manana.toISOString().split('T')[0];
   for (let h = 8; h <= 24; h++) {
     const val = h === 24 ? 0 : h;
     if (fecha === hoy && h !== 24 && h <= horaActual) continue;
@@ -387,7 +395,8 @@ async function registrarReserva() {
   const amenidad = document.getElementById('r-amenidad').value;
   const fecha = document.getElementById('r-fecha').value;
   const notas = document.getElementById('r-notas').value;
-  if (!casa || !amenidad || !fecha || !horarioSeleccionado) {
+const nombreReserva = document.getElementById('r-nombre').value.trim();
+  if (!casa || !nombreReserva || !amenidad || !fecha || !horarioSeleccionado) {
     document.getElementById('msg-reserva').innerHTML = '<div class="mensaje error">Por favor completa todos los campos</div>';
     return;
   }
