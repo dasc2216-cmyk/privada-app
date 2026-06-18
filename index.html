@@ -122,7 +122,7 @@
   </div>
   <div class="form-group">
     <label>Fecha</label>
-    <input type="date" id="r-fecha" onchange="onFechaChange()">
+    <input type="date" id="r-fecha" onchange="onFechaChange()" min="">
   </div>
   <div id="horarios-container"></div>
   <div id="mesas-container" style="display:none">
@@ -176,6 +176,13 @@ let amenidades = [];
 let reglas = [];
 let reservas = [];
 let horarios = [];
+
+// Bloquear fechas pasadas
+window.onload = () => {
+  const hoy = new Date().toISOString().split('T')[0];
+  document.getElementById('r-fecha').min = hoy;
+  document.getElementById('v-fecha').min = hoy;
+};
 
 function mostrar(id) {
   document.getElementById('menu').style.display = id === 'menu' ? 'flex' : 'none';
@@ -243,6 +250,17 @@ async function onFechaChange() {
   const amenidad = document.getElementById('r-amenidad').value;
   const fecha = document.getElementById('r-fecha').value;
   if (!amenidad || !fecha) return;
+
+  // Bloquear fechas futuras para mesas
+  if (amenidad !== 'PAL-01') {
+    const hoy = new Date().toISOString().split('T')[0];
+    if (fecha !== hoy) {
+      document.getElementById('mesas-container').style.display = 'none';
+      document.getElementById('horarios-container').innerHTML = '<div class="mensaje error">Las mesas solo se pueden reservar para hoy</div>';
+      return;
+    }
+  }
+
   try {
     const [resH, resR] = await Promise.all([
       fetch(`${API}?accion=getHorarios`),
@@ -292,8 +310,12 @@ function mostrarSelectorMesas(amenidad, fecha) {
   document.getElementById('mesas-container').style.display = 'block';
   const sel = document.getElementById('r-hora-inicio');
   sel.innerHTML = '<option value="">Selecciona hora...</option>';
+  const ahora = new Date();
+  const horaActual = ahora.getHours();
+  const hoy = ahora.toISOString().split('T')[0];
   for (let h = 8; h <= 24; h++) {
     const val = h === 24 ? 0 : h;
+    if (fecha === hoy && h !== 24 && h <= horaActual) continue;
     const txt = h === 24 ? '00:00 (medianoche)' : `${String(h).padStart(2,'0')}:00`;
     const opt = document.createElement('option');
     opt.value = val;
@@ -402,7 +424,7 @@ function cerrarModal() {
 async function cargarMisReservas() {
   const casa = document.getElementById('mr-casa').value.trim();
   if (!casa) return;
-statistical const lista = document.getElementById('mis-reservas-lista');
+  const lista = document.getElementById('mis-reservas-lista');
   lista.innerHTML = '<p style="color:#666">Buscando...</p>';
   try {
     const res = await fetch(`${API}?accion=getReservas`);
