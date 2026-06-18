@@ -442,7 +442,6 @@ async function cargarMisReservas() {
   try {
     const res = await fetch(`${API}?accion=getReservas`);
     const data = await res.json();
-    const misReservas = data.filter(r => String(r.Casa) === casa);
     if (misReservas.length === 0) {
       lista.innerHTML = '<p style="color:#666">No tienes reservas activas</p>';
       return;
