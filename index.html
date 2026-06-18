@@ -79,7 +79,7 @@
   <button class="back" onclick="mostrar('menu')">← Regresar</button>
   <h2>🚗 Registrar Visita</h2>
   <div id="msg-visita"></div>
-<div class="form-group">
+  <div class="form-group">
     <label>Número de depto</label>
     <input type="text" id="v-casa" placeholder="Ej: 4A">
   </div>
@@ -114,9 +114,13 @@
   <button class="back" onclick="mostrar('menu')">← Regresar</button>
   <h2>📅 Reservar Amenidad</h2>
   <div id="msg-reserva"></div>
- <div class="form-group">
-    <label>Tu nombre completo</label>
-    <input type="text" id="v-nombre-residente" placeholder="Nombre y apellido">
+  <div class="form-group">
+    <label>Número de depto</label>
+    <input type="text" id="r-casa" placeholder="Ej: 4A">
+  </div>
+  <div class="form-group">
+    <label>Nombre completo</label>
+    <input type="text" id="r-nombre" placeholder="Nombre y apellido">
   </div>
   <div class="form-group">
     <label>¿Qué quieres reservar?</label>
@@ -155,9 +159,9 @@
 <div id="mis-reservas" class="pantalla">
   <button class="back" onclick="mostrar('menu')">← Regresar</button>
   <h2>📋 Mis Reservas</h2>
-<div class="form-group">
-    <label>Tu nombre completo</label>
-    <input type="text" id="r-nombre" placeholder="Nombre y apellido">
+  <div class="form-group">
+    <label>Número de depto</label>
+    <input type="text" id="mr-casa" placeholder="Ej: 4A">
   </div>
   <button class="submit" onclick="cargarMisReservas()">Buscar</button>
   <div id="mis-reservas-lista" style="margin-top:16px"></div>
@@ -181,7 +185,6 @@ let reglas = [];
 let reservas = [];
 let horarios = [];
 
-// Bloquear fechas pasadas
 window.onload = () => {
   const hoy = new Date().toISOString().split('T')[0];
   document.getElementById('r-fecha').min = hoy;
@@ -197,12 +200,12 @@ function mostrar(id) {
 
 async function registrarVisita() {
   const casa = document.getElementById('v-casa').value.trim();
+  const nombreResidente = document.getElementById('v-nombre-residente').value.trim();
   const nombre = document.getElementById('v-nombre').value.trim();
   const fecha = document.getElementById('v-fecha').value;
   const hora = document.getElementById('v-hora').value;
   const auto = document.getElementById('v-auto').value;
-const nombreResidente = document.getElementById('v-nombre-residente').value.trim();
-  if (!casa || !nombre || !fecha || !hora || !nombreResidente) {
+  if (!casa || !nombreResidente || !nombre || !fecha || !hora) {
     document.getElementById('msg-visita').innerHTML = '<div class="mensaje error">Por favor llena todos los campos</div>';
     return;
   }
@@ -214,6 +217,7 @@ const nombreResidente = document.getElementById('v-nombre-residente').value.trim
     });
     document.getElementById('msg-visita').innerHTML = '<div class="mensaje ok">✅ Visita registrada correctamente</div>';
     document.getElementById('v-casa').value = '';
+    document.getElementById('v-nombre-residente').value = '';
     document.getElementById('v-nombre').value = '';
     document.getElementById('v-fecha').value = '';
     document.getElementById('v-hora').value = '';
@@ -255,9 +259,7 @@ async function onFechaChange() {
   const amenidad = document.getElementById('r-amenidad').value;
   const fecha = document.getElementById('r-fecha').value;
   if (!amenidad || !fecha) return;
-
-  // Bloquear fechas futuras para mesas
-if (amenidad !== 'PAL-01') {
+  if (amenidad !== 'PAL-01') {
     const ahora = new Date();
     const hoy = ahora.toISOString().split('T')[0];
     const manana = new Date(ahora);
@@ -269,7 +271,6 @@ if (amenidad !== 'PAL-01') {
       return;
     }
   }
-
   try {
     const [resH, resR] = await Promise.all([
       fetch(`${API}?accion=getHorarios`),
@@ -322,9 +323,6 @@ function mostrarSelectorMesas(amenidad, fecha) {
   const ahora = new Date();
   const horaActual = ahora.getHours();
   const hoy = ahora.toISOString().split('T')[0];
-  const manana = new Date(ahora);
-  manana.setDate(manana.getDate() + 1);
-  const mananaStr = manana.toISOString().split('T')[0];
   for (let h = 8; h <= 24; h++) {
     const val = h === 24 ? 0 : h;
     if (fecha === hoy && h !== 24 && h <= horaActual) continue;
@@ -396,11 +394,11 @@ function obtenerRegla(amenidad) {
 
 async function registrarReserva() {
   const casa = document.getElementById('r-casa').value.trim();
+  const nombre = document.getElementById('r-nombre').value.trim();
   const amenidad = document.getElementById('r-amenidad').value;
   const fecha = document.getElementById('r-fecha').value;
   const notas = document.getElementById('r-notas').value;
-const nombreReserva = document.getElementById('r-nombre').value.trim();
-  if (!casa || !nombreReserva || !amenidad || !fecha || !horarioSeleccionado) {
+  if (!casa || !nombre || !amenidad || !fecha || !horarioSeleccionado) {
     document.getElementById('msg-reserva').innerHTML = '<div class="mensaje error">Por favor completa todos los campos</div>';
     return;
   }
@@ -409,7 +407,7 @@ const nombreReserva = document.getElementById('r-nombre').value.trim();
     await fetch(API, {
       method: 'POST', mode: 'no-cors',
       body: JSON.stringify({
-        accion: 'registrarReserva', casa,
+        accion: 'registrarReserva', casa, nombre,
         id_amenidad: amenidad, fecha,
         id_horario: horarioSeleccionado.ID_Horario,
         hora_inicio: horarioSeleccionado.Hora_Inicio,
