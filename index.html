@@ -215,7 +215,9 @@ async function registrarVisita() {
       method: 'POST', mode: 'no-cors',
       body: JSON.stringify({ accion: 'registrarVisita', casa, nombre_residente: nombreResidente, nombre_visitante: nombre, fecha, hora_estimada: hora, trae_auto: auto })
     });
-    document.getElementById('msg-visita').innerHTML = '<div class="mensaje ok">✅ Visita registrada correctamente<br><br>📌 <em>Nota para el residente: Recuerda que la seguridad y tranquilidad de Paamul la hacemos todos. Asegúrate de que tus visitas conozcan y respeten el reglamento interno del condominio durante su estancia. ¡Disfruten su reunión!</em></div>';
+    const reglaVisita = reglas.find(r => r.Amenidad === 'Visita');
+const msgVisita = reglaVisita ? reglaVisita.Regla : '';
+document.getElementById('msg-visita').innerHTML = `<div class="mensaje ok">✅ Visita registrada correctamente${msgVisita ? '<br><br>📌 <em>' + msgVisita + '</em>' : ''}</div>`;
     document.getElementById('v-casa').value = '';
     document.getElementById('v-nombre-residente').value = '';
     document.getElementById('v-nombre').value = '';
