@@ -3,14 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privada App</title>
+  <title>Privada App — Paamul</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: #f0f2f5; color: #333; }
     .header { background: #1a73e8; color: white; padding: 16px; text-align: center; }
     .header h1 { font-size: 20px; }
+    .header p { font-size: 13px; margin-top: 4px; opacity: 0.8; }
     .menu { display: flex; flex-direction: column; gap: 16px; padding: 24px; max-width: 400px; margin: 0 auto; }
-    .btn { background: white; border: none; border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 16px; font-size: 16px; }
+    .bienvenida { background: white; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .bienvenida h3 { color: #1a73e8; font-size: 16px; }
+    .saldo-box { background: #e8f0fe; border-radius: 8px; padding: 12px; margin-top: 8px; }
+    .saldo-box .monto { font-size: 24px; font-weight: bold; color: #c5221f; }
+    .saldo-box .monto.ok { color: #137333; }
+    .btn { background: white; border: none; border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 16px; font-size: 16px; width: 100%; }
     .btn:hover { background: #e8f0fe; }
     .btn .icono { font-size: 32px; }
     .btn .texto h3 { font-size: 16px; color: #1a73e8; }
@@ -34,6 +40,8 @@
     .mensaje { padding: 16px; border-radius: 8px; margin-bottom: 16px; text-align: center; }
     .mensaje.ok { background: #e6f4ea; color: #137333; }
     .mensaje.error { background: #fce8e6; color: #c5221f; }
+    .reglas-amenidad { background: #fff8e1; border: 1px solid #f9a825; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; }
+    .reglas-amenidad h4 { color: #f57f17; margin-bottom: 6px; }
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
     .modal.activo { display: flex; }
     .modal-content { background: white; border-radius: 16px; padding: 24px; max-width: 360px; width: 90%; text-align: center; }
@@ -41,130 +49,184 @@
     .modal-content .reglas-modal { background: #fff8e1; border: 1px solid #f9a825; border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 13px; line-height: 1.6; text-align: left; }
     .modal-content button { background: #1a73e8; color: white; border: none; border-radius: 8px; padding: 12px 24px; font-size: 16px; cursor: pointer; margin-top: 8px; width: 100%; }
     h2 { font-size: 18px; margin-bottom: 16px; color: #333; }
+    .login-box { max-width: 400px; margin: 40px auto; padding: 24px; background: white; border-radius: 16px; box-shadow: 0 2px 16px rgba(0,0,0,0.1); }
+    .login-box h2 { text-align: center; color: #1a73e8; margin-bottom: 24px; }
+    .finanzas-card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+    .finanzas-card .concepto { font-size: 14px; color: #333; }
+    .finanzas-card .monto-item { font-weight: bold; color: #c5221f; }
+    .finanzas-card.pagado { opacity: 0.5; }
+    .finanzas-card.pagado .monto-item { color: #137333; }
   </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>🏘️ Privada App</h1>
-  <p style="font-size:13px; margin-top:4px; opacity:0.8;">Bienvenido vecino</p>
-</div>
-
-<div id="menu" class="menu">
-  <button class="btn" onclick="mostrar('visitas')">
-    <span class="icono">🚗</span>
-    <div class="texto">
-      <h3>Registrar Visita</h3>
-      <p>Avisa que viene alguien a tu casa</p>
-    </div>
-  </button>
-  <button class="btn" onclick="mostrar('reservas')">
-    <span class="icono">📅</span>
-    <div class="texto">
-      <h3>Reservar Amenidad</h3>
-      <p>Palapa, mesas y más</p>
-    </div>
-  </button>
-  <button class="btn" onclick="mostrar('mis-reservas')">
-    <span class="icono">📋</span>
-    <div class="texto">
-      <h3>Mis Reservas</h3>
-      <p>Ver y cancelar tus reservas</p>
-    </div>
-  </button>
-</div>
-
-<!-- PANTALLA VISITAS -->
-<div id="visitas" class="pantalla">
-  <button class="back" onclick="mostrar('menu')">← Regresar</button>
-  <h2>🚗 Registrar Visita</h2>
-  <div id="msg-visita"></div>
-  <div class="form-group">
-    <label>Número de depto</label>
-    <input type="text" id="v-casa" placeholder="Ej: 4A">
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="header">
+    <h1>🏘️ Paamul App</h1>
+    <p>Acceso para residentes</p>
   </div>
-  <div class="form-group">
-    <label>Nombre de quien autoriza</label>
-    <input type="text" id="v-nombre-residente" placeholder="Nombre y apellido">
-  </div>
-  <div class="form-group">
-    <label>Nombre del visitante</label>
-    <input type="text" id="v-nombre" placeholder="Nombre completo">
-  </div>
-  <div class="form-group">
-    <label>Fecha de llegada</label>
-    <input type="date" id="v-fecha">
-  </div>
-  <div class="form-group">
-    <label>Hora estimada</label>
-    <input type="time" id="v-hora">
-  </div>
-  <div class="form-group">
-    <label>¿Trae auto?</label>
-    <select id="v-auto">
-      <option value="No">No</option>
-      <option value="Si">Sí</option>
-    </select>
-  </div>
-  <button class="submit" onclick="registrarVisita()">Registrar Visita</button>
-</div>
-
-<!-- PANTALLA RESERVAS -->
-<div id="reservas" class="pantalla">
-  <button class="back" onclick="mostrar('menu')">← Regresar</button>
-  <h2>📅 Reservar Amenidad</h2>
-  <div id="msg-reserva"></div>
-  <div class="form-group">
-    <label>Número de depto</label>
-    <input type="text" id="r-casa" placeholder="Ej: 4A">
-  </div>
-  <div class="form-group">
-    <label>Nombre completo</label>
-    <input type="text" id="r-nombre" placeholder="Nombre y apellido">
-  </div>
-  <div class="form-group">
-    <label>¿Qué quieres reservar?</label>
-    <select id="r-amenidad" onchange="onAmenidadChange()">
-      <option value="">Selecciona...</option>
-    </select>
-  </div>
-  <div class="form-group">
-    <label>Fecha</label>
-    <input type="date" id="r-fecha" onchange="onFechaChange()" min="">
-  </div>
-  <div id="horarios-container"></div>
-  <div id="mesas-container" style="display:none">
+  <div class="login-box">
+    <h2>🔐 Iniciar Sesión</h2>
+    <div id="msg-login"></div>
     <div class="form-group">
-      <label>Hora de inicio</label>
-      <select id="r-hora-inicio" onchange="onHoraChange()">
-        <option value="">Selecciona hora...</option>
+      <label>Número de depto</label>
+      <input type="text" id="login-casa" placeholder="Ej: 4A" style="text-transform:uppercase">
+    </div>
+    <div class="form-group">
+      <label>PIN</label>
+      <input type="password" id="login-pin" placeholder="Tu PIN de acceso">
+    </div>
+    <button class="submit" onclick="iniciarSesion()">Entrar</button>
+  </div>
+</div>
+
+<!-- APP PRINCIPAL -->
+<div id="app-screen" style="display:none">
+
+  <div class="header">
+    <h1>🏘️ Paamul App</h1>
+    <p id="header-bienvenida">Bienvenido</p>
+  </div>
+
+  <div id="menu" class="menu">
+    <div class="bienvenida">
+      <h3 id="nombre-residente">Cargando...</h3>
+      <div class="saldo-box">
+        <div style="font-size:13px; color:#666; margin-bottom:4px">Saldo pendiente</div>
+        <div class="monto" id="saldo-pendiente">Cargando...</div>
+      </div>
+    </div>
+    <button class="btn" onclick="mostrar('visitas')">
+      <span class="icono">🚗</span>
+      <div class="texto">
+        <h3>Registrar Visita</h3>
+        <p>Avisa que viene alguien a tu casa</p>
+      </div>
+    </button>
+    <button class="btn" onclick="mostrar('reservas')">
+      <span class="icono">📅</span>
+      <div class="texto">
+        <h3>Reservar Amenidad</h3>
+        <p>Palapa, mesas y más</p>
+      </div>
+    </button>
+    <button class="btn" onclick="mostrar('mis-reservas')">
+      <span class="icono">📋</span>
+      <div class="texto">
+        <h3>Mis Reservas</h3>
+        <p>Ver y cancelar tus reservas</p>
+      </div>
+    </button>
+    <button class="btn" onclick="mostrar('finanzas')">
+      <span class="icono">💰</span>
+      <div class="texto">
+        <h3>Mis Finanzas</h3>
+        <p>Consulta tu estado de cuenta</p>
+      </div>
+    </button>
+    <button style="background:none; border:none; color:#999; font-size:13px; cursor:pointer; padding:8px;" onclick="cerrarSesion()">Cerrar sesión</button>
+  </div>
+
+  <!-- PANTALLA VISITAS -->
+  <div id="visitas" class="pantalla">
+    <button class="back" onclick="mostrar('menu')">← Regresar</button>
+    <h2>🚗 Registrar Visita</h2>
+    <div id="msg-visita"></div>
+    <div class="form-group">
+      <label>Número de depto</label>
+      <input type="text" id="v-casa" placeholder="Ej: 4A" readonly>
+    </div>
+    <div class="form-group">
+      <label>Nombre de quien autoriza</label>
+      <input type="text" id="v-nombre-residente" placeholder="Nombre y apellido">
+    </div>
+    <div class="form-group">
+      <label>Nombre del visitante</label>
+      <input type="text" id="v-nombre" placeholder="Nombre completo">
+    </div>
+    <div class="form-group">
+      <label>Fecha de llegada</label>
+      <input type="date" id="v-fecha">
+    </div>
+    <div class="form-group">
+      <label>Hora estimada</label>
+      <input type="time" id="v-hora">
+    </div>
+    <div class="form-group">
+      <label>¿Trae auto?</label>
+      <select id="v-auto">
+        <option value="No">No</option>
+        <option value="Si">Sí</option>
       </select>
     </div>
-    <div class="form-group" id="duracion-grupo">
-      <label>¿Cuántas horas?</label>
-      <select id="r-duracion" onchange="verificarDisponibilidad()">
+    <button class="submit" onclick="registrarVisita()">Registrar Visita</button>
+  </div>
+
+  <!-- PANTALLA RESERVAS -->
+  <div id="reservas" class="pantalla">
+    <button class="back" onclick="mostrar('menu')">← Regresar</button>
+    <h2>📅 Reservar Amenidad</h2>
+    <div id="msg-reserva"></div>
+    <div class="form-group">
+      <label>Número de depto</label>
+      <input type="text" id="r-casa" placeholder="Ej: 4A" readonly>
+    </div>
+    <div class="form-group">
+      <label>Nombre completo</label>
+      <input type="text" id="r-nombre" placeholder="Nombre y apellido">
+    </div>
+    <div class="form-group">
+      <label>¿Qué quieres reservar?</label>
+      <select id="r-amenidad" onchange="onAmenidadChange()">
         <option value="">Selecciona...</option>
       </select>
     </div>
-    <div id="disponibilidad-mesa"></div>
+    <div id="regla-amenidad-box" style="display:none" class="reglas-amenidad">
+      <h4>📋 Reglamento</h4>
+      <p id="regla-amenidad-texto"></p>
+    </div>
+    <div class="form-group">
+      <label>Fecha</label>
+      <input type="date" id="r-fecha" onchange="onFechaChange()" min="">
+    </div>
+    <div id="horarios-container"></div>
+    <div id="mesas-container" style="display:none">
+      <div class="form-group">
+        <label>Hora de inicio</label>
+        <select id="r-hora-inicio" onchange="onHoraChange()">
+          <option value="">Selecciona hora...</option>
+        </select>
+      </div>
+      <div class="form-group" id="duracion-grupo">
+        <label>¿Cuántas horas?</label>
+        <select id="r-duracion" onchange="verificarDisponibilidad()">
+          <option value="">Selecciona...</option>
+        </select>
+      </div>
+      <div id="disponibilidad-mesa"></div>
+    </div>
+    <div class="form-group" style="display:none" id="r-notas-grupo">
+      <label>Notas (opcional)</label>
+      <input type="text" id="r-notas" placeholder="Algún comentario...">
+    </div>
+    <button class="submit" onclick="registrarReserva()" style="display:none" id="btn-reservar">Confirmar Reserva</button>
   </div>
-  <div class="form-group" style="display:none" id="r-notas-grupo">
-    <label>Notas (opcional)</label>
-    <input type="text" id="r-notas" placeholder="Algún comentario...">
-  </div>
-  <button class="submit" onclick="registrarReserva()" style="display:none" id="btn-reservar">Confirmar Reserva</button>
-</div>
 
-<!-- PANTALLA MIS RESERVAS -->
-<div id="mis-reservas" class="pantalla">
-  <button class="back" onclick="mostrar('menu')">← Regresar</button>
-  <h2>📋 Mis Reservas</h2>
-  <div class="form-group">
-    <label>Número de depto</label>
-    <input type="text" id="mr-casa" placeholder="Ej: 4A">
+  <!-- PANTALLA MIS RESERVAS -->
+  <div id="mis-reservas" class="pantalla">
+    <button class="back" onclick="mostrar('menu')">← Regresar</button>
+    <h2>📋 Mis Reservas</h2>
+    <div id="mis-reservas-lista" style="margin-top:16px"></div>
   </div>
-  <button class="submit" onclick="cargarMisReservas()">Buscar</button>
-  <div id="mis-reservas-lista" style="margin-top:16px"></div>
+
+  <!-- PANTALLA FINANZAS -->
+  <div id="finanzas" class="pantalla">
+    <button class="back" onclick="mostrar('menu')">← Regresar</button>
+    <h2>💰 Mis Finanzas</h2>
+    <div id="finanzas-lista"></div>
+  </div>
+
 </div>
 
 <!-- MODAL CONFIRMACION -->
@@ -184,28 +246,94 @@ let amenidades = [];
 let reglas = [];
 let reservas = [];
 let horarios = [];
+let sesion = null;
 
 window.onload = () => {
   const hoy = new Date().toISOString().split('T')[0];
   document.getElementById('r-fecha').min = hoy;
   document.getElementById('v-fecha').min = hoy;
+  const sesionGuardada = localStorage.getItem('paamul_sesion');
+  if (sesionGuardada) {
+    sesion = JSON.parse(sesionGuardada);
+    iniciarApp();
+  }
 };
+
+async function iniciarSesion() {
+  const casa = document.getElementById('login-casa').value.trim().toUpperCase();
+  const pin = document.getElementById('login-pin').value.trim();
+  if (!casa || !pin) {
+    document.getElementById('msg-login').innerHTML = '<div class="mensaje error">Por favor ingresa tu depto y PIN</div>';
+    return;
+  }
+  document.getElementById('msg-login').innerHTML = '<div class="mensaje ok">Validando...</div>';
+  try {
+    await fetch(API, {
+      method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({ accion: 'validarPin', casa, pin })
+    });
+    sesion = { casa, nombre: casa };
+    localStorage.setItem('paamul_sesion', JSON.stringify(sesion));
+    iniciarApp();
+  } catch(e) {
+    document.getElementById('msg-login').innerHTML = '<div class="mensaje error">Error de conexión</div>';
+  }
+}
+
+function iniciarApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  document.getElementById('header-bienvenida').textContent = `Depto ${sesion.casa}`;
+  document.getElementById('v-casa').value = sesion.casa;
+  document.getElementById('r-casa').value = sesion.casa;
+  cargarAmenidades();
+  cargarSaldo();
+  cargarMisReservas();
+}
+
+function cerrarSesion() {
+  localStorage.removeItem('paamul_sesion');
+  sesion = null;
+  location.reload();
+}
+
+async function cargarSaldo() {
+  try {
+    const res = await fetch(`${API}?accion=getFinanzas`);
+    const data = await res.json();
+    const misCargos = data.filter(f => String(f.Casa) === sesion.casa && f.Estatus === 'Pendiente');
+    const total = misCargos.reduce((sum, f) => sum + (parseFloat(f.Monto) || 0), 0);
+    const el = document.getElementById('saldo-pendiente');
+    if (total === 0) {
+      el.textContent = '✅ Sin adeudos';
+      el.classList.add('ok');
+    } else {
+      el.textContent = `$${total.toLocaleString('es-MX')} MXN`;
+    }
+    document.getElementById('nombre-residente').textContent = `Bienvenido, Depto ${sesion.casa}`;
+  } catch(e) {
+    document.getElementById('saldo-pendiente').textContent = 'No disponible';
+  }
+}
 
 function mostrar(id) {
   document.getElementById('menu').style.display = id === 'menu' ? 'flex' : 'none';
   document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
-  if (id !== 'menu') document.getElementById(id).classList.add('activa');
+  if (id !== 'menu') {
+    document.getElementById(id).classList.add('activa');
+    if (id === 'finanzas') cargarFinanzas();
+  }
   horarioSeleccionado = null;
 }
 
 async function registrarVisita() {
-  const casa = document.getElementById('v-casa').value.trim();
+  const casa = sesion.casa;
   const nombreResidente = document.getElementById('v-nombre-residente').value.trim();
   const nombre = document.getElementById('v-nombre').value.trim();
   const fecha = document.getElementById('v-fecha').value;
   const hora = document.getElementById('v-hora').value;
   const auto = document.getElementById('v-auto').value;
-  if (!casa || !nombreResidente || !nombre || !fecha || !hora) {
+  if (!nombreResidente || !nombre || !fecha || !hora) {
     document.getElementById('msg-visita').innerHTML = '<div class="mensaje error">Por favor llena todos los campos</div>';
     return;
   }
@@ -216,9 +344,8 @@ async function registrarVisita() {
       body: JSON.stringify({ accion: 'registrarVisita', casa, nombre_residente: nombreResidente, nombre_visitante: nombre, fecha, hora_estimada: hora, trae_auto: auto })
     });
     const reglaVisita = reglas.find(r => r.Amenidad === 'Visita');
-const msgVisita = reglaVisita ? reglaVisita.Regla : '';
-document.getElementById('msg-visita').innerHTML = `<div class="mensaje ok">✅ Visita registrada correctamente${msgVisita ? '<br><br>📌 <em>' + msgVisita + '</em>' : ''}</div>`;
-    document.getElementById('v-casa').value = '';
+    const msgExtra = reglaVisita ? `<br><br>📌 <em>${reglaVisita.Regla}</em>` : '';
+    document.getElementById('msg-visita').innerHTML = `<div class="mensaje ok">✅ Visita registrada correctamente${msgExtra}</div>`;
     document.getElementById('v-nombre-residente').value = '';
     document.getElementById('v-nombre').value = '';
     document.getElementById('v-fecha').value = '';
@@ -253,6 +380,19 @@ function onAmenidadChange() {
   document.getElementById('btn-reservar').style.display = 'none';
   document.getElementById('disponibilidad-mesa').innerHTML = '';
   horarioSeleccionado = null;
+  const amenidad = document.getElementById('r-amenidad').value;
+  if (amenidad) {
+    const nombreAmenidad = amenidad === 'PAL-01' ? 'Palapa' : 'Juego de Mesa, Sillas y Sombrilla';
+    const regla = reglas.find(r => r.Amenidad === nombreAmenidad);
+    if (regla) {
+      document.getElementById('regla-amenidad-texto').textContent = regla.Regla;
+      document.getElementById('regla-amenidad-box').style.display = 'block';
+    } else {
+      document.getElementById('regla-amenidad-box').style.display = 'none';
+    }
+  } else {
+    document.getElementById('regla-amenidad-box').style.display = 'none';
+  }
   const fecha = document.getElementById('r-fecha').value;
   if (fecha) onFechaChange();
 }
@@ -395,12 +535,12 @@ function obtenerRegla(amenidad) {
 }
 
 async function registrarReserva() {
-  const casa = document.getElementById('r-casa').value.trim();
+  const casa = sesion.casa;
   const nombre = document.getElementById('r-nombre').value.trim();
   const amenidad = document.getElementById('r-amenidad').value;
   const fecha = document.getElementById('r-fecha').value;
   const notas = document.getElementById('r-notas').value;
-  if (!casa || !nombre || !amenidad || !fecha || !horarioSeleccionado) {
+  if (!nombre || !amenidad || !fecha || !horarioSeleccionado) {
     document.getElementById('msg-reserva').innerHTML = '<div class="mensaje error">Por favor completa todos los campos</div>';
     return;
   }
@@ -435,18 +575,19 @@ function cerrarModal() {
 }
 
 async function cargarMisReservas() {
-  const casa = document.getElementById('mr-casa').value.trim();
-  if (!casa) return;
+  if (!sesion) return;
   const lista = document.getElementById('mis-reservas-lista');
-  lista.innerHTML = '<p style="color:#666">Buscando...</p>';
+  if (lista) lista.innerHTML = '<p style="color:#666">Cargando...</p>';
   try {
     const res = await fetch(`${API}?accion=getReservas`);
     const data = await res.json();
+    const misReservas = data.filter(r => String(r.Casa) === sesion.casa);
+    if (!lista) return;
     if (misReservas.length === 0) {
-      lista.innerHTML = '<p style="color:#666">No tienes reservas activas</p>';
+      lista.innerHTML = '<p style="color:#666">No tienes reservas</p>';
       return;
     }
-lista.innerHTML = misReservas.map(r => {
+    lista.innerHTML = misReservas.map(r => {
       const esCancelada = r.Estatus === 'Cancelada';
       const esFinalizada = r.Estatus === 'Finalizada';
       return `
@@ -457,9 +598,42 @@ lista.innerHTML = misReservas.map(r => {
         <small style="color:#999">Estatus: ${r.Estatus}</small><br>
         ${!esCancelada && !esFinalizada ? `<button onclick="cancelar('${r.ID_Reserva}')" style="background:#c5221f;color:white;border:none;border-radius:6px;padding:8px 12px;margin-top:8px;cursor:pointer">Cancelar</button>` : ''}
       </div>`;
-    }).join('');const misReservas = data.filter(r => String(r.Casa) === casa && r.Estatus === 'Activa');
+    }).join('');
   } catch(e) {
-    lista.innerHTML = '<p style="color:#c5221f">Error al cargar reservas</p>';
+    if (lista) lista.innerHTML = '<p style="color:#c5221f">Error al cargar reservas</p>';
+  }
+}
+
+async function cargarFinanzas() {
+  const lista = document.getElementById('finanzas-lista');
+  lista.innerHTML = '<p style="color:#666">Cargando...</p>';
+  try {
+    const res = await fetch(`${API}?accion=getFinanzas`);
+    const data = await res.json();
+    const misCargos = data.filter(f => String(f.Casa) === sesion.casa);
+    if (misCargos.length === 0) {
+      lista.innerHTML = '<div class="mensaje ok">✅ Sin movimientos registrados</div>';
+      return;
+    }
+    const pendientes = misCargos.filter(f => f.Estatus === 'Pendiente');
+    const total = pendientes.reduce((sum, f) => sum + (parseFloat(f.Monto) || 0), 0);
+    lista.innerHTML = `
+      <div class="saldo-box" style="background:white;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.1);text-align:center">
+        <div style="font-size:13px;color:#666;margin-bottom:4px">Total pendiente</div>
+        <div style="font-size:28px;font-weight:bold;color:${total > 0 ? '#c5221f' : '#137333'}">${total > 0 ? '$' + total.toLocaleString('es-MX') + ' MXN' : '✅ Al corriente'}</div>
+      </div>
+      ${misCargos.map(f => `
+        <div class="finanzas-card ${f.Estatus === 'Pagado' ? 'pagado' : ''}">
+          <div>
+            <div class="concepto">${f.Concepto || ''}</div>
+            <div style="font-size:12px;color:#999">${f.Mes || ''} — ${f.Estatus}</div>
+          </div>
+          <div class="monto-item">$${parseFloat(f.Monto || 0).toLocaleString('es-MX')}</div>
+        </div>
+      `).join('')}
+    `;
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c5221f">Error al cargar finanzas</p>';
   }
 }
 
@@ -475,8 +649,6 @@ async function cancelar(id) {
     alert('Error al cancelar, intenta de nuevo');
   }
 }
-
-cargarAmenidades();
 </script>
 </body>
 </html>
