@@ -215,7 +215,7 @@ async function registrarVisita() {
       method: 'POST', mode: 'no-cors',
       body: JSON.stringify({ accion: 'registrarVisita', casa, nombre_residente: nombreResidente, nombre_visitante: nombre, fecha, hora_estimada: hora, trae_auto: auto })
     });
-    document.getElementById('msg-visita').innerHTML = '<div class="mensaje ok">✅ Visita registrada correctamente</div>';
+    document.getElementById('msg-visita').innerHTML = '<div class="mensaje ok">✅ Visita registrada correctamente<br><br>📌 <em>Nota para el residente: Recuerda que la seguridad y tranquilidad de Paamul la hacemos todos. Asegúrate de que tus visitas conozcan y respeten el reglamento interno del condominio durante su estancia. ¡Disfruten su reunión!</em></div>';
     document.getElementById('v-casa').value = '';
     document.getElementById('v-nombre-residente').value = '';
     document.getElementById('v-nombre').value = '';
@@ -440,21 +440,23 @@ async function cargarMisReservas() {
   try {
     const res = await fetch(`${API}?accion=getReservas`);
     const data = await res.json();
-    const misReservas = data.filter(r => String(r.Casa) === casa && r.Estatus === 'Activa');
+    const misReservas = data.filter(r => String(r.Casa) === casa);
     if (misReservas.length === 0) {
       lista.innerHTML = '<p style="color:#666">No tienes reservas activas</p>';
       return;
     }
-    lista.innerHTML = misReservas.map(r => {
-      const fecha = String(r.Fecha).includes('T') ? String(r.Fecha).split('T')[0] : r.Fecha;
-      const hora = String(r.Hora_Inicio).includes('T') ? String(r.Hora_Inicio).split('T')[1].substring(0,5) : r.Hora_Inicio;
+lista.innerHTML = misReservas.map(r => {
+      const esCancelada = r.Estatus === 'Cancelada';
+      const esFinalizada = r.Estatus === 'Finalizada';
       return `
-      <div class="card">
-        <strong>${r.ID_Amenidad}</strong> — ${fecha}<br>
-        <small style="color:#666">${hora}${r.Duracion_Hrs ? ' — ' + r.Duracion_Hrs + ' hrs' : ''}</small><br>
-        <button onclick="cancelar('${r.ID_Reserva}')" style="background:#c5221f;color:white;border:none;border-radius:6px;padding:8px 12px;margin-top:8px;cursor:pointer">Cancelar</button>
+      <div class="card" style="border-left: 4px solid ${esCancelada ? '#c5221f' : esFinalizada ? '#999' : '#1a73e8'}">
+        <strong>${r.Casa}</strong> — ${r.Nombre || ''}<br>
+        <span style="color:#1a73e8">${r.ID_Amenidad}</span>${r.Duracion_Hrs ? ' — ' + r.Duracion_Hrs + ' hrs' : ''}<br>
+        <small style="color:#666">📅 ${r.Fecha}</small><br>
+        <small style="color:#999">Estatus: ${r.Estatus}</small><br>
+        ${!esCancelada && !esFinalizada ? `<button onclick="cancelar('${r.ID_Reserva}')" style="background:#c5221f;color:white;border:none;border-radius:6px;padding:8px 12px;margin-top:8px;cursor:pointer">Cancelar</button>` : ''}
       </div>`;
-    }).join('');
+    }).join('');const misReservas = data.filter(r => String(r.Casa) === casa && r.Estatus === 'Activa');
   } catch(e) {
     lista.innerHTML = '<p style="color:#c5221f">Error al cargar reservas</p>';
   }
