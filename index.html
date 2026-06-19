@@ -64,13 +64,13 @@
     .total-box .valor { font-size: 18px; font-weight: bold; margin-top: 4px; }
     .total-box.adeudo .valor { color: #c5221f; }
     .total-box.abonado .valor { color: #137333; }
-    .total-box.atrasado { background: #fff3e0; }
-    .total-box.atrasado .label { color: #e65100; }
-    .total-box.atrasado .valor { color: #e65100; }
+    .total-box.atrasado { background: #e6f4ea; }
+    .total-box.atrasado .label { color: #137333; }
+    .total-box.atrasado .valor { color: #137333; }
     .desglose-titulo { font-size: 13px; color: #666; margin: 16px 0 8px; font-weight: bold; }
     .finanzas-card { background: white; border-radius: 10px; padding: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
     .finanzas-card .concepto { font-size: 14px; color: #333; }
-    .finanzas-card .monto-item { font-weight: bold; color: #c5221f; font-size: 15px; }
+    .finanzas-card .monto-item { font-weight: bold; color: #137333; font-size: 15px; }
   </style>
 </head>
 <body>
@@ -142,6 +142,13 @@
       <div class="texto">
         <h3>Mis Finanzas</h3>
         <p>Consulta tu estado de cuenta</p>
+      </div>
+    </button>
+    <button class="btn" id="btn-servicios" onclick="mostrar('servicios')">
+      <span class="icono">🔑</span>
+      <div class="texto">
+        <h3>Servicios Adicionales</h3>
+        <p>Llave de azotea y escalera</p>
       </div>
     </button>
     <button style="background:none; border:none; color:#999; font-size:13px; cursor:pointer; padding:8px;" onclick="cerrarSesion()">Cerrar sesión</button>
@@ -234,6 +241,35 @@
     <div id="finanzas-lista"></div>
   </div>
 
+  <!-- PANTALLA SERVICIOS ADICIONALES -->
+  <div id="servicios" class="pantalla">
+    <button class="back" onclick="mostrar('menu')">← Regresar</button>
+    <h2>🔑 Servicios Adicionales</h2>
+    <div id="msg-servicios"></div>
+    <p style="font-size:13px; color:#666; margin-bottom:16px">Tu edificio: <strong id="servicios-edificio">—</strong></p>
+    <div class="form-group">
+      <label>¿Qué necesitas?</label>
+      <select id="serv-articulo" onchange="onArticuloChange()">
+        <option value="">Selecciona...</option>
+        <option value="Llave de Azotea">Llave de Azotea</option>
+        <option value="Escalera Comunitaria">Escalera Comunitaria</option>
+      </select>
+    </div>
+    <div id="regla-servicio-box" style="display:none" class="reglas-amenidad">
+      <h4>📋 Reglamento</h4>
+      <p id="regla-servicio-texto"></p>
+    </div>
+    <div id="estado-servicio-box"></div>
+    <div class="form-group" id="serv-accion-grupo" style="display:none">
+      <label>¿Qué deseas hacer?</label>
+      <select id="serv-accion">
+        <option value="Préstamo">Solicitar (Préstamo)</option>
+        <option value="Devolución">Registrar Devolución</option>
+      </select>
+    </div>
+    <button class="submit" onclick="registrarServicio()" style="display:none" id="btn-servicio">Confirmar</button>
+  </div>
+
 </div>
 
 <!-- MODAL CONFIRMACION -->
@@ -290,6 +326,14 @@ function generarDispositivoId() {
   return id;
 }
 
+// Calcula el edificio a partir del número de depto. Ej: 4A -> depto 4 -> Edificio 2 (3-4)
+function calcularEdificio(casa) {
+  const match = String(casa).match(/\d+/);
+  if (!match) return null;
+  const numero = parseInt(match[0]);
+  return Math.ceil(numero / 2);
+}
+
 window.onload = () => {
   const hoy = new Date().toISOString().split('T')[0];
   document.getElementById('r-fecha').min = hoy;
@@ -325,13 +369,21 @@ async function iniciarSesion() {
       document.getElementById('msg-login').innerHTML = '<div class="mensaje error">Depto no encontrado</div>';
       return;
     }
-    if (String(casaEncontrada.PIN).trim() !== pin) {
+
+    const pinProp = String(casaEncontrada.PIN_Propietario || '').trim();
+    const pinRes = String(casaEncontrada.PIN_Residente || '').trim();
+    let rol = null;
+    if (pinProp !== '' && pinProp === pin) {
+      rol = 'Propietario';
+    } else if (pinRes !== '' && pinRes === pin) {
+      rol = 'Residente';
+    } else {
       document.getElementById('msg-login').innerHTML = '<div class="mensaje error">PIN incorrecto</div>';
       return;
     }
 
     // Usamos el nombre que la persona escribió al ingresar (puede variar entre residentes del mismo depto)
-    sesion = { casa: casaEncontrada.ID_Casa, nombre: nombreIngreso };
+    sesion = { casa: casaEncontrada.ID_Casa, nombre: nombreIngreso, rol: rol, edificio: calcularEdificio(casaEncontrada.ID_Casa) };
     localStorage.setItem('paamul_sesion', JSON.stringify(sesion));
     iniciarApp();
   } catch(e) {
@@ -339,14 +391,59 @@ async function iniciarSesion() {
   }
 }
 
-function iniciarApp() {
+async function iniciarApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
   document.getElementById('header-bienvenida').textContent = `Departamento ${sesion.casa}`;
   document.getElementById('nombre-residente').textContent = `Bienvenido, ${sesion.nombre}`;
+  document.getElementById('servicios-edificio').textContent = `Edificio ${sesion.edificio}`;
   cargarAmenidades();
-  cargarSaldo();
   cargarMisReservas();
+  await aplicarBloqueosPorAdeudo();
+}
+
+// Si el rol es Residente y su Estatus es ADEUDO, bloquea Reservas y Visitas (deja solo Servicios Adicionales)
+async function aplicarBloqueosPorAdeudo() {
+  document.getElementById('saldo-pendiente').textContent = 'Cargando...';
+  try {
+    const res = await fetch(`${API}?accion=getFinanzas`);
+    const data = await res.json();
+    const fin = obtenerFinanzasCasa(data);
+    const estatus = fin ? String(fin.Estatus || '').trim().toUpperCase() : '';
+    sesion.bloqueado = (sesion.rol === 'Residente' && !ESTATUS_OK.includes(estatus));
+
+    const elSaldo = document.getElementById('saldo-pendiente');
+    if (sesion.rol === 'Propietario') {
+      const adeudo = fin ? limpiarMonto(fin.Adeudo) : 0;
+      if (adeudo <= 0) { elSaldo.textContent = '✅ Sin adeudos'; elSaldo.classList.add('ok'); }
+      else { elSaldo.textContent = `$${adeudo.toLocaleString('es-MX')} MXN`; elSaldo.classList.remove('ok'); }
+    } else {
+      // Residente: solo ve el estatus general, no montos
+      if (estatus) {
+        const ok = ESTATUS_OK.includes(estatus);
+        elSaldo.textContent = ok ? `✅ ${fin.Estatus}` : `⚠️ ${fin.Estatus}`;
+        elSaldo.classList.toggle('ok', ok);
+      } else {
+        elSaldo.textContent = 'Sin información';
+      }
+    }
+
+    const btnVisitas = document.querySelector('button[onclick="mostrar(\'visitas\')"]');
+    const btnReservas = document.querySelector('button[onclick="mostrar(\'reservas\')"]');
+    if (sesion.bloqueado) {
+      [btnVisitas, btnReservas].forEach(btn => {
+        if (btn) { btn.style.opacity = '0.45'; btn.style.cursor = 'not-allowed'; btn.onclick = mostrarBloqueoAdeudo; }
+      });
+    }
+  } catch(e) {
+    document.getElementById('saldo-pendiente').textContent = 'No disponible';
+  }
+}
+
+function mostrarBloqueoAdeudo() {
+  const reglaBloqueo = reglas.find(r => r.Amenidad === 'Cuenta_Bloqueada');
+  const msg = reglaBloqueo ? reglaBloqueo.Regla : 'Tu cuenta presenta un adeudo. Por favor regulariza tu situación con la administración.';
+  alert('⚠️ ' + msg);
 }
 
 function cerrarSesion() {
@@ -357,29 +454,6 @@ function cerrarSesion() {
 
 function obtenerFinanzasCasa(data) {
   return data.find(f => String(f.Casa).toUpperCase().trim() === String(sesion.casa).toUpperCase().trim());
-}
-
-async function cargarSaldo() {
-  try {
-    const res = await fetch(`${API}?accion=getFinanzas`);
-    const data = await res.json();
-    const fin = obtenerFinanzasCasa(data);
-    const el = document.getElementById('saldo-pendiente');
-    if (!fin) {
-      el.textContent = 'Sin información';
-      return;
-    }
-    const adeudo = limpiarMonto(fin.Adeudo);
-    if (adeudo <= 0) {
-      el.textContent = '✅ Sin adeudos';
-      el.classList.add('ok');
-    } else {
-      el.textContent = `$${adeudo.toLocaleString('es-MX')} MXN`;
-      el.classList.remove('ok');
-    }
-  } catch(e) {
-    document.getElementById('saldo-pendiente').textContent = 'No disponible';
-  }
 }
 
 function mostrar(id) {
@@ -691,6 +765,19 @@ async function cargarFinanzas() {
 
     const estatus = String(fin.Estatus || '').trim().toUpperCase();
     const esOk = ESTATUS_OK.includes(estatus);
+
+    // Residente: solo ve el estatus, sin montos ni desglose (privacidad financiera del propietario)
+    if (sesion.rol === 'Residente') {
+      lista.innerHTML = `
+        <div class="semaforo ${esOk ? 'verde' : 'rojo'}">
+          <div class="estatus-label">Estatus del mes</div>
+          <div class="estatus-valor">${esOk ? '✅' : '⚠️'} ${fin.Estatus || 'Sin estatus'}</div>
+        </div>
+        ${!esOk ? `<p style="font-size:13px; color:#666; text-align:center; margin-top:8px">Por favor consulta con el propietario o la administración para más detalles.</p>` : ''}
+      `;
+      return;
+    }
+
     const adeudo = limpiarMonto(fin.Adeudo);
     const abonado = limpiarMonto(fin.Abonado);
     const atrasado = limpiarMonto(fin.Monto_Atrasado);
@@ -713,7 +800,7 @@ async function cargarFinanzas() {
       </div>
       ${atrasado > 0 ? `
       <div class="total-box atrasado" style="margin-bottom:16px">
-        <div class="label">⏰ Monto atrasado</div>
+        <div class="label">💵 Monto atrasado (cubierto)</div>
         <div class="valor">$${atrasado.toLocaleString('es-MX')}</div>
       </div>` : ''}
     `;
@@ -736,6 +823,101 @@ async function cargarFinanzas() {
     lista.innerHTML = html;
   } catch(e) {
     lista.innerHTML = '<p style="color:#c5221f">Error al cargar finanzas</p>';
+  }
+}
+
+// ===== SERVICIOS ADICIONALES =====
+let serviciosData = [];
+let estadoArticuloActual = null; // 'libre' o 'prestado'
+
+function nombreReglaServicio(articulo) {
+  if (articulo === 'Llave de Azotea') return 'Llave de Azotea';
+  if (articulo === 'Escalera Comunitaria') return 'Escalera Comunitaria';
+  return '';
+}
+
+async function onArticuloChange() {
+  const articulo = document.getElementById('serv-articulo').value;
+  const reglaBox = document.getElementById('regla-servicio-box');
+  const estadoBox = document.getElementById('estado-servicio-box');
+  const accionGrupo = document.getElementById('serv-accion-grupo');
+  const btn = document.getElementById('btn-servicio');
+  document.getElementById('msg-servicios').innerHTML = '';
+
+  if (!articulo) {
+    reglaBox.style.display = 'none';
+    estadoBox.innerHTML = '';
+    accionGrupo.style.display = 'none';
+    btn.style.display = 'none';
+    return;
+  }
+
+  // Mostrar regla dinámica desde el Sheet
+  const regla = reglas.find(r => r.Amenidad === nombreReglaServicio(articulo));
+  if (regla) {
+    document.getElementById('regla-servicio-texto').textContent = regla.Regla;
+    reglaBox.style.display = 'block';
+  } else {
+    reglaBox.style.display = 'none';
+  }
+
+  estadoBox.innerHTML = '<p style="color:#666; font-size:13px">Consultando disponibilidad...</p>';
+  try {
+    const res = await fetch(`${API}?accion=getServicios`);
+    serviciosData = await res.json();
+    const prestamoActivo = serviciosData.find(s =>
+      String(s.Edificio) === String(sesion.edificio) &&
+      s.Articulo === articulo &&
+      s.Accion === 'Préstamo' &&
+      s.Estatus === 'Activo'
+    );
+
+    if (prestamoActivo) {
+      estadoArticuloActual = 'prestado';
+      estadoBox.innerHTML = `<div class="mensaje error">⚠️ Actualmente prestado al depto ${prestamoActivo.Departamento} de tu edificio</div>`;
+      // Solo permite Devolución si fue tu mismo depto quien lo tiene, si no, solo informa
+      if (String(prestamoActivo.Departamento).toUpperCase() === String(sesion.casa).toUpperCase()) {
+        accionGrupo.style.display = 'block';
+        document.getElementById('serv-accion').innerHTML = '<option value="Devolución">Registrar Devolución</option>';
+      } else {
+        accionGrupo.style.display = 'none';
+      }
+    } else {
+      estadoArticuloActual = 'libre';
+      estadoBox.innerHTML = `<div class="mensaje ok">✅ Disponible en tu edificio</div>`;
+      accionGrupo.style.display = 'block';
+      document.getElementById('serv-accion').innerHTML = '<option value="Préstamo">Solicitar (Préstamo)</option>';
+    }
+    btn.style.display = accionGrupo.style.display === 'block' ? 'block' : 'none';
+  } catch(e) {
+    estadoBox.innerHTML = '<p style="color:#c5221f">Error al consultar disponibilidad</p>';
+  }
+}
+
+async function registrarServicio() {
+  const articulo = document.getElementById('serv-articulo').value;
+  const accionServicio = document.getElementById('serv-accion').value;
+  if (!articulo || !accionServicio) {
+    document.getElementById('msg-servicios').innerHTML = '<div class="mensaje error">Selecciona el artículo y la acción</div>';
+    return;
+  }
+  document.getElementById('msg-servicios').innerHTML = '<div class="mensaje ok">Procesando...</div>';
+  try {
+    await fetch(API, {
+      method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({
+        accion: 'registrarServicio',
+        casa: sesion.casa,
+        edificio: sesion.edificio,
+        articulo,
+        accion_servicio: accionServicio
+      })
+    });
+    document.getElementById('msg-servicios').innerHTML = `<div class="mensaje ok">✅ ${accionServicio === 'Préstamo' ? 'Solicitud registrada' : 'Devolución registrada'} correctamente</div>`;
+    document.getElementById('serv-articulo').value = '';
+    onArticuloChange();
+  } catch(e) {
+    document.getElementById('msg-servicios').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
   }
 }
 
