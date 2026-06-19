@@ -89,6 +89,10 @@
       <label>PIN</label>
       <input type="password" id="login-pin" placeholder="Tu PIN de acceso">
     </div>
+    <div class="form-group">
+      <label>Tu nombre completo</label>
+      <input type="text" id="login-nombre" placeholder="Nombre y apellido">
+    </div>
     <button class="submit" onclick="iniciarSesion()">Entrar</button>
   </div>
 </div>
@@ -265,6 +269,15 @@ function limpiarFecha(valor) {
   return str.includes('T') ? str.split('T')[0] : str;
 }
 
+// Convierte montos tipo "$5,850.00" o "5850" a número real (5850)
+function limpiarMonto(valor) {
+  if (valor === null || valor === undefined || valor === '') return 0;
+  if (typeof valor === 'number') return valor;
+  const limpio = String(valor).replace(/[^0-9.\-]/g, '');
+  const num = parseFloat(limpio);
+  return isNaN(num) ? 0 : num;
+}
+
 function generarDispositivoId() {
   let id = localStorage.getItem('paamul_dispositivo_id');
   if (!id) {
@@ -288,18 +301,19 @@ window.onload = () => {
 async function iniciarSesion() {
   const casa = document.getElementById('login-casa').value.trim().toUpperCase();
   const pin = document.getElementById('login-pin').value.trim();
-  if (!casa || !pin) {
-    document.getElementById('msg-login').innerHTML = '<div class="mensaje error">Por favor ingresa tu depto y PIN</div>';
+  const nombreIngreso = document.getElementById('login-nombre').value.trim();
+  if (!casa || !pin || !nombreIngreso) {
+    document.getElementById('msg-login').innerHTML = '<div class="mensaje error">Por favor llena depto, PIN y tu nombre</div>';
     return;
   }
   document.getElementById('msg-login').innerHTML = '<div class="mensaje ok">Validando...</div>';
   try {
     const dispositivoId = generarDispositivoId();
-    const res = await fetch(API, {
-      method: 'POST',
+    await fetch(API, {
+      method: 'POST', mode: 'no-cors',
       body: JSON.stringify({ accion: 'validarPin', casa, pin, dispositivo_id: dispositivoId })
     });
-    // Con no-cors no podríamos leer la respuesta, así que validamos con getCasas directamente
+    // Validamos localmente contra getCasas (la llamada de arriba registra el dispositivo en el Sheet)
     const casasRes = await fetch(`${API}?accion=getCasas`);
     const casasData = await casasRes.json();
     const casaEncontrada = casasData.find(c => String(c.ID_Casa).toUpperCase().trim() === casa);
@@ -313,7 +327,8 @@ async function iniciarSesion() {
       return;
     }
 
-    sesion = { casa: casaEncontrada.ID_Casa, nombre: casaEncontrada.Nombre_Residente || casaEncontrada.ID_Casa };
+    // Usamos el nombre que la persona escribió al ingresar (puede variar entre residentes del mismo depto)
+    sesion = { casa: casaEncontrada.ID_Casa, nombre: nombreIngreso };
     localStorage.setItem('paamul_sesion', JSON.stringify(sesion));
     iniciarApp();
   } catch(e) {
@@ -351,7 +366,7 @@ async function cargarSaldo() {
       el.textContent = 'Sin información';
       return;
     }
-    const adeudo = parseFloat(fin.Adeudo) || 0;
+    const adeudo = limpiarMonto(fin.Adeudo);
     if (adeudo <= 0) {
       el.textContent = '✅ Sin adeudos';
       el.classList.add('ok');
@@ -673,8 +688,8 @@ async function cargarFinanzas() {
 
     const estatus = String(fin.Estatus || '').trim().toUpperCase();
     const esOk = ESTATUS_OK.includes(estatus);
-    const adeudo = parseFloat(fin.Adeudo) || 0;
-    const abonado = parseFloat(fin.Abonado) || 0;
+    const adeudo = limpiarMonto(fin.Adeudo);
+    const abonado = limpiarMonto(fin.Abonado);
 
     // Semáforo
     let html = `
@@ -696,7 +711,7 @@ async function cargarFinanzas() {
 
     // Desglose, ocultando conceptos en $0
     const conceptosConSaldo = CONCEPTOS_FINANZAS
-      .map(c => ({ label: c.label, monto: parseFloat(fin[c.key]) || 0 }))
+      .map(c => ({ label: c.label, monto: limpiarMonto(fin[c.key]) }))
       .filter(c => c.monto !== 0);
 
     if (conceptosConSaldo.length > 0) {
