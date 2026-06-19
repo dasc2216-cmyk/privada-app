@@ -64,6 +64,9 @@
     .total-box .valor { font-size: 18px; font-weight: bold; margin-top: 4px; }
     .total-box.adeudo .valor { color: #c5221f; }
     .total-box.abonado .valor { color: #137333; }
+    .total-box.atrasado { background: #fff3e0; }
+    .total-box.atrasado .label { color: #e65100; }
+    .total-box.atrasado .valor { color: #e65100; }
     .desglose-titulo { font-size: 13px; color: #666; margin: 16px 0 8px; font-weight: bold; }
     .finanzas-card { background: white; border-radius: 10px; padding: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
     .finanzas-card .concepto { font-size: 14px; color: #333; }
@@ -690,6 +693,7 @@ async function cargarFinanzas() {
     const esOk = ESTATUS_OK.includes(estatus);
     const adeudo = limpiarMonto(fin.Adeudo);
     const abonado = limpiarMonto(fin.Abonado);
+    const atrasado = limpiarMonto(fin.Monto_Atrasado);
 
     // Semáforo
     let html = `
@@ -707,6 +711,11 @@ async function cargarFinanzas() {
           <div class="valor">$${abonado.toLocaleString('es-MX')}</div>
         </div>
       </div>
+      ${atrasado > 0 ? `
+      <div class="total-box atrasado" style="margin-bottom:16px">
+        <div class="label">⏰ Monto atrasado</div>
+        <div class="valor">$${atrasado.toLocaleString('es-MX')}</div>
+      </div>` : ''}
     `;
 
     // Desglose, ocultando conceptos en $0
