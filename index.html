@@ -71,6 +71,31 @@
     .finanzas-card { background: white; border-radius: 10px; padding: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
     .finanzas-card .concepto { font-size: 14px; color: #333; }
     .finanzas-card .monto-item { font-weight: bold; color: #137333; font-size: 15px; }
+
+    /* Reglamento */
+    .reglamento-box { background: white; border-radius: 12px; padding: 20px; max-width: 500px; margin: 16px auto; max-height: 60vh; overflow-y: auto; box-shadow: 0 2px 12px rgba(0,0,0,0.1); font-size: 14px; line-height: 1.6; }
+    .reglamento-box p { margin-bottom: 10px; }
+
+    /* Banner Junta */
+    .banner-junta { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    .banner-junta h3 { font-size: 15px; margin-bottom: 6px; }
+    .banner-junta p { font-size: 13px; opacity: 0.9; margin-bottom: 4px; }
+    .banner-junta button { background: white; color: #1a73e8; border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; width: 100%; }
+
+    /* Comité */
+    .badge-comite { display: inline-block; background: #f9a825; color: #333; font-size: 11px; font-weight: bold; padding: 3px 10px; border-radius: 12px; margin-top: 6px; }
+    .admin-card { background: white; border-radius: 12px; padding: 14px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .admin-card .meta { font-size: 12px; color: #999; margin: 4px 0 8px; }
+    .admin-card select { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 14px; }
+
+    /* Directorio */
+    .directorio-card { background: white; border-radius: 12px; padding: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); cursor: pointer; }
+    .directorio-card:hover { background: #f0f7ff; }
+    .directorio-card .nombre { font-size: 14px; font-weight: bold; color: #333; }
+    .directorio-card .tipo { font-size: 12px; color: #999; }
+    .directorio-card .llamar { background: #137333; color: white; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 16px; text-decoration: none; }
+
+    textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; font-family: Arial, sans-serif; resize: vertical; min-height: 90px; }
   </style>
 </head>
 <body>
@@ -101,6 +126,18 @@
 </div>
 
 <!-- APP PRINCIPAL -->
+<!-- REGLAMENTO (bloqueante en primer ingreso) -->
+<div id="reglamento-screen" style="display:none">
+  <div class="header">
+    <h1>📜 Reglamento Interno</h1>
+    <p>Paamul — Lectura obligatoria</p>
+  </div>
+  <div class="reglamento-box" id="reglamento-texto">Cargando reglamento...</div>
+  <div style="max-width:500px; margin:0 auto; padding:0 16px 32px">
+    <button class="submit" onclick="aceptarReglamento()">He leído y acepto el reglamento interno</button>
+  </div>
+</div>
+
 <div id="app-screen" style="display:none">
 
   <div class="header">
@@ -109,8 +146,10 @@
   </div>
 
   <div id="menu" class="menu">
+    <div id="banner-junta-container"></div>
     <div class="bienvenida">
       <h3 id="nombre-residente">Cargando...</h3>
+      <div id="badge-comite-container"></div>
       <div class="saldo-box">
         <div style="font-size:13px; color:#666; margin-bottom:4px">Saldo pendiente</div>
         <div class="monto" id="saldo-pendiente">Cargando...</div>
@@ -149,6 +188,34 @@
       <div class="texto">
         <h3>Servicios Adicionales</h3>
         <p>Llave de azotea y escalera</p>
+      </div>
+    </button>
+    <button class="btn" onclick="mostrar('mudanzas')">
+      <span class="icono">📦</span>
+      <div class="texto">
+        <h3>Mudanzas</h3>
+        <p>Registra entrada o salida de muebles</p>
+      </div>
+    </button>
+    <button class="btn" onclick="mostrar('reportes')">
+      <span class="icono">📝</span>
+      <div class="texto">
+        <h3>Reportes e Inconformidades</h3>
+        <p>Quejas, fallas o sugerencias</p>
+      </div>
+    </button>
+    <button class="btn" onclick="mostrar('directorio')">
+      <span class="icono">📞</span>
+      <div class="texto">
+        <h3>Directorio de Emergencias</h3>
+        <p>Seguridad, administración y más</p>
+      </div>
+    </button>
+    <button class="btn" id="btn-admin" style="display:none; background:#fff8e1" onclick="mostrar('admin')">
+      <span class="icono">🛡️</span>
+      <div class="texto">
+        <h3>Panel del Comité</h3>
+        <p>Gestiona mudanzas y reportes</p>
       </div>
     </button>
     <button style="background:none; border:none; color:#999; font-size:13px; cursor:pointer; padding:8px;" onclick="cerrarSesion()">Cerrar sesión</button>
@@ -270,6 +337,75 @@
     <button class="submit" onclick="registrarServicio()" style="display:none" id="btn-servicio">Confirmar</button>
   </div>
 
+  <!-- PANTALLA MUDANZAS -->
+  <div id="mudanzas" class="pantalla">
+    <button class="back" onclick="mostrar('menu')">← Regresar</button>
+    <h2>📦 Registro de Mudanza</h2>
+    <div id="msg-mudanzas"></div>
+    <div class="form-group">
+      <label>Tipo de movimiento</label>
+      <select id="mud-tipo">
+        <option value="Entrada de muebles">Entrada de muebles</option>
+        <option value="Salida de muebles">Salida de muebles</option>
+        <option value="Mudanza completa">Mudanza completa (entrada/salida de residente)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Fecha de la mudanza</label>
+      <input type="date" id="mud-fecha">
+    </div>
+    <div class="form-group">
+      <label>Nombre del responsable</label>
+      <input type="text" id="mud-responsable" placeholder="Nombre completo">
+    </div>
+    <div class="form-group">
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer">
+        <input type="checkbox" id="mud-firma" style="width:auto">
+        Firmo de conformidad y confirmo que los datos son correctos
+      </label>
+    </div>
+    <button class="submit" onclick="registrarMudanza()">Enviar Solicitud</button>
+  </div>
+
+  <!-- PANTALLA REPORTES -->
+  <div id="reportes" class="pantalla">
+    <button class="back" onclick="mostrar('menu')">← Regresar</button>
+    <h2>📝 Reportes e Inconformidades</h2>
+    <div id="msg-reportes"></div>
+    <div class="form-group">
+      <label>Tipo de reporte</label>
+      <select id="rep-tipo">
+        <option value="Queja">Queja</option>
+        <option value="Falla / Mantenimiento">Falla / Mantenimiento</option>
+        <option value="Sugerencia">Sugerencia</option>
+        <option value="Otro">Otro</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Describe tu reporte</label>
+      <textarea id="rep-descripcion" placeholder="Cuéntanos qué pasó o qué sugieres..."></textarea>
+    </div>
+    <button class="submit" onclick="registrarReporte()">Enviar Reporte</button>
+  </div>
+
+  <!-- PANTALLA DIRECTORIO -->
+  <div id="directorio" class="pantalla">
+    <button class="back" onclick="mostrar('menu')">← Regresar</button>
+    <h2>📞 Directorio de Emergencias</h2>
+    <div id="directorio-lista"><p style="color:#666">Cargando...</p></div>
+  </div>
+
+  <!-- PANTALLA ADMIN COMITÉ -->
+  <div id="admin" class="pantalla">
+    <button class="back" onclick="mostrar('menu')">← Regresar</button>
+    <h2>🛡️ Panel del Comité</h2>
+    <div style="display:flex; gap:8px; margin-bottom:16px">
+      <button onclick="mostrarTabAdmin('mudanzas')" id="tab-admin-mudanzas" class="submit" style="margin-top:0; font-size:13px; padding:10px">📦 Mudanzas</button>
+      <button onclick="mostrarTabAdmin('reportes')" id="tab-admin-reportes" class="submit" style="margin-top:0; font-size:13px; padding:10px; background:#999">📝 Reportes</button>
+    </div>
+    <div id="admin-lista"><p style="color:#666">Cargando...</p></div>
+  </div>
+
 </div>
 
 <!-- MODAL CONFIRMACION -->
@@ -383,7 +519,16 @@ async function iniciarSesion() {
     }
 
     // Usamos el nombre que la persona escribió al ingresar (puede variar entre residentes del mismo depto)
-    sesion = { casa: casaEncontrada.ID_Casa, nombre: nombreIngreso, rol: rol, edificio: calcularEdificio(casaEncontrada.ID_Casa) };
+    const acepto = rol === 'Propietario' ? casaEncontrada.Acepto_Reglamento_Prop : casaEncontrada.Acepto_Reglamento_Res;
+    sesion = {
+      casa: casaEncontrada.ID_Casa,
+      nombre: nombreIngreso,
+      rol: rol,
+      edificio: calcularEdificio(casaEncontrada.ID_Casa),
+      aceptoReglamento: String(acepto || '').trim().toUpperCase() === 'SI',
+      rolComite: String(casaEncontrada.Rol || '').trim(),
+      puesto: String(casaEncontrada.Puesto || '').trim()
+    };
     localStorage.setItem('paamul_sesion', JSON.stringify(sesion));
     iniciarApp();
   } catch(e) {
@@ -393,12 +538,62 @@ async function iniciarSesion() {
 
 async function iniciarApp() {
   document.getElementById('login-screen').style.display = 'none';
+
+  if (!sesion.aceptoReglamento) {
+    mostrarReglamento();
+    return;
+  }
+
+  mostrarAppPrincipal();
+}
+
+async function mostrarReglamento() {
+  document.getElementById('reglamento-screen').style.display = 'block';
+  try {
+    const res = await fetch(`${API}?accion=getReglas`);
+    const data = await res.json();
+    const reglamento = data.find(r => r.Amenidad === 'Reglamento');
+    document.getElementById('reglamento-texto').innerHTML = reglamento ? reglamento.Regla : 'No se encontró el reglamento. Contacta a la administración.';
+  } catch(e) {
+    document.getElementById('reglamento-texto').innerHTML = 'Error al cargar el reglamento. Intenta de nuevo.';
+  }
+}
+
+async function aceptarReglamento() {
+  try {
+    await fetch(API, {
+      method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({ accion: 'aceptarReglamento', casa: sesion.casa, rol: sesion.rol })
+    });
+    sesion.aceptoReglamento = true;
+    localStorage.setItem('paamul_sesion', JSON.stringify(sesion));
+    document.getElementById('reglamento-screen').style.display = 'none';
+    mostrarAppPrincipal();
+  } catch(e) {
+    alert('Error al guardar tu aceptación, intenta de nuevo.');
+  }
+}
+
+async function mostrarAppPrincipal() {
   document.getElementById('app-screen').style.display = 'block';
   document.getElementById('header-bienvenida').textContent = `Departamento ${sesion.casa}`;
-  document.getElementById('nombre-residente').textContent = `Bienvenido, ${sesion.nombre}`;
+
+  // Bienvenida dinámica: con puesto de comité o normal
+  const nombreEl = document.getElementById('nombre-residente');
+  if (sesion.puesto) {
+    nombreEl.textContent = `Bienvenido ${sesion.puesto}, ${sesion.nombre}`;
+  } else {
+    nombreEl.textContent = `Bienvenido, ${sesion.nombre}`;
+  }
+  if (sesion.rolComite === 'Comite') {
+    document.getElementById('badge-comite-container').innerHTML = '<span class="badge-comite">⭐ Comité</span>';
+    document.getElementById('btn-admin').style.display = 'flex';
+  }
+
   document.getElementById('servicios-edificio').textContent = `Edificio ${sesion.edificio}`;
   cargarAmenidades();
   cargarMisReservas();
+  cargarBannerJunta();
   await aplicarBloqueosPorAdeudo();
 }
 
@@ -462,6 +657,8 @@ function mostrar(id) {
   if (id !== 'menu') {
     document.getElementById(id).classList.add('activa');
     if (id === 'finanzas') cargarFinanzas();
+    if (id === 'directorio') cargarDirectorio();
+    if (id === 'admin') cargarAdmin();
   }
   horarioSeleccionado = null;
 }
@@ -918,6 +1115,168 @@ async function registrarServicio() {
     onArticuloChange();
   } catch(e) {
     document.getElementById('msg-servicios').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
+  }
+}
+
+// ===== BANNER DE JUNTA =====
+async function cargarBannerJunta() {
+  const container = document.getElementById('banner-junta-container');
+  try {
+    const res = await fetch(`${API}?accion=getJuntas`);
+    const junta = await res.json();
+    if (!junta || !junta.Fecha_Junta) { container.innerHTML = ''; return; }
+    const fecha = limpiarFecha(junta.Fecha_Junta);
+    container.innerHTML = `
+      <div class="banner-junta">
+        <h3>🏛️ ${junta.Tipo || 'Próxima Junta'}</h3>
+        <p>📅 ${fecha}${junta.Hora ? ' — ' + junta.Hora : ''}</p>
+        ${junta.Orden_del_Dia ? `<p>📋 ${junta.Orden_del_Dia}</p>` : ''}
+        ${junta.Link_Videollamada ? `<button onclick="window.open('${junta.Link_Videollamada}', '_blank')">Unirse a la Reunión</button>` : ''}
+      </div>
+    `;
+  } catch(e) {
+    container.innerHTML = '';
+  }
+}
+
+// ===== DIRECTORIO =====
+let directorioCargado = false;
+async function cargarDirectorio() {
+  if (directorioCargado) return;
+  const lista = document.getElementById('directorio-lista');
+  try {
+    const res = await fetch(`${API}?accion=getDirectorio`);
+    const data = await res.json();
+    if (data.length === 0) {
+      lista.innerHTML = '<p style="color:#666">No hay contactos registrados</p>';
+      return;
+    }
+    lista.innerHTML = data.map(d => {
+      const telLimpio = String(d.Telefono || '').replace(/[^0-9+]/g, '');
+      return `
+      <a href="tel:${telLimpio}" class="directorio-card" style="text-decoration:none">
+        <div>
+          <div class="nombre">${d.Nombre_Servicio}</div>
+          <div class="tipo">${d.Tipo || ''} — ${d.Telefono}</div>
+        </div>
+        <span class="llamar">📞</span>
+      </a>
+    `;
+    }).join('');
+    directorioCargado = true;
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c5221f">Error al cargar el directorio</p>';
+  }
+}
+
+// ===== MUDANZAS =====
+async function registrarMudanza() {
+  const tipo = document.getElementById('mud-tipo').value;
+  const fecha = document.getElementById('mud-fecha').value;
+  const responsable = document.getElementById('mud-responsable').value.trim();
+  const firmaOk = document.getElementById('mud-firma').checked;
+  if (!fecha || !responsable || !firmaOk) {
+    document.getElementById('msg-mudanzas').innerHTML = '<div class="mensaje error">Completa todos los campos y confirma la firma de conformidad</div>';
+    return;
+  }
+  document.getElementById('msg-mudanzas').innerHTML = '<div class="mensaje ok">Enviando...</div>';
+  try {
+    await fetch(API, {
+      method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({
+        accion: 'registrarMudanza', casa: sesion.casa,
+        tipo_movimiento: tipo, fecha_mudanza: fecha,
+        responsable, firma_digital: `${responsable} - Firmado de conformidad`
+      })
+    });
+    document.getElementById('msg-mudanzas').innerHTML = '<div class="mensaje ok">✅ Solicitud enviada. El comité la revisará pronto.</div>';
+    document.getElementById('mud-fecha').value = '';
+    document.getElementById('mud-responsable').value = '';
+    document.getElementById('mud-firma').checked = false;
+  } catch(e) {
+    document.getElementById('msg-mudanzas').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
+  }
+}
+
+// ===== REPORTES =====
+async function registrarReporte() {
+  const tipo = document.getElementById('rep-tipo').value;
+  const descripcion = document.getElementById('rep-descripcion').value.trim();
+  if (!descripcion) {
+    document.getElementById('msg-reportes').innerHTML = '<div class="mensaje error">Por favor describe tu reporte</div>';
+    return;
+  }
+  document.getElementById('msg-reportes').innerHTML = '<div class="mensaje ok">Enviando...</div>';
+  try {
+    await fetch(API, {
+      method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({ accion: 'registrarReporte', casa: sesion.casa, tipo, descripcion })
+    });
+    document.getElementById('msg-reportes').innerHTML = '<div class="mensaje ok">✅ Reporte enviado correctamente</div>';
+    document.getElementById('rep-descripcion').value = '';
+  } catch(e) {
+    document.getElementById('msg-reportes').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
+  }
+}
+
+// ===== PANEL ADMIN COMITÉ =====
+let tabAdminActual = 'mudanzas';
+
+function mostrarTabAdmin(tab) {
+  tabAdminActual = tab;
+  document.getElementById('tab-admin-mudanzas').style.background = tab === 'mudanzas' ? '#1a73e8' : '#999';
+  document.getElementById('tab-admin-reportes').style.background = tab === 'reportes' ? '#1a73e8' : '#999';
+  cargarAdmin();
+}
+
+const ESTATUS_MUDANZA_OPCIONES = ['Pendiente', 'Aprobada', 'Rechazada', 'Realizada'];
+const ESTATUS_REPORTE_OPCIONES = ['Abierto', 'En proceso', 'Resuelto', 'Cerrado'];
+
+async function cargarAdmin() {
+  const lista = document.getElementById('admin-lista');
+  lista.innerHTML = '<p style="color:#666">Cargando...</p>';
+  try {
+    if (tabAdminActual === 'mudanzas') {
+      const res = await fetch(`${API}?accion=getMudanzas`);
+      const data = await res.json();
+      if (data.length === 0) { lista.innerHTML = '<p style="color:#666">Sin solicitudes de mudanza</p>'; return; }
+      lista.innerHTML = data.slice().reverse().map(m => `
+        <div class="admin-card">
+          <strong>${m.Departamento}</strong> — ${m.Tipo_Movimiento}
+          <div class="meta">Fecha: ${limpiarFecha(m.Fecha_Mudanza)} · Responsable: ${m.Responsable}</div>
+          <select onchange="cambiarEstatusAdmin('mudanza', '${m.ID}', this.value)">
+            ${ESTATUS_MUDANZA_OPCIONES.map(op => `<option value="${op}" ${m.Estatus === op ? 'selected' : ''}>${op}</option>`).join('')}
+          </select>
+        </div>
+      `).join('');
+    } else {
+      const res = await fetch(`${API}?accion=getReportes`);
+      const data = await res.json();
+      if (data.length === 0) { lista.innerHTML = '<p style="color:#666">Sin reportes registrados</p>'; return; }
+      lista.innerHTML = data.slice().reverse().map(r => `
+        <div class="admin-card">
+          <strong>${r.Departamento}</strong> — ${r.Tipo}
+          <div class="meta">${r.Descripcion}</div>
+          <select onchange="cambiarEstatusAdmin('reporte', '${r.ID}', this.value)">
+            ${ESTATUS_REPORTE_OPCIONES.map(op => `<option value="${op}" ${r.Estatus === op ? 'selected' : ''}>${op}</option>`).join('')}
+          </select>
+        </div>
+      `).join('');
+    }
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c5221f">Error al cargar información</p>';
+  }
+}
+
+async function cambiarEstatusAdmin(tipo, id, nuevoEstatus) {
+  const accion = tipo === 'mudanza' ? 'actualizarEstatusMudanza' : 'actualizarEstatusReporte';
+  try {
+    await fetch(API, {
+      method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({ accion, id, nuevo_estatus: nuevoEstatus })
+    });
+  } catch(e) {
+    alert('Error al actualizar el estatus, intenta de nuevo');
   }
 }
 
