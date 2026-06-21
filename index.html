@@ -134,7 +134,15 @@
   </div>
   <div class="reglamento-box" id="reglamento-texto">Cargando reglamento...</div>
   <div style="max-width:500px; margin:0 auto; padding:0 16px 32px">
-    <button class="submit" onclick="aceptarReglamento()">He leído y acepto el reglamento interno</button>
+    <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; margin-bottom:12px; font-size:14px; line-height:1.4">
+      <input type="checkbox" id="check-leido" onchange="validarChecksReglamento()" style="width:auto; margin-top:3px">
+      He leído el reglamento interno de Privada Paamul.
+    </label>
+    <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; margin-bottom:16px; font-size:14px; line-height:1.4">
+      <input type="checkbox" id="check-acepto" onchange="validarChecksReglamento()" style="width:auto; margin-top:3px">
+      Acepto y me comprometo a cumplir las normas y sanciones estipuladas.
+    </label>
+    <button class="submit" id="btn-aceptar-reglamento" onclick="aceptarReglamento()" disabled style="opacity:0.5; cursor:not-allowed">Continuar</button>
   </div>
 </div>
 
@@ -188,6 +196,13 @@
       <div class="texto">
         <h3>Servicios Adicionales</h3>
         <p>Llave de azotea y escalera</p>
+      </div>
+    </button>
+    <button class="btn" onclick="mostrar('accesos')">
+      <span class="icono">🚙</span>
+      <div class="texto">
+        <h3>Solicitar Chip y Control Vehicular</h3>
+        <p>Dispositivos de acceso vehicular y peatonal</p>
       </div>
     </button>
     <button class="btn" onclick="mostrar('mudanzas')">
@@ -337,6 +352,23 @@
     <button class="submit" onclick="registrarServicio()" style="display:none" id="btn-servicio">Confirmar</button>
   </div>
 
+  <!-- PANTALLA ACCESOS (Chip / Control Vehicular) -->
+  <div id="accesos" class="pantalla">
+    <button class="back" onclick="mostrar('menu')">← Regresar</button>
+    <h2>🚙 Solicitar Chip / Control</h2>
+    <div id="msg-accesos"></div>
+    <div class="form-group">
+      <label>¿Qué deseas solicitar?</label>
+      <select id="acc-articulo" onchange="onArticuloAccesoChange()">
+        <option value="">Selecciona...</option>
+        <option value="Control Vehicular">Control Vehicular</option>
+        <option value="Chip Peatonal">Chip Peatonal</option>
+      </select>
+    </div>
+    <div id="info-acceso-box"></div>
+    <button class="submit" onclick="registrarSolicitudAcceso()" style="display:none" id="btn-acceso">Confirmar Solicitud</button>
+  </div>
+
   <!-- PANTALLA MUDANZAS -->
   <div id="mudanzas" class="pantalla">
     <button class="back" onclick="mostrar('menu')">← Regresar</button>
@@ -402,6 +434,7 @@
     <div style="display:flex; gap:8px; margin-bottom:16px">
       <button onclick="mostrarTabAdmin('mudanzas')" id="tab-admin-mudanzas" class="submit" style="margin-top:0; font-size:13px; padding:10px">📦 Mudanzas</button>
       <button onclick="mostrarTabAdmin('reportes')" id="tab-admin-reportes" class="submit" style="margin-top:0; font-size:13px; padding:10px; background:#999">📝 Reportes</button>
+      <button onclick="mostrarTabAdmin('accesos')" id="tab-admin-accesos" class="submit" style="margin-top:0; font-size:13px; padding:10px; background:#999">🚙 Accesos</button>
     </div>
     <div id="admin-lista"><p style="color:#666">Cargando...</p></div>
   </div>
@@ -442,6 +475,31 @@ function limpiarFecha(valor) {
   if (!valor) return '';
   const str = String(valor);
   return str.includes('T') ? str.split('T')[0] : str;
+}
+
+const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+// Convierte "2026-06-18" o un ISO completo a "18 de Junio"
+function formatearFechaBonita(valor) {
+  if (!valor) return '';
+  const soloFecha = limpiarFecha(valor); // yyyy-MM-dd
+  const partes = soloFecha.split('-');
+  if (partes.length !== 3) return soloFecha;
+  const dia = parseInt(partes[2]);
+  const mes = MESES_ES[parseInt(partes[1]) - 1] || '';
+  if (isNaN(dia) || !mes) return soloFecha;
+  return `${dia} de ${mes}`;
+}
+
+// Limpia horas que pudieran venir como ISO ("1899-12-31T20:00:00.000Z") dejando solo "20:00"
+function limpiarHora(valor) {
+  if (!valor) return '';
+  const str = String(valor);
+  if (str.includes('T')) {
+    const horaParte = str.split('T')[1] || '';
+    return horaParte.substring(0, 5);
+  }
+  return str;
 }
 
 // Convierte montos tipo "$5,850.00" o "5850" a número real (5850)
@@ -549,6 +607,9 @@ async function iniciarApp() {
 
 async function mostrarReglamento() {
   document.getElementById('reglamento-screen').style.display = 'block';
+  document.getElementById('check-leido').checked = false;
+  document.getElementById('check-acepto').checked = false;
+  validarChecksReglamento();
   try {
     const res = await fetch(`${API}?accion=getReglas`);
     const data = await res.json();
@@ -559,7 +620,18 @@ async function mostrarReglamento() {
   }
 }
 
+function validarChecksReglamento() {
+  const leido = document.getElementById('check-leido').checked;
+  const acepto = document.getElementById('check-acepto').checked;
+  const btn = document.getElementById('btn-aceptar-reglamento');
+  const habilitado = leido && acepto;
+  btn.disabled = !habilitado;
+  btn.style.opacity = habilitado ? '1' : '0.5';
+  btn.style.cursor = habilitado ? 'pointer' : 'not-allowed';
+}
+
 async function aceptarReglamento() {
+  if (!document.getElementById('check-leido').checked || !document.getElementById('check-acepto').checked) return;
   try {
     await fetch(API, {
       method: 'POST', mode: 'no-cors',
@@ -1125,11 +1197,12 @@ async function cargarBannerJunta() {
     const res = await fetch(`${API}?accion=getJuntas`);
     const junta = await res.json();
     if (!junta || !junta.Fecha_Junta) { container.innerHTML = ''; return; }
-    const fecha = limpiarFecha(junta.Fecha_Junta);
+    const fechaBonita = formatearFechaBonita(junta.Fecha_Junta);
+    const horaLimpia = limpiarHora(junta.Hora);
     container.innerHTML = `
       <div class="banner-junta">
         <h3>🏛️ ${junta.Tipo || 'Próxima Junta'}</h3>
-        <p>📅 ${fecha}${junta.Hora ? ' — ' + junta.Hora : ''}</p>
+        <p>📅 ${fechaBonita}${horaLimpia ? ' — ' + horaLimpia + ' hrs' : ''}</p>
         ${junta.Orden_del_Dia ? `<p>📋 ${junta.Orden_del_Dia}</p>` : ''}
         ${junta.Link_Videollamada ? `<button onclick="window.open('${junta.Link_Videollamada}', '_blank')">Unirse a la Reunión</button>` : ''}
       </div>
@@ -1165,6 +1238,7 @@ async function cargarDirectorio() {
     }).join('');
     directorioCargado = true;
   } catch(e) {
+    console.error('Error directorio:', e);
     lista.innerHTML = '<p style="color:#c5221f">Error al cargar el directorio</p>';
   }
 }
@@ -1226,11 +1300,14 @@ function mostrarTabAdmin(tab) {
   tabAdminActual = tab;
   document.getElementById('tab-admin-mudanzas').style.background = tab === 'mudanzas' ? '#1a73e8' : '#999';
   document.getElementById('tab-admin-reportes').style.background = tab === 'reportes' ? '#1a73e8' : '#999';
+  document.getElementById('tab-admin-accesos').style.background = tab === 'accesos' ? '#1a73e8' : '#999';
   cargarAdmin();
 }
 
 const ESTATUS_MUDANZA_OPCIONES = ['Pendiente', 'Aprobada', 'Rechazada', 'Realizada'];
 const ESTATUS_REPORTE_OPCIONES = ['Abierto', 'En proceso', 'Resuelto', 'Cerrado'];
+const ESTATUS_ACCESO_OPCIONES = ['Pendiente', 'Entregado', 'Cancelado'];
+const ARTICULOS_ACCESO = ['Control Vehicular', 'Chip Peatonal'];
 
 async function cargarAdmin() {
   const lista = document.getElementById('admin-lista');
@@ -1249,7 +1326,7 @@ async function cargarAdmin() {
           </select>
         </div>
       `).join('');
-    } else {
+    } else if (tabAdminActual === 'reportes') {
       const res = await fetch(`${API}?accion=getReportes`);
       const data = await res.json();
       if (data.length === 0) { lista.innerHTML = '<p style="color:#666">Sin reportes registrados</p>'; return; }
@@ -1262,6 +1339,21 @@ async function cargarAdmin() {
           </select>
         </div>
       `).join('');
+    } else {
+      // Accesos: viven en Servicios_Adicionales con Accion === 'Solicitud'
+      const res = await fetch(`${API}?accion=getServicios`);
+      const data = await res.json();
+      const solicitudesAcceso = data.filter(s => s.Accion === 'Solicitud' && ARTICULOS_ACCESO.includes(s.Articulo));
+      if (solicitudesAcceso.length === 0) { lista.innerHTML = '<p style="color:#666">Sin solicitudes de chip/control</p>'; return; }
+      lista.innerHTML = solicitudesAcceso.slice().reverse().map(s => `
+        <div class="admin-card">
+          <strong>${s.Departamento}</strong> — ${s.Articulo}
+          <div class="meta">Edificio ${s.Edificio} · ${s.Fecha_Hora}</div>
+          <select onchange="cambiarEstatusAdmin('acceso', '${s.ID}', this.value)">
+            ${ESTATUS_ACCESO_OPCIONES.map(op => `<option value="${op}" ${s.Estatus === op ? 'selected' : ''}>${op}</option>`).join('')}
+          </select>
+        </div>
+      `).join('');
     }
   } catch(e) {
     lista.innerHTML = '<p style="color:#c5221f">Error al cargar información</p>';
@@ -1269,7 +1361,10 @@ async function cargarAdmin() {
 }
 
 async function cambiarEstatusAdmin(tipo, id, nuevoEstatus) {
-  const accion = tipo === 'mudanza' ? 'actualizarEstatusMudanza' : 'actualizarEstatusReporte';
+  let accion;
+  if (tipo === 'mudanza') accion = 'actualizarEstatusMudanza';
+  else if (tipo === 'reporte') accion = 'actualizarEstatusReporte';
+  else accion = 'actualizarEstatusServicio';
   try {
     await fetch(API, {
       method: 'POST', mode: 'no-cors',
@@ -1277,6 +1372,86 @@ async function cambiarEstatusAdmin(tipo, id, nuevoEstatus) {
     });
   } catch(e) {
     alert('Error al actualizar el estatus, intenta de nuevo');
+  }
+}
+
+// ===== ACCESOS (Chip / Control Vehicular) =====
+let accesosData = [];
+
+async function onArticuloAccesoChange() {
+  const articulo = document.getElementById('acc-articulo').value;
+  const box = document.getElementById('info-acceso-box');
+  const btn = document.getElementById('btn-acceso');
+  document.getElementById('msg-accesos').innerHTML = '';
+
+  if (!articulo) { box.innerHTML = ''; btn.style.display = 'none'; return; }
+
+  box.innerHTML = '<p style="color:#666; font-size:13px">Consultando inventario...</p>';
+  try {
+    const [resAcc, resServ] = await Promise.all([
+      fetch(`${API}?accion=getAccesos`),
+      fetch(`${API}?accion=getServicios`)
+    ]);
+    accesosData = await resAcc.json();
+    const serviciosData = await resServ.json();
+
+    const item = accesosData.find(a => a.Articulo === articulo);
+    if (!item) {
+      box.innerHTML = '<div class="mensaje error">Artículo no disponible</div>';
+      btn.style.display = 'none';
+      return;
+    }
+
+    const costo = limpiarMonto(item.Costo);
+    const stockDisponible = parseInt(item.Stock_Disponible) || 0;
+    const limitePorCasa = parseInt(item.Limite_Por_Casa) || 999;
+
+    const entregados = serviciosData.filter(s =>
+      String(s.Departamento).toUpperCase().trim() === String(sesion.casa).toUpperCase().trim() &&
+      s.Articulo === articulo &&
+      s.Estatus === 'Entregado'
+    ).length;
+
+    let html = `
+      <div class="card">
+        <strong>${articulo}</strong><br>
+        <span style="color:#1a73e8; font-size:18px; font-weight:bold">$${costo.toLocaleString('es-MX')} MXN</span><br>
+        <small style="color:#666">Ya tienes ${entregados} de ${limitePorCasa} permitidos</small>
+      </div>
+    `;
+
+    if (stockDisponible <= 0) {
+      html += '<div class="mensaje error">Temporalmente sin existencias, contacta al comité</div>';
+      btn.style.display = 'none';
+    } else if (entregados >= limitePorCasa) {
+      html += '<div class="mensaje error">Has alcanzado el límite máximo permitido por departamento.</div>';
+      btn.style.display = 'none';
+    } else {
+      html += `<div class="mensaje ok">✅ Disponible — quedan ${stockDisponible} en inventario</div>`;
+      btn.style.display = 'block';
+    }
+    box.innerHTML = html;
+  } catch(e) {
+    box.innerHTML = '<p style="color:#c5221f">Error al consultar inventario</p>';
+    btn.style.display = 'none';
+  }
+}
+
+async function registrarSolicitudAcceso() {
+  const articulo = document.getElementById('acc-articulo').value;
+  if (!articulo) return;
+  document.getElementById('msg-accesos').innerHTML = '<div class="mensaje ok">Procesando...</div>';
+  try {
+    await fetch(API, {
+      method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({ accion: 'registrarSolicitudAcceso', casa: sesion.casa, edificio: sesion.edificio, articulo })
+    });
+    document.getElementById('msg-accesos').innerHTML = '<div class="mensaje ok">✅ Solicitud registrada. El comité la procesará pronto.</div>';
+    document.getElementById('acc-articulo').value = '';
+    document.getElementById('info-acceso-box').innerHTML = '';
+    document.getElementById('btn-acceso').style.display = 'none';
+  } catch(e) {
+    document.getElementById('msg-accesos').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
   }
 }
 
