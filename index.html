@@ -953,10 +953,33 @@ async function registrarReserva() {
     document.getElementById('msg-reserva').innerHTML = '<div class="mensaje error">Por favor completa todos los campos</div>';
     return;
   }
-  document.getElementById('msg-reserva').innerHTML = '<div class="mensaje ok">Registrando...</div>';
+
+  // Bloqueo: solo 1 reserva activa por depto al día, sin importar la amenidad
+  document.getElementById('msg-reserva').innerHTML = '<div class="mensaje ok">Verificando...</div>';
   try {
-    await fetch(API, {
-      method: 'POST', mode: 'no-cors',
+    const resReservas = await fetch(`${API}?accion=getReservas`);
+    const todasReservas = await resReservas.json();
+    const yaTieneReservaHoy = todasReservas.some(r =>
+      String(r.Casa).toUpperCase().trim() === String(casa).toUpperCase().trim() &&
+      limpiarFecha(r.Fecha) === fecha &&
+      r.Estatus === 'Activa'
+    );
+    if (yaTieneReservaHoy) {
+      document.getElementById('msg-reserva').innerHTML = '<div class="mensaje error">⚠️ Tu departamento ya tiene una reserva activa para este día. Solo se permite una reserva por depto al día.</div>';
+      return;
+    }
+  } catch(e) {
+    document.getElementById('msg-reserva').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
+    return;
+  }
+
+  document.getElementById('msg-reserva').innerHTML = '<div class="mensaje ok">Registrando...</div>';
+  // IMPORTANTE: aquí SÍ leemos la respuesta real del backend (sin no-cors) porque
+  // necesitamos saber si fue rechazada por cruce de horario o cierre antes de confirmar al usuario
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         accion: 'registrarReserva', casa, nombre,
         id_amenidad: amenidad, fecha,
@@ -966,6 +989,13 @@ async function registrarReserva() {
         notas
       })
     });
+    const data = await res.json();
+
+    if (!data.ok) {
+      document.getElementById('msg-reserva').innerHTML = `<div class="mensaje error">⚠️ ${data.error || 'No se pudo completar la reserva'}</div>`;
+      return;
+    }
+
     const nombreAmenidad = amenidades.find(a => a.ID_Amenidad === amenidad)?.Nombre || amenidad;
     document.getElementById('modal-resumen').textContent = `${nombreAmenidad} — ${fecha} — ${horarioSeleccionado.Hora_Inicio} a ${horarioSeleccionado.Hora_Fin}`;
     document.getElementById('modal-reglas').innerHTML = `<strong>📋 Recuerda:</strong><br>${obtenerRegla(amenidad)}`;
