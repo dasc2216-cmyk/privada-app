@@ -114,18 +114,44 @@
       <input type="text" id="login-casa" placeholder="Ej: 4A" style="text-transform:uppercase" onblur="cargarNombresLogin()">
     </div>
     <div class="form-group">
-      <label>PIN</label>
-      <input type="password" id="login-pin" placeholder="Tu PIN de acceso">
+      <label>PIN de acceso</label>
+      <input type="password" id="login-pin" placeholder="Tu PIN">
     </div>
+    <!-- Selector si ya hay personas registradas en esta casa -->
     <div class="form-group" id="login-selector-grupo" style="display:none">
       <label>¿Quién eres?</label>
       <select id="login-nombre-selector" onchange="onNombreSelectorChange()">
         <option value="">Selecciona tu nombre...</option>
       </select>
     </div>
-    <div class="form-group" id="login-nombre-nuevo-grupo">
-      <label id="login-nombre-label">Tu nombre completo</label>
-      <input type="text" id="login-nombre" placeholder="Nombre y apellido">
+    <!-- Campos para registrarse por primera vez -->
+    <div id="login-registro-nuevo" style="display:none">
+      <div class="form-group">
+        <label>Tratamiento</label>
+        <select id="login-tratamiento">
+          <option value="Sr.">Sr.</option>
+          <option value="Sra.">Sra.</option>
+          <option value="Srta.">Srta.</option>
+          <option value="Lic.">Lic.</option>
+          <option value="Ing.">Ing.</option>
+          <option value="Dr.">Dr.</option>
+          <option value="Dra.">Dra.</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Nombre completo</label>
+        <input type="text" id="login-nombre" placeholder="Nombre y apellido">
+      </div>
+      <div class="form-group">
+        <label id="login-relacion-label">Tu relación con el depto</label>
+        <select id="login-relacion">
+          <option value="">Selecciona...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Teléfono (opcional)</label>
+        <input type="tel" id="login-telefono" placeholder="10 dígitos">
+      </div>
     </div>
     <button class="submit" onclick="iniciarSesion()">Entrar</button>
   </div>
@@ -587,8 +613,12 @@ window.onload = () => {
   }
 };
 
-// ===== SELECTOR DE NOMBRES EN LOGIN =====
+// ===== OPCIONES DE RELACIÓN POR NIVEL =====
+const RELACIONES_PRINCIPAL = ['Propietario/a', 'Cónyuge / Pareja', 'Administrador/a del depto'];
+const RELACIONES_RESIDENTE = ['Residente / Inquilino', 'Familiar directo', 'Encargado/a'];
+
 let nombresLoginCargados = [];
+let nivelLoginDetectado = null;
 
 async function cargarNombresLogin() {
   const casa = document.getElementById('login-casa').value.trim().toUpperCase();
@@ -599,113 +629,135 @@ async function cargarNombresLogin() {
     nombresLoginCargados = data.filter(p => String(p.Casa).toUpperCase().trim() === casa);
     const sel = document.getElementById('login-nombre-selector');
     const grupoSel = document.getElementById('login-selector-grupo');
-    const grupoNuevo = document.getElementById('login-nombre-nuevo-grupo');
-    const labelNuevo = document.getElementById('login-nombre-label');
-
     if (nombresLoginCargados.length > 0) {
       sel.innerHTML = '<option value="">Selecciona tu nombre...</option>';
       nombresLoginCargados.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p.Nombre;
-        opt.textContent = p.Nombre;
+        opt.textContent = (p.Relacion ? p.Relacion + ' — ' : '') + p.Nombre;
         sel.appendChild(opt);
       });
       const optNuevo = document.createElement('option');
       optNuevo.value = '__nuevo__';
-      optNuevo.textContent = '+ Registrar nuevo nombre';
+      optNuevo.textContent = '+ Primera vez / Registrar nuevo acceso';
       sel.appendChild(optNuevo);
       grupoSel.style.display = 'block';
-      grupoNuevo.style.display = 'none';
-      document.getElementById('login-nombre').value = '';
+      document.getElementById('login-registro-nuevo').style.display = 'none';
     } else {
       grupoSel.style.display = 'none';
-      grupoNuevo.style.display = 'block';
-      labelNuevo.textContent = 'Tu nombre completo';
+      document.getElementById('login-registro-nuevo').style.display = 'block';
     }
   } catch(e) {
-    // Si falla, mostrar campo libre normal
     document.getElementById('login-selector-grupo').style.display = 'none';
-    document.getElementById('login-nombre-nuevo-grupo').style.display = 'block';
+    document.getElementById('login-registro-nuevo').style.display = 'block';
   }
 }
 
 function onNombreSelectorChange() {
   const val = document.getElementById('login-nombre-selector').value;
-  const grupoNuevo = document.getElementById('login-nombre-nuevo-grupo');
-  const labelNuevo = document.getElementById('login-nombre-label');
   if (val === '__nuevo__') {
-    grupoNuevo.style.display = 'block';
-    labelNuevo.textContent = 'Escribe tu nombre completo';
+    document.getElementById('login-registro-nuevo').style.display = 'block';
     document.getElementById('login-nombre').value = '';
-  } else if (val) {
-    grupoNuevo.style.display = 'none';
-    document.getElementById('login-nombre').value = val;
+    poblarRelaciones(nivelLoginDetectado);
   } else {
-    grupoNuevo.style.display = 'none';
-    document.getElementById('login-nombre').value = '';
+    document.getElementById('login-registro-nuevo').style.display = 'none';
+    document.getElementById('login-nombre').value = val;
   }
+}
+
+function poblarRelaciones(nivel) {
+  const sel = document.getElementById('login-relacion');
+  const label = document.getElementById('login-relacion-label');
+  const opciones = nivel === 'Residente' ? RELACIONES_RESIDENTE : RELACIONES_PRINCIPAL;
+  label.textContent = nivel === 'Residente' ? 'Tu rol en el depto' : 'Tu relación con el depto';
+  sel.innerHTML = '<option value="">Selecciona...</option>';
+  opciones.forEach(op => {
+    const opt = document.createElement('option');
+    opt.value = op; opt.textContent = op;
+    sel.appendChild(opt);
+  });
 }
 
 async function iniciarSesion() {
   const casa = document.getElementById('login-casa').value.trim().toUpperCase();
   const pin = document.getElementById('login-pin').value.trim();
-  const nombreIngreso = document.getElementById('login-nombre').value.trim() ||
-                        (document.getElementById('login-nombre-selector').value !== '__nuevo__'
-                          ? document.getElementById('login-nombre-selector').value.trim() : '');
-  if (!casa || !pin || !nombreIngreso) {
-    document.getElementById('msg-login').innerHTML = '<div class="mensaje error">Por favor llena depto, PIN y selecciona o escribe tu nombre</div>';
+  if (!casa || !pin) {
+    document.getElementById('msg-login').innerHTML = '<div class="mensaje error">Ingresa tu depto y PIN</div>';
     return;
   }
   document.getElementById('msg-login').innerHTML = '<div class="mensaje ok">Validando...</div>';
   try {
-    const dispositivoId = generarDispositivoId();
     const casasRes = await fetch(`${API}?accion=getCasas`);
     const casasData = await casasRes.json();
     const casaEncontrada = casasData.find(c => String(c.ID_Casa).toUpperCase().trim() === casa);
-
     if (!casaEncontrada) {
       document.getElementById('msg-login').innerHTML = '<div class="mensaje error">Depto no encontrado</div>';
       return;
     }
-
-    const pinProp = String(casaEncontrada.PIN_Propietario || '').trim();
-    const pinRes = String(casaEncontrada.PIN_Residente || '').trim();
-    let rol = null;
-    if (pinProp !== '' && pinProp === pin) rol = 'Primario';
-    else if (pinRes !== '' && pinRes === pin) rol = 'Residente';
-    else {
+    const pinsMap = [
+      { col: 'PIN_Principal_1', nivel: 'Principal', num: 1 },
+      { col: 'PIN_Principal_2', nivel: 'Principal', num: 2 },
+      { col: 'PIN_Residente_1', nivel: 'Residente', num: 1 },
+      { col: 'PIN_Residente_2', nivel: 'Residente', num: 2 },
+    ];
+    let nivel = null, numPin = null;
+    for (const p of pinsMap) {
+      if (String(casaEncontrada[p.col] || '').trim() === pin && pin !== '') {
+        nivel = p.nivel; numPin = p.num; break;
+      }
+    }
+    if (!nivel) {
       document.getElementById('msg-login').innerHTML = '<div class="mensaje error">PIN incorrecto</div>';
       return;
     }
+    nivelLoginDetectado = nivel;
 
-    // Registrar dispositivo en Sheet
-    await fetch(API, { method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion: 'validarPin', casa, pin, dispositivo_id: dispositivoId }) });
+    const selectorVal = document.getElementById('login-nombre-selector').value;
+    let nombreFinal = '';
+    if (selectorVal && selectorVal !== '__nuevo__') {
+      nombreFinal = selectorVal;
+    } else {
+      const tratamiento = document.getElementById('login-tratamiento')?.value || '';
+      const nombreTexto = document.getElementById('login-nombre').value.trim();
+      if (!nombreTexto) {
+        document.getElementById('msg-login').innerHTML = '<div class="mensaje error">Escribe tu nombre completo</div>';
+        return;
+      }
+      nombreFinal = (tratamiento + ' ' + nombreTexto).trim();
+      const relacion = document.getElementById('login-relacion')?.value || '';
+      const telefono = document.getElementById('login-telefono')?.value || '';
+      try {
+        await fetch(API, { method: 'POST', mode: 'no-cors',
+          body: JSON.stringify({ accion: 'registrarPersona', casa, relacion, nombre: nombreFinal, nivel, telefono }) });
+      } catch(e) {}
+    }
 
-    // Registrar persona si es nueva (no bloquea aunque falle)
+    const dispositivoId = generarDispositivoId();
     try {
       await fetch(API, { method: 'POST', mode: 'no-cors',
-        body: JSON.stringify({ accion: 'registrarPersona', casa, nombre: nombreIngreso, rol }) });
+        body: JSON.stringify({ accion: 'validarPin', casa, pin, dispositivo_id: dispositivoId }) });
     } catch(e) {}
 
-    // Verificar si ya aceptó reglamento (en Personas_Casa)
     let aceptoReglamento = false;
     try {
       const personasRes = await fetch(`${API}?accion=getPersonasCasa`);
       const personasData = await personasRes.json();
       const persona = personasData.find(p =>
         String(p.Casa).toUpperCase().trim() === casa &&
-        String(p.Nombre).toLowerCase().trim() === nombreIngreso.toLowerCase().trim()
+        String(p.Nombre).toLowerCase().trim() === nombreFinal.toLowerCase().trim()
       );
       aceptoReglamento = persona ? String(persona.Acepto_Reglamento || '').trim().toUpperCase() === 'SI' : false;
     } catch(e) {}
 
+    const rolComite = String(casaEncontrada.Rol || '').trim();
     sesion = {
-      casa: casaEncontrada.ID_Casa, nombre: nombreIngreso, rol,
-      edificio: calcularEdificio(casaEncontrada.ID_Casa),
-      aceptoReglamento,
-      rolComite: String(casaEncontrada.Rol || '').trim(),
-      puesto: String(casaEncontrada.Puesto || '').trim()
+      casa: casaEncontrada.ID_Casa, nombre: nombreFinal, nivel, numPin,
+      edificio: calcularEdificio(casaEncontrada.ID_Casa), aceptoReglamento, rolComite,
+      puesto: String(casaEncontrada.Puesto || '').trim(),
+      verFinanzasCompletas: nivel === 'Principal',
+      verHistorialCompleto: nivel === 'Principal',
+      verJuntasHistorico: nivel === 'Principal',
+      verPanelComite: nivel === 'Principal' && numPin === 1 && rolComite === 'Comite'
     };
     localStorage.setItem('paamul_sesion', JSON.stringify(sesion));
     iniciarApp();
@@ -736,10 +788,8 @@ async function mostrarReglamento() {
 }
 
 function validarChecksReglamento() {
-  const leido = document.getElementById('check-leido').checked;
-  const acepto = document.getElementById('check-acepto').checked;
+  const habilitado = document.getElementById('check-leido').checked && document.getElementById('check-acepto').checked;
   const btn = document.getElementById('btn-aceptar-reglamento');
-  const habilitado = leido && acepto;
   btn.disabled = !habilitado;
   btn.style.opacity = habilitado ? '1' : '0.5';
   btn.style.cursor = habilitado ? 'pointer' : 'not-allowed';
@@ -749,7 +799,7 @@ async function aceptarReglamento() {
   if (!document.getElementById('check-leido').checked || !document.getElementById('check-acepto').checked) return;
   try {
     await fetch(API, { method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion: 'aceptarReglamento', casa: sesion.casa, nombre: sesion.nombre, rol: sesion.rol }) });
+      body: JSON.stringify({ accion: 'aceptarReglamento', casa: sesion.casa, nombre: sesion.nombre, nivel: sesion.nivel }) });
     sesion.aceptoReglamento = true;
     localStorage.setItem('paamul_sesion', JSON.stringify(sesion));
     document.getElementById('reglamento-screen').style.display = 'none';
@@ -761,18 +811,19 @@ async function mostrarAppPrincipal() {
   document.getElementById('app-screen').style.display = 'block';
   document.getElementById('header-bienvenida').textContent = `Departamento ${sesion.casa}`;
   const nombreEl = document.getElementById('nombre-residente');
-  if (sesion.puesto) nombreEl.textContent = `Bienvenido ${sesion.puesto}, ${sesion.nombre}`;
-  else nombreEl.textContent = `Bienvenido, ${sesion.nombre}`;
-  if (sesion.rolComite === 'Comite') {
+  nombreEl.textContent = sesion.puesto ? `Bienvenido ${sesion.puesto}, ${sesion.nombre}` : `Bienvenido, ${sesion.nombre}`;
+  if (sesion.verPanelComite) {
     document.getElementById('badge-comite-container').innerHTML = '<span class="badge-comite">⭐ Comité</span>';
     document.getElementById('btn-admin').style.display = 'flex';
   }
+  if (!sesion.verFinanzasCompletas) {
+    const btnFinanzas = document.querySelector("button[onclick=\"mostrar('finanzas')\"]");
+    if (btnFinanzas) btnFinanzas.style.display = 'none';
+  }
   document.getElementById('servicios-edificio').textContent = `Edificio ${sesion.edificio}`;
-  cargarAmenidades();
-  cargarMisReservas();
-  cargarBannerJunta();
-  await aplicarBloqueosPorAdeudo();
+  cargarAmenidades(); cargarMisReservas(); cargarBannerJunta(); await aplicarBloqueosPorAdeudo();
 }
+
 
 // Si el rol es Residente y su Estatus es ADEUDO, bloquea Reservas y Visitas (deja solo Servicios Adicionales)
 async function aplicarBloqueosPorAdeudo() {
@@ -782,10 +833,10 @@ async function aplicarBloqueosPorAdeudo() {
     const data = await res.json();
     const fin = obtenerFinanzasCasa(data);
     const estatus = fin ? String(fin.Estatus || '').trim().toUpperCase() : '';
-    sesion.bloqueado = (sesion.rol === 'Residente' && !ESTATUS_OK.includes(estatus));
+    sesion.bloqueado = (sesion.nivel === 'Residente' && !ESTATUS_OK.includes(estatus));
 
     const elSaldo = document.getElementById('saldo-pendiente');
-    if (sesion.rol === 'Primario') {
+    if (sesion.nivel === 'Principal') {
       const adeudo = fin ? limpiarMonto(fin.Adeudo) : 0;
       if (adeudo <= 0) { elSaldo.textContent = '✅ Sin adeudos'; elSaldo.classList.add('ok'); }
       else { elSaldo.textContent = `$${adeudo.toLocaleString('es-MX')} MXN`; elSaldo.classList.remove('ok'); }
@@ -916,15 +967,12 @@ async function onFechaChange() {
   const amenidad = document.getElementById('r-amenidad').value;
   const fecha = document.getElementById('r-fecha').value;
   if (!amenidad || !fecha) return;
+  // Mesas: SOLO el día de hoy
   if (amenidad !== 'PAL-01') {
-    const ahora = new Date();
-    const hoy = ahora.toISOString().split('T')[0];
-    const manana = new Date(ahora);
-    manana.setDate(manana.getDate() + 1);
-    const mananaStr = manana.toISOString().split('T')[0];
-    if (fecha !== hoy && fecha !== mananaStr) {
+    const hoy = new Date().toISOString().split('T')[0];
+    if (fecha !== hoy) {
       document.getElementById('mesas-container').style.display = 'none';
-      document.getElementById('horarios-container').innerHTML = '<div class="mensaje error">Las mesas solo se pueden reservar para hoy o mañana</div>';
+      document.getElementById('horarios-container').innerHTML = '<div class="mensaje error">Las mesas y sombrillas solo se pueden reservar para el día de hoy</div>';
       return;
     }
   }
@@ -1020,19 +1068,40 @@ function verificarDisponibilidad() {
   const duracion = parseInt(document.getElementById('r-duracion').value);
   const div = document.getElementById('disponibilidad-mesa');
   if (isNaN(horaInicio) || !duracion) return;
-  const horaFin = horaInicio === 0 ? 1 : horaInicio + duracion;
+  const horaInicioExt = horaInicio === 0 ? 24 : horaInicio;
+  const horaFinExt = horaInicioExt + duracion;
+  const horaInicioStr = horaInicio === 0 ? '00:00' : `${String(horaInicio).padStart(2,'0')}:00`;
+  const horaFinStr = horaFinExt >= 24 ? '00:00' : `${String(horaFinExt).padStart(2,'0')}:00`;
+
+  // Verificar si hay conflicto con la amenidad seleccionada
   const reservasAmenidad = reservas.filter(r => r.ID_Amenidad === amenidad && limpiarFecha(r.Fecha) === fecha && r.Estatus === 'Activa');
   let conflicto = false;
   reservasAmenidad.forEach(r => {
     const rH = parseInt(String(r.Hora_Inicio).split(':')[0]);
     const rD = parseInt(r.Duracion_Hrs) || 1;
-    const rF = rH === 0 ? 1 : rH + rD;
-    if (horaInicio < rF && horaFin > rH) conflicto = true;
+    const rHExt = rH === 0 ? 24 : rH;
+    const rFExt = rHExt + rD;
+    if (horaInicioExt < rFExt && rHExt < horaFinExt) conflicto = true;
   });
-  const horaInicioStr = horaInicio === 0 ? '00:00' : `${String(horaInicio).padStart(2,'0')}:00`;
-  const horaFinStr = horaFin >= 24 ? '00:00' : `${String(horaFin).padStart(2,'0')}:00`;
+
   if (conflicto) {
-    div.innerHTML = '<div class="mensaje error">⚠️ Ese horario ya está reservado, elige otro</div>';
+    // Buscar mesas alternativas disponibles en el mismo horario
+    const todasMesas = amenidades.filter(a => a.ID_Amenidad !== 'PAL-01' && a.ID_Amenidad !== amenidad);
+    const mesasLibres = todasMesas.filter(mesa => {
+      const reservasMesa = reservas.filter(r => r.ID_Amenidad === mesa.ID_Amenidad && limpiarFecha(r.Fecha) === fecha && r.Estatus === 'Activa');
+      return !reservasMesa.some(r => {
+        const rH = parseInt(String(r.Hora_Inicio).split(':')[0]);
+        const rD = parseInt(r.Duracion_Hrs) || 1;
+        const rHExt = rH === 0 ? 24 : rH;
+        const rFExt = rHExt + rD;
+        return horaInicioExt < rFExt && rHExt < horaFinExt;
+      });
+    });
+    let msgAlternativas = '';
+    if (mesasLibres.length > 0) {
+      msgAlternativas = `<br><small>Disponibles en ese horario: <strong>${mesasLibres.map(m => m.Nombre).join(', ')}</strong></small>`;
+    }
+    div.innerHTML = `<div class="mensaje error">⚠️ Esta mesa ya está reservada en ese horario.${msgAlternativas}</div>`;
     document.getElementById('btn-reservar').style.display = 'none';
     horarioSeleccionado = null;
   } else {
@@ -1172,7 +1241,7 @@ async function cargarFinanzas() {
     const esOk = ESTATUS_OK.includes(estatus);
 
     // Residente: solo ve el estatus, sin montos ni desglose (privacidad financiera del propietario)
-    if (sesion.rol === 'Residente') {
+    if (sesion.nivel === 'Residente') {
       lista.innerHTML = `
         <div class="semaforo ${esOk ? 'verde' : 'rojo'}">
           <div class="estatus-label">Estatus del mes</div>
@@ -1626,14 +1695,19 @@ async function cargarJuntas() {
   const lista = document.getElementById('juntas-lista');
   lista.innerHTML = '<p style="color:#666">Cargando...</p>';
   try {
-    const [resJ, resA] = await Promise.all([
-      fetch(`${API}?accion=getJuntas`),
-      fetch(`${API}?accion=getAsistencia`)
-    ]);
-    const juntas = await resJ.json();
-    const asistencia = await resA.json();
-    if (!juntas || juntas.length === 0) {
-      lista.innerHTML = '<p style="color:#666">No hay juntas registradas</p>';
+    const resJ = await fetch(`${API}?accion=getJuntas`);
+    const juntasRaw = await resJ.json();
+    const juntas = Array.isArray(juntasRaw) ? juntasRaw : [];
+
+    let asistencia = [];
+    try {
+      const resA = await fetch(`${API}?accion=getAsistencia`);
+      const asistenciaRaw = await resA.json();
+      asistencia = Array.isArray(asistenciaRaw) ? asistenciaRaw : [];
+    } catch(e) {}
+
+    if (juntas.length === 0) {
+      lista.innerHTML = '<p style="color:#666">No hay juntas registradas aún</p>';
       return;
     }
     const hoy = new Date().toISOString().split('T')[0];
@@ -1664,9 +1738,12 @@ async function cargarJuntas() {
           }
         </div>`;
       }).join('');
+    } else {
+      html += '<p style="color:#666; margin-bottom:16px">No hay juntas próximas programadas</p>';
     }
 
-    if (pasadas.length > 0) {
+    // Histórico solo para nivel Principal
+    if (sesion.verJuntasHistorico && pasadas.length > 0) {
       html += '<h3 style="font-size:15px; color:#666; margin:16px 0 12px">📁 Histórico de Juntas</h3>';
       html += pasadas.slice().reverse().map(j => {
         const idJunta = limpiarFecha(j.Fecha_Junta);
@@ -1682,7 +1759,7 @@ async function cargarJuntas() {
           <small style="color:#999">📅 ${formatearFechaBonita(j.Fecha_Junta)}</small><br>
           ${j.Orden_del_Dia ? `<p style="font-size:13px; margin:6px 0; color:#777">📋 ${j.Orden_del_Dia}</p>` : ''}
           <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
-            ${j.Minuta_URL ? `<button onclick="abrirMinuta('${idJunta}','${j.Minuta_URL}')" style="background:#1a73e8;color:white;border:none;border-radius:6px;padding:8px 12px;font-size:13px;cursor:pointer">📄 Ver Minuta</button>` : '<span style="font-size:12px;color:#999">Minuta no disponible</span>'}
+            ${j.Minuta_URL ? `<button onclick="window.open('${j.Minuta_URL}','_blank')" style="background:#1a73e8;color:white;border:none;border-radius:6px;padding:8px 12px;font-size:13px;cursor:pointer">📄 Ver Minuta</button>` : '<span style="font-size:12px;color:#999">Minuta no disponible</span>'}
             ${j.Minuta_URL && !yaEnterado
               ? `<button onclick="marcarEnterado('${idJunta}')" style="background:#f57f17;color:white;border:none;border-radius:6px;padding:8px 12px;font-size:13px;cursor:pointer">✅ Marcar Enterado</button>`
               : j.Minuta_URL ? `<button disabled style="background:#999;color:white;border:none;border-radius:6px;padding:8px 12px;font-size:13px">✅ Enterado</button>` : ''
@@ -1692,9 +1769,10 @@ async function cargarJuntas() {
       }).join('');
     }
 
-    lista.innerHTML = html || '<p style="color:#666">No hay juntas registradas</p>';
+    lista.innerHTML = html;
   } catch(e) {
-    lista.innerHTML = '<p style="color:#c5221f">Error al cargar juntas</p>';
+    console.error('Error juntas:', e);
+    lista.innerHTML = '<p style="color:#666">No hay juntas registradas aún</p>';
   }
 }
 
@@ -1722,10 +1800,15 @@ async function marcarEnterado(idJunta) {
 let catalogoConceptos = [];
 
 async function cargarCatalogoConceptos() {
+  const sel = document.getElementById('inc-concepto');
   try {
     const res = await fetch(`${API}?accion=getCatalogoConceptos`);
-    catalogoConceptos = await res.json();
-    const sel = document.getElementById('inc-concepto');
+    const data = await res.json();
+    catalogoConceptos = Array.isArray(data) ? data : [];
+    if (catalogoConceptos.length === 0) {
+      sel.innerHTML = '<option value="">Sin conceptos cargados en el Sheet</option>';
+      return;
+    }
     sel.innerHTML = '<option value="">Selecciona concepto...</option>';
     catalogoConceptos.forEach(c => {
       const opt = document.createElement('option');
@@ -1733,7 +1816,10 @@ async function cargarCatalogoConceptos() {
       opt.textContent = `${c.ID_Concepto} — ${c.Nombre_Corto}`;
       sel.appendChild(opt);
     });
-  } catch(e) {}
+  } catch(e) {
+    sel.innerHTML = '<option value="">Error al cargar conceptos</option>';
+    console.error('Error catálogo:', e);
+  }
 }
 
 function onConceptoChange() {
