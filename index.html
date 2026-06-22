@@ -111,14 +111,20 @@
     <div id="msg-login"></div>
     <div class="form-group">
       <label>Número de depto</label>
-      <input type="text" id="login-casa" placeholder="Ej: 4A" style="text-transform:uppercase">
+      <input type="text" id="login-casa" placeholder="Ej: 4A" style="text-transform:uppercase" onblur="cargarNombresLogin()">
     </div>
     <div class="form-group">
       <label>PIN</label>
       <input type="password" id="login-pin" placeholder="Tu PIN de acceso">
     </div>
-    <div class="form-group">
-      <label>Tu nombre completo</label>
+    <div class="form-group" id="login-selector-grupo" style="display:none">
+      <label>¿Quién eres?</label>
+      <select id="login-nombre-selector" onchange="onNombreSelectorChange()">
+        <option value="">Selecciona tu nombre...</option>
+      </select>
+    </div>
+    <div class="form-group" id="login-nombre-nuevo-grupo">
+      <label id="login-nombre-label">Tu nombre completo</label>
       <input type="text" id="login-nombre" placeholder="Nombre y apellido">
     </div>
     <button class="submit" onclick="iniciarSesion()">Entrar</button>
@@ -217,6 +223,13 @@
       <div class="texto">
         <h3>Reportes e Inconformidades</h3>
         <p>Quejas, fallas o sugerencias</p>
+      </div>
+    </button>
+    <button class="btn" onclick="mostrar('juntas')">
+      <span class="icono">🏛️</span>
+      <div class="texto">
+        <h3>Juntas y Asambleas</h3>
+        <p>Próximas reuniones, minutas y asistencia</p>
       </div>
     </button>
     <button class="btn" onclick="mostrar('directorio')">
@@ -420,6 +433,13 @@
     <button class="submit" onclick="registrarReporte()">Enviar Reporte</button>
   </div>
 
+  <!-- PANTALLA JUNTAS Y ASAMBLEAS -->
+  <div id="juntas" class="pantalla">
+    <button class="back" onclick="mostrar('menu')">← Regresar</button>
+    <h2>🏛️ Juntas y Asambleas</h2>
+    <div id="juntas-lista"><p style="color:#666">Cargando...</p></div>
+  </div>
+
   <!-- PANTALLA DIRECTORIO -->
   <div id="directorio" class="pantalla">
     <button class="back" onclick="mostrar('menu')">← Regresar</button>
@@ -435,6 +455,34 @@
       <button onclick="mostrarTabAdmin('mudanzas')" id="tab-admin-mudanzas" class="submit" style="margin-top:0; font-size:13px; padding:10px">📦 Mudanzas</button>
       <button onclick="mostrarTabAdmin('reportes')" id="tab-admin-reportes" class="submit" style="margin-top:0; font-size:13px; padding:10px; background:#999">📝 Reportes</button>
       <button onclick="mostrarTabAdmin('accesos')" id="tab-admin-accesos" class="submit" style="margin-top:0; font-size:13px; padding:10px; background:#999">🚙 Accesos</button>
+      <button onclick="mostrarTabAdmin('incidencias')" id="tab-admin-incidencias" class="submit" style="margin-top:0; font-size:13px; padding:10px; background:#999">⚠️ Incidencias</button>
+    </div>
+    <div id="admin-nueva-incidencia" style="display:none; background:white; border-radius:12px; padding:16px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.1)">
+      <h3 style="font-size:15px; margin-bottom:12px">➕ Nueva Incidencia</h3>
+      <div id="msg-incidencia"></div>
+      <div class="form-group">
+        <label>Departamento</label>
+        <input type="text" id="inc-casa" placeholder="Ej: 4A" style="text-transform:uppercase">
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="inc-tipo">
+          <option value="Llamada de Atención">Llamada de Atención (sin costo)</option>
+          <option value="Multa">Multa (con costo)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Concepto</label>
+        <select id="inc-concepto" onchange="onConceptoChange()">
+          <option value="">Cargando conceptos...</option>
+        </select>
+      </div>
+      <div id="inc-info-concepto" style="display:none; background:#fff8e1; border-radius:8px; padding:12px; margin-bottom:12px; font-size:13px;"></div>
+      <div class="form-group">
+        <label>Monto (se calcula automático si es Multa)</label>
+        <input type="number" id="inc-monto" placeholder="0" readonly style="background:#f5f5f5">
+      </div>
+      <button class="submit" onclick="generarIncidencia()">Registrar Incidencia</button>
     </div>
     <div id="admin-lista"><p style="color:#666">Cargando...</p></div>
   </div>
@@ -539,22 +587,78 @@ window.onload = () => {
   }
 };
 
+// ===== SELECTOR DE NOMBRES EN LOGIN =====
+let nombresLoginCargados = [];
+
+async function cargarNombresLogin() {
+  const casa = document.getElementById('login-casa').value.trim().toUpperCase();
+  if (!casa) return;
+  try {
+    const res = await fetch(`${API}?accion=getPersonasCasa`);
+    const data = await res.json();
+    nombresLoginCargados = data.filter(p => String(p.Casa).toUpperCase().trim() === casa);
+    const sel = document.getElementById('login-nombre-selector');
+    const grupoSel = document.getElementById('login-selector-grupo');
+    const grupoNuevo = document.getElementById('login-nombre-nuevo-grupo');
+    const labelNuevo = document.getElementById('login-nombre-label');
+
+    if (nombresLoginCargados.length > 0) {
+      sel.innerHTML = '<option value="">Selecciona tu nombre...</option>';
+      nombresLoginCargados.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.Nombre;
+        opt.textContent = p.Nombre;
+        sel.appendChild(opt);
+      });
+      const optNuevo = document.createElement('option');
+      optNuevo.value = '__nuevo__';
+      optNuevo.textContent = '+ Registrar nuevo nombre';
+      sel.appendChild(optNuevo);
+      grupoSel.style.display = 'block';
+      grupoNuevo.style.display = 'none';
+      document.getElementById('login-nombre').value = '';
+    } else {
+      grupoSel.style.display = 'none';
+      grupoNuevo.style.display = 'block';
+      labelNuevo.textContent = 'Tu nombre completo';
+    }
+  } catch(e) {
+    // Si falla, mostrar campo libre normal
+    document.getElementById('login-selector-grupo').style.display = 'none';
+    document.getElementById('login-nombre-nuevo-grupo').style.display = 'block';
+  }
+}
+
+function onNombreSelectorChange() {
+  const val = document.getElementById('login-nombre-selector').value;
+  const grupoNuevo = document.getElementById('login-nombre-nuevo-grupo');
+  const labelNuevo = document.getElementById('login-nombre-label');
+  if (val === '__nuevo__') {
+    grupoNuevo.style.display = 'block';
+    labelNuevo.textContent = 'Escribe tu nombre completo';
+    document.getElementById('login-nombre').value = '';
+  } else if (val) {
+    grupoNuevo.style.display = 'none';
+    document.getElementById('login-nombre').value = val;
+  } else {
+    grupoNuevo.style.display = 'none';
+    document.getElementById('login-nombre').value = '';
+  }
+}
+
 async function iniciarSesion() {
   const casa = document.getElementById('login-casa').value.trim().toUpperCase();
   const pin = document.getElementById('login-pin').value.trim();
-  const nombreIngreso = document.getElementById('login-nombre').value.trim();
+  const nombreIngreso = document.getElementById('login-nombre').value.trim() ||
+                        (document.getElementById('login-nombre-selector').value !== '__nuevo__'
+                          ? document.getElementById('login-nombre-selector').value.trim() : '');
   if (!casa || !pin || !nombreIngreso) {
-    document.getElementById('msg-login').innerHTML = '<div class="mensaje error">Por favor llena depto, PIN y tu nombre</div>';
+    document.getElementById('msg-login').innerHTML = '<div class="mensaje error">Por favor llena depto, PIN y selecciona o escribe tu nombre</div>';
     return;
   }
   document.getElementById('msg-login').innerHTML = '<div class="mensaje ok">Validando...</div>';
   try {
     const dispositivoId = generarDispositivoId();
-    await fetch(API, {
-      method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion: 'validarPin', casa, pin, dispositivo_id: dispositivoId })
-    });
-    // Validamos localmente contra getCasas (la llamada de arriba registra el dispositivo en el Sheet)
     const casasRes = await fetch(`${API}?accion=getCasas`);
     const casasData = await casasRes.json();
     const casaEncontrada = casasData.find(c => String(c.ID_Casa).toUpperCase().trim() === casa);
@@ -567,23 +671,39 @@ async function iniciarSesion() {
     const pinProp = String(casaEncontrada.PIN_Propietario || '').trim();
     const pinRes = String(casaEncontrada.PIN_Residente || '').trim();
     let rol = null;
-    if (pinProp !== '' && pinProp === pin) {
-      rol = 'Propietario';
-    } else if (pinRes !== '' && pinRes === pin) {
-      rol = 'Residente';
-    } else {
+    if (pinProp !== '' && pinProp === pin) rol = 'Primario';
+    else if (pinRes !== '' && pinRes === pin) rol = 'Residente';
+    else {
       document.getElementById('msg-login').innerHTML = '<div class="mensaje error">PIN incorrecto</div>';
       return;
     }
 
-    // Usamos el nombre que la persona escribió al ingresar (puede variar entre residentes del mismo depto)
-    const acepto = rol === 'Propietario' ? casaEncontrada.Acepto_Reglamento_Prop : casaEncontrada.Acepto_Reglamento_Res;
+    // Registrar dispositivo en Sheet
+    await fetch(API, { method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({ accion: 'validarPin', casa, pin, dispositivo_id: dispositivoId }) });
+
+    // Registrar persona si es nueva (no bloquea aunque falle)
+    try {
+      await fetch(API, { method: 'POST', mode: 'no-cors',
+        body: JSON.stringify({ accion: 'registrarPersona', casa, nombre: nombreIngreso, rol }) });
+    } catch(e) {}
+
+    // Verificar si ya aceptó reglamento (en Personas_Casa)
+    let aceptoReglamento = false;
+    try {
+      const personasRes = await fetch(`${API}?accion=getPersonasCasa`);
+      const personasData = await personasRes.json();
+      const persona = personasData.find(p =>
+        String(p.Casa).toUpperCase().trim() === casa &&
+        String(p.Nombre).toLowerCase().trim() === nombreIngreso.toLowerCase().trim()
+      );
+      aceptoReglamento = persona ? String(persona.Acepto_Reglamento || '').trim().toUpperCase() === 'SI' : false;
+    } catch(e) {}
+
     sesion = {
-      casa: casaEncontrada.ID_Casa,
-      nombre: nombreIngreso,
-      rol: rol,
+      casa: casaEncontrada.ID_Casa, nombre: nombreIngreso, rol,
       edificio: calcularEdificio(casaEncontrada.ID_Casa),
-      aceptoReglamento: String(acepto || '').trim().toUpperCase() === 'SI',
+      aceptoReglamento,
       rolComite: String(casaEncontrada.Rol || '').trim(),
       puesto: String(casaEncontrada.Puesto || '').trim()
     };
@@ -596,12 +716,7 @@ async function iniciarSesion() {
 
 async function iniciarApp() {
   document.getElementById('login-screen').style.display = 'none';
-
-  if (!sesion.aceptoReglamento) {
-    mostrarReglamento();
-    return;
-  }
-
+  if (!sesion.aceptoReglamento) { mostrarReglamento(); return; }
   mostrarAppPrincipal();
 }
 
@@ -633,35 +748,25 @@ function validarChecksReglamento() {
 async function aceptarReglamento() {
   if (!document.getElementById('check-leido').checked || !document.getElementById('check-acepto').checked) return;
   try {
-    await fetch(API, {
-      method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion: 'aceptarReglamento', casa: sesion.casa, rol: sesion.rol })
-    });
+    await fetch(API, { method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({ accion: 'aceptarReglamento', casa: sesion.casa, nombre: sesion.nombre, rol: sesion.rol }) });
     sesion.aceptoReglamento = true;
     localStorage.setItem('paamul_sesion', JSON.stringify(sesion));
     document.getElementById('reglamento-screen').style.display = 'none';
     mostrarAppPrincipal();
-  } catch(e) {
-    alert('Error al guardar tu aceptación, intenta de nuevo.');
-  }
+  } catch(e) { alert('Error al guardar tu aceptación, intenta de nuevo.'); }
 }
 
 async function mostrarAppPrincipal() {
   document.getElementById('app-screen').style.display = 'block';
   document.getElementById('header-bienvenida').textContent = `Departamento ${sesion.casa}`;
-
-  // Bienvenida dinámica: con puesto de comité o normal
   const nombreEl = document.getElementById('nombre-residente');
-  if (sesion.puesto) {
-    nombreEl.textContent = `Bienvenido ${sesion.puesto}, ${sesion.nombre}`;
-  } else {
-    nombreEl.textContent = `Bienvenido, ${sesion.nombre}`;
-  }
+  if (sesion.puesto) nombreEl.textContent = `Bienvenido ${sesion.puesto}, ${sesion.nombre}`;
+  else nombreEl.textContent = `Bienvenido, ${sesion.nombre}`;
   if (sesion.rolComite === 'Comite') {
     document.getElementById('badge-comite-container').innerHTML = '<span class="badge-comite">⭐ Comité</span>';
     document.getElementById('btn-admin').style.display = 'flex';
   }
-
   document.getElementById('servicios-edificio').textContent = `Edificio ${sesion.edificio}`;
   cargarAmenidades();
   cargarMisReservas();
@@ -680,7 +785,7 @@ async function aplicarBloqueosPorAdeudo() {
     sesion.bloqueado = (sesion.rol === 'Residente' && !ESTATUS_OK.includes(estatus));
 
     const elSaldo = document.getElementById('saldo-pendiente');
-    if (sesion.rol === 'Propietario') {
+    if (sesion.rol === 'Primario') {
       const adeudo = fin ? limpiarMonto(fin.Adeudo) : 0;
       if (adeudo <= 0) { elSaldo.textContent = '✅ Sin adeudos'; elSaldo.classList.add('ok'); }
       else { elSaldo.textContent = `$${adeudo.toLocaleString('es-MX')} MXN`; elSaldo.classList.remove('ok'); }
@@ -731,6 +836,7 @@ function mostrar(id) {
     if (id === 'finanzas') cargarFinanzas();
     if (id === 'directorio') cargarDirectorio();
     if (id === 'admin') cargarAdmin();
+    if (id === 'juntas') cargarJuntas();
   }
   horarioSeleccionado = null;
 }
@@ -1106,17 +1212,26 @@ async function cargarFinanzas() {
 
     // Desglose, ocultando conceptos en $0
     const conceptosConSaldo = CONCEPTOS_FINANZAS
-      .map(c => ({ label: c.label, monto: limpiarMonto(fin[c.key]) }))
+      .map(c => ({ label: c.label, key: c.key, monto: limpiarMonto(fin[c.key]) }))
       .filter(c => c.monto !== 0);
 
     if (conceptosConSaldo.length > 0) {
       html += `<div class="desglose-titulo">Desglose por concepto</div>`;
-      html += conceptosConSaldo.map(c => `
+      html += conceptosConSaldo.map(c => {
+        // Semáforo especial para Cuota
+        let colorMonto = '#137333'; // verde por defecto
+        let iconoExtra = '';
+        if (c.key === 'Cuota') {
+          if (c.monto < 500) { colorMonto = '#c5221f'; iconoExtra = ' 🔴'; }
+          else if (c.monto < 1000) { colorMonto = '#f57f17'; iconoExtra = ' 🟡'; }
+          else { colorMonto = '#137333'; iconoExtra = ' 🟢'; }
+        }
+        return `
         <div class="finanzas-card">
-          <div class="concepto">${c.label}</div>
-          <div class="monto-item">$${c.monto.toLocaleString('es-MX')}</div>
-        </div>
-      `).join('');
+          <div class="concepto">${c.label}${iconoExtra}</div>
+          <div class="monto-item" style="color:${colorMonto}">$${c.monto.toLocaleString('es-MX')}</div>
+        </div>`;
+      }).join('');
     }
 
     lista.innerHTML = html;
@@ -1331,6 +1446,14 @@ function mostrarTabAdmin(tab) {
   document.getElementById('tab-admin-mudanzas').style.background = tab === 'mudanzas' ? '#1a73e8' : '#999';
   document.getElementById('tab-admin-reportes').style.background = tab === 'reportes' ? '#1a73e8' : '#999';
   document.getElementById('tab-admin-accesos').style.background = tab === 'accesos' ? '#1a73e8' : '#999';
+  document.getElementById('tab-admin-incidencias').style.background = tab === 'incidencias' ? '#1a73e8' : '#999';
+  const incBox = document.getElementById('admin-nueva-incidencia');
+  if (tab === 'incidencias') {
+    incBox.style.display = 'block';
+    if (catalogoConceptos.length === 0) cargarCatalogoConceptos();
+  } else {
+    incBox.style.display = 'none';
+  }
   cargarAdmin();
 }
 
@@ -1369,8 +1492,7 @@ async function cargarAdmin() {
           </select>
         </div>
       `).join('');
-    } else {
-      // Accesos: viven en Servicios_Adicionales con Accion === 'Solicitud'
+    } else if (tabAdminActual === 'accesos') {
       const res = await fetch(`${API}?accion=getServicios`);
       const data = await res.json();
       const solicitudesAcceso = data.filter(s => s.Accion === 'Solicitud' && ARTICULOS_ACCESO.includes(s.Articulo));
@@ -1384,6 +1506,23 @@ async function cargarAdmin() {
           </select>
         </div>
       `).join('');
+    } else {
+      // Incidencias
+      const res = await fetch(`${API}?accion=getMultas`);
+      const data = await res.json();
+      if (data.length === 0) { lista.innerHTML = '<p style="color:#666">Sin incidencias registradas</p>'; return; }
+      lista.innerHTML = data.slice().reverse().map(m => {
+        const monto = parseFloat(m.Monto_Penalizacion) || 0;
+        const colorMonto = monto > 0 ? '#c5221f' : '#137333';
+        return `
+        <div class="admin-card">
+          <strong>${m.Casa}</strong> — ${m.Tipo_Incidencia}
+          <div class="meta">${m.ID_Concepto} · ${m.Fecha} · <span style="color:${colorMonto}; font-weight:bold">$${monto.toLocaleString('es-MX')}</span></div>
+          <select onchange="cambiarEstatusAdmin('multa', '${m.Folio}', this.value)">
+            ${['Pendiente','Notificado','Pagado','Cancelado'].map(op => `<option value="${op}" ${m.Estatus === op ? 'selected' : ''}>${op}</option>`).join('')}
+          </select>
+        </div>`;
+      }).join('');
     }
   } catch(e) {
     lista.innerHTML = '<p style="color:#c5221f">Error al cargar información</p>';
@@ -1394,15 +1533,12 @@ async function cambiarEstatusAdmin(tipo, id, nuevoEstatus) {
   let accion;
   if (tipo === 'mudanza') accion = 'actualizarEstatusMudanza';
   else if (tipo === 'reporte') accion = 'actualizarEstatusReporte';
+  else if (tipo === 'multa') accion = 'actualizarEstatusMulta';
   else accion = 'actualizarEstatusServicio';
   try {
-    await fetch(API, {
-      method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion, id, nuevo_estatus: nuevoEstatus })
-    });
-  } catch(e) {
-    alert('Error al actualizar el estatus, intenta de nuevo');
-  }
+    await fetch(API, { method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({ accion, id, folio: id, nuevo_estatus: nuevoEstatus }) });
+  } catch(e) { alert('Error al actualizar el estatus, intenta de nuevo'); }
 }
 
 // ===== ACCESOS (Chip / Control Vehicular) =====
@@ -1482,6 +1618,176 @@ async function registrarSolicitudAcceso() {
     document.getElementById('btn-acceso').style.display = 'none';
   } catch(e) {
     document.getElementById('msg-accesos').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
+  }
+}
+
+// ===== JUNTAS Y ASAMBLEAS =====
+async function cargarJuntas() {
+  const lista = document.getElementById('juntas-lista');
+  lista.innerHTML = '<p style="color:#666">Cargando...</p>';
+  try {
+    const [resJ, resA] = await Promise.all([
+      fetch(`${API}?accion=getJuntas`),
+      fetch(`${API}?accion=getAsistencia`)
+    ]);
+    const juntas = await resJ.json();
+    const asistencia = await resA.json();
+    if (!juntas || juntas.length === 0) {
+      lista.innerHTML = '<p style="color:#666">No hay juntas registradas</p>';
+      return;
+    }
+    const hoy = new Date().toISOString().split('T')[0];
+    const proximas = juntas.filter(j => limpiarFecha(j.Fecha_Junta) >= hoy);
+    const pasadas = juntas.filter(j => limpiarFecha(j.Fecha_Junta) < hoy);
+
+    let html = '';
+
+    if (proximas.length > 0) {
+      html += '<h3 style="font-size:15px; color:#1a73e8; margin-bottom:12px">📅 Próximas Juntas</h3>';
+      html += proximas.map(j => {
+        const idJunta = limpiarFecha(j.Fecha_Junta);
+        const yaConfirmo = asistencia.some(a =>
+          a.ID_Junta === idJunta &&
+          String(a.Nombre).toLowerCase().trim() === sesion.nombre.toLowerCase().trim() &&
+          String(a.Casa).toUpperCase().trim() === sesion.casa.toUpperCase().trim() &&
+          a.Confirmacion_Asistencia === 'CONFIRMADO'
+        );
+        return `
+        <div class="card" style="border-left:4px solid #1a73e8; margin-bottom:12px">
+          <strong>${j.Tipo || 'Junta'}</strong><br>
+          <small style="color:#666">📅 ${formatearFechaBonita(j.Fecha_Junta)}${j.Hora ? ' — ' + limpiarHora(j.Hora) + ' hrs' : ''}</small><br>
+          ${j.Orden_del_Dia ? `<p style="font-size:13px; margin:6px 0; color:#555">📋 ${j.Orden_del_Dia}</p>` : ''}
+          ${j.Link_Videollamada ? `<button onclick="window.open('${j.Link_Videollamada}','_blank')" style="background:#1a73e8;color:white;border:none;border-radius:6px;padding:8px 12px;font-size:13px;cursor:pointer;margin-top:6px">🎥 Unirse</button>` : ''}
+          ${yaConfirmo
+            ? `<button disabled style="background:#999;color:white;border:none;border-radius:6px;padding:8px 12px;font-size:13px;margin-top:6px;margin-left:6px">✅ Asistencia Confirmada</button>`
+            : `<button onclick="confirmarAsistencia('${idJunta}')" style="background:#137333;color:white;border:none;border-radius:6px;padding:8px 12px;font-size:13px;cursor:pointer;margin-top:6px;margin-left:6px">🙋 Confirmar Asistencia</button>`
+          }
+        </div>`;
+      }).join('');
+    }
+
+    if (pasadas.length > 0) {
+      html += '<h3 style="font-size:15px; color:#666; margin:16px 0 12px">📁 Histórico de Juntas</h3>';
+      html += pasadas.slice().reverse().map(j => {
+        const idJunta = limpiarFecha(j.Fecha_Junta);
+        const registroAsistencia = asistencia.find(a =>
+          a.ID_Junta === idJunta &&
+          String(a.Nombre).toLowerCase().trim() === sesion.nombre.toLowerCase().trim() &&
+          String(a.Casa).toUpperCase().trim() === sesion.casa.toUpperCase().trim()
+        );
+        const yaEnterado = registroAsistencia?.Enterado_Minuta === 'SI';
+        return `
+        <div class="card" style="border-left:4px solid #999; margin-bottom:12px">
+          <strong>${j.Tipo || 'Junta'}</strong><br>
+          <small style="color:#999">📅 ${formatearFechaBonita(j.Fecha_Junta)}</small><br>
+          ${j.Orden_del_Dia ? `<p style="font-size:13px; margin:6px 0; color:#777">📋 ${j.Orden_del_Dia}</p>` : ''}
+          <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
+            ${j.Minuta_URL ? `<button onclick="abrirMinuta('${idJunta}','${j.Minuta_URL}')" style="background:#1a73e8;color:white;border:none;border-radius:6px;padding:8px 12px;font-size:13px;cursor:pointer">📄 Ver Minuta</button>` : '<span style="font-size:12px;color:#999">Minuta no disponible</span>'}
+            ${j.Minuta_URL && !yaEnterado
+              ? `<button onclick="marcarEnterado('${idJunta}')" style="background:#f57f17;color:white;border:none;border-radius:6px;padding:8px 12px;font-size:13px;cursor:pointer">✅ Marcar Enterado</button>`
+              : j.Minuta_URL ? `<button disabled style="background:#999;color:white;border:none;border-radius:6px;padding:8px 12px;font-size:13px">✅ Enterado</button>` : ''
+            }
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    lista.innerHTML = html || '<p style="color:#666">No hay juntas registradas</p>';
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c5221f">Error al cargar juntas</p>';
+  }
+}
+
+async function confirmarAsistencia(idJunta) {
+  try {
+    await fetch(API, { method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({ accion: 'confirmarAsistencia', id_junta: idJunta, nombre: sesion.nombre, casa: sesion.casa }) });
+    cargarJuntas(); // Recarga para actualizar el botón
+  } catch(e) { alert('Error al confirmar, intenta de nuevo'); }
+}
+
+async function abrirMinuta(idJunta, url) {
+  window.open(url, '_blank');
+}
+
+async function marcarEnterado(idJunta) {
+  try {
+    await fetch(API, { method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({ accion: 'marcarEnterado', id_junta: idJunta, nombre: sesion.nombre, casa: sesion.casa }) });
+    cargarJuntas(); // Recarga para actualizar el botón
+  } catch(e) { alert('Error al registrar, intenta de nuevo'); }
+}
+
+// ===== INCIDENCIAS =====
+let catalogoConceptos = [];
+
+async function cargarCatalogoConceptos() {
+  try {
+    const res = await fetch(`${API}?accion=getCatalogoConceptos`);
+    catalogoConceptos = await res.json();
+    const sel = document.getElementById('inc-concepto');
+    sel.innerHTML = '<option value="">Selecciona concepto...</option>';
+    catalogoConceptos.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.ID_Concepto;
+      opt.textContent = `${c.ID_Concepto} — ${c.Nombre_Corto}`;
+      sel.appendChild(opt);
+    });
+  } catch(e) {}
+}
+
+function onConceptoChange() {
+  const id = document.getElementById('inc-concepto').value;
+  const tipo = document.getElementById('inc-tipo').value;
+  const concepto = catalogoConceptos.find(c => c.ID_Concepto === id);
+  const infoBox = document.getElementById('inc-info-concepto');
+  const montoInput = document.getElementById('inc-monto');
+  if (!concepto) { infoBox.style.display = 'none'; montoInput.value = ''; return; }
+  const monto = tipo === 'Llamada de Atención' ? 0 : (parseFloat(concepto.Costo_Base) || 0);
+  montoInput.value = monto;
+  infoBox.style.display = 'block';
+  infoBox.innerHTML = `<strong>${concepto.Nombre_Corto}</strong><br>${concepto.Descripcion_Reglamento || ''}`;
+}
+
+async function generarIncidencia() {
+  const casa = document.getElementById('inc-casa').value.trim().toUpperCase();
+  const tipo = document.getElementById('inc-tipo').value;
+  const idConcepto = document.getElementById('inc-concepto').value;
+  const monto = parseFloat(document.getElementById('inc-monto').value) || 0;
+  if (!casa || !idConcepto) {
+    document.getElementById('msg-incidencia').innerHTML = '<div class="mensaje error">Completa depto y concepto</div>';
+    return;
+  }
+  const concepto = catalogoConceptos.find(c => c.ID_Concepto === idConcepto);
+  if (!concepto) return;
+
+  const ahora = new Date().toLocaleDateString('es-MX');
+  // Construir mensaje con la plantilla del catálogo
+  let mensajeFinal = concepto.Plantilla_Mensaje || '';
+  mensajeFinal = mensajeFinal.replace(/{Casa}/g, casa)
+    .replace(/{Fecha}/g, ahora)
+    .replace(/{Monto}/g, `$${monto.toLocaleString('es-MX')} MXN`)
+    .replace(/{Tipo}/g, tipo);
+
+  document.getElementById('msg-incidencia').innerHTML = '<div class="mensaje ok">Registrando...</div>';
+  try {
+    await fetch(API, { method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({
+        accion: 'registrarIncidencia', casa, id_concepto: idConcepto,
+        tipo_incidencia: tipo, monto, mensaje_notificacion: mensajeFinal
+      })
+    });
+    document.getElementById('msg-incidencia').innerHTML = `
+      <div class="mensaje ok">✅ Incidencia registrada correctamente</div>
+      <div style="background:#f5f5f5;border-radius:8px;padding:12px;margin-top:8px;font-size:13px">
+        <strong>📋 Mensaje generado para notificar al residente:</strong><br><br>${mensajeFinal}
+      </div>`;
+    document.getElementById('inc-casa').value = '';
+    document.getElementById('inc-concepto').value = '';
+    document.getElementById('inc-monto').value = '';
+    document.getElementById('inc-info-concepto').style.display = 'none';
+  } catch(e) {
+    document.getElementById('msg-incidencia').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
   }
 }
 
