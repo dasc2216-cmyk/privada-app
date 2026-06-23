@@ -158,6 +158,67 @@
 </div>
 
 <!-- APP PRINCIPAL -->
+<!-- PANTALLA SEGURIDAD (solo para Rol=Seguridad) -->
+<div id="seguridad-screen" style="display:none">
+  <div class="header">
+    <h1>🛡️ Paamul — Seguridad</h1>
+    <p id="seg-nombre-header">Agente</p>
+  </div>
+  <div style="padding:16px; max-width:500px; margin:0 auto">
+    <div id="msg-seguridad"></div>
+
+    <!-- REGISTRAR ENTRADA -->
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="font-size:15px; margin-bottom:12px">➕ Registrar Entrada / Actividad</h3>
+      <div class="form-group">
+        <label>Tipo de actividad</label>
+        <select id="seg-tipo">
+          <option value="Limpieza Áreas Comunes">🧹 Limpieza Áreas Comunes</option>
+          <option value="Mantenimiento Alberca">🏊 Mantenimiento Alberca</option>
+          <option value="Riego Jardines">🌿 Riego Jardines</option>
+          <option value="Poda">✂️ Poda</option>
+          <option value="Trabajo Especial / Proveedor">🔧 Trabajo Especial / Proveedor</option>
+          <option value="Paquetería">📦 Paquetería</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Zona / Área</label>
+        <select id="seg-zona">
+          <option value="Área General">Área General</option>
+          <option value="Alberca / Deck">Alberca / Deck</option>
+          <option value="Jardines">Jardines</option>
+          <option value="Acceso / Caseta">Acceso / Caseta</option>
+          <option value="Edificio">Edificio (especificar en notas)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Nombre del trabajador / proveedor</label>
+        <input type="text" id="seg-trabajador" placeholder="Nombre completo">
+      </div>
+      <div class="form-group">
+        <label>Notas (opcional)</label>
+        <input type="text" id="seg-notas" placeholder="Detalles adicionales...">
+      </div>
+      <button class="submit" onclick="registrarEntradaBitacora()">Registrar Entrada</button>
+    </div>
+
+    <!-- REGISTRAR SALIDA -->
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="font-size:15px; margin-bottom:12px">✅ Registrar Salida</h3>
+      <p style="font-size:13px; color:#666; margin-bottom:12px">Selecciona el registro activo para marcar la salida</p>
+      <div id="seg-activos-lista"><p style="color:#666; font-size:13px">Cargando registros activos...</p></div>
+    </div>
+
+    <!-- HISTORIAL RECIENTE -->
+    <div class="card">
+      <h3 style="font-size:15px; margin-bottom:12px">📋 Historial de Hoy</h3>
+      <div id="seg-historial-lista"><p style="color:#666; font-size:13px">Cargando...</p></div>
+    </div>
+
+    <button style="background:none; border:none; color:#999; font-size:13px; cursor:pointer; padding:16px; width:100%;" onclick="cerrarSesion()">Cerrar sesión</button>
+  </div>
+</div>
+
 <!-- REGLAMENTO (bloqueante en primer ingreso) -->
 <div id="reglamento-screen" style="display:none">
   <div class="header">
@@ -256,6 +317,13 @@
       <div class="texto">
         <h3>Juntas y Asambleas</h3>
         <p>Próximas reuniones, minutas y asistencia</p>
+      </div>
+    </button>
+    <button class="btn" onclick="mostrar('bitacora')">
+      <span class="icono">📋</span>
+      <div class="texto">
+        <h3>Bitácora de Mantenimiento</h3>
+        <p>Limpieza, alberca, jardines y proveedores</p>
       </div>
     </button>
     <button class="btn" onclick="mostrar('directorio')">
@@ -464,6 +532,20 @@
     <button class="back" onclick="mostrar('menu')">← Regresar</button>
     <h2>🏛️ Juntas y Asambleas</h2>
     <div id="juntas-lista"><p style="color:#666">Cargando...</p></div>
+  </div>
+
+  <!-- PANTALLA BITÁCORA -->
+  <div id="bitacora" class="pantalla">
+    <button class="back" onclick="mostrar('menu')">← Regresar</button>
+    <h2>📋 Bitácora de Mantenimiento</h2>
+    <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap">
+      <button onclick="filtrarBitacora('todos')" id="bit-filtro-todos" class="submit" style="margin-top:0; font-size:13px; padding:8px 12px">Todos</button>
+      <button onclick="filtrarBitacora('Limpieza Áreas Comunes')" class="submit" style="margin-top:0; font-size:13px; padding:8px 12px; background:#999">🧹 Limpieza</button>
+      <button onclick="filtrarBitacora('Mantenimiento Alberca')" class="submit" style="margin-top:0; font-size:13px; padding:8px 12px; background:#999">🏊 Alberca</button>
+      <button onclick="filtrarBitacora('Riego Jardines')" class="submit" style="margin-top:0; font-size:13px; padding:8px 12px; background:#999">🌿 Riego</button>
+      <button onclick="filtrarBitacora('Poda')" class="submit" style="margin-top:0; font-size:13px; padding:8px 12px; background:#999">✂️ Poda</button>
+    </div>
+    <div id="bitacora-lista"><p style="color:#666">Cargando...</p></div>
   </div>
 
   <!-- PANTALLA DIRECTORIO -->
@@ -694,6 +776,29 @@ async function iniciarSesion() {
       document.getElementById('msg-login').innerHTML = '<div class="mensaje error">Depto no encontrado</div>';
       return;
     }
+
+    const rolFila = String(casaEncontrada.Rol || '').trim();
+
+    // Agentes de seguridad: validación directa con PIN_Principal_1
+    if (rolFila === 'Seguridad') {
+      const pinSeg = String(casaEncontrada.PIN_Principal_1 || '').trim();
+      if (pinSeg !== pin) {
+        document.getElementById('msg-login').innerHTML = '<div class="mensaje error">PIN incorrecto</div>';
+        return;
+      }
+      const nombreSeg = String(casaEncontrada.Nombre_Residente || casaEncontrada.ID_Casa).trim();
+      sesion = {
+        casa: casaEncontrada.ID_Casa, nombre: nombreSeg,
+        nivel: 'Seguridad', numPin: 1, rolComite: 'Seguridad',
+        edificio: 0, aceptoReglamento: true, puesto: '',
+        verFinanzasCompletas: false, verHistorialCompleto: false,
+        verJuntasHistorico: false, verPanelComite: false
+      };
+      localStorage.setItem('paamul_sesion', JSON.stringify(sesion));
+      iniciarApp();
+      return;
+    }
+
     const pinsMap = [
       { col: 'PIN_Principal_1', nivel: 'Principal', num: 1 },
       { col: 'PIN_Principal_2', nivel: 'Principal', num: 2 },
@@ -749,15 +854,14 @@ async function iniciarSesion() {
       aceptoReglamento = persona ? String(persona.Acepto_Reglamento || '').trim().toUpperCase() === 'SI' : false;
     } catch(e) {}
 
-    const rolComite = String(casaEncontrada.Rol || '').trim();
     sesion = {
       casa: casaEncontrada.ID_Casa, nombre: nombreFinal, nivel, numPin,
-      edificio: calcularEdificio(casaEncontrada.ID_Casa), aceptoReglamento, rolComite,
+      edificio: calcularEdificio(casaEncontrada.ID_Casa), aceptoReglamento, rolComite: rolFila,
       puesto: String(casaEncontrada.Puesto || '').trim(),
       verFinanzasCompletas: nivel === 'Principal',
       verHistorialCompleto: nivel === 'Principal',
       verJuntasHistorico: nivel === 'Principal',
-      verPanelComite: nivel === 'Principal' && numPin === 1 && rolComite === 'Comite'
+      verPanelComite: nivel === 'Principal' && numPin === 1 && rolFila === 'Comite'
     };
     localStorage.setItem('paamul_sesion', JSON.stringify(sesion));
     iniciarApp();
@@ -768,6 +872,11 @@ async function iniciarSesion() {
 
 async function iniciarApp() {
   document.getElementById('login-screen').style.display = 'none';
+  // Agentes de seguridad van directo a su pantalla, sin reglamento
+  if (sesion.nivel === 'Seguridad') {
+    mostrarPantallaSeguridad();
+    return;
+  }
   if (!sesion.aceptoReglamento) { mostrarReglamento(); return; }
   mostrarAppPrincipal();
 }
@@ -888,6 +997,7 @@ function mostrar(id) {
     if (id === 'directorio') cargarDirectorio();
     if (id === 'admin') cargarAdmin();
     if (id === 'juntas') cargarJuntas();
+    if (id === 'bitacora') cargarBitacora();
   }
   horarioSeleccionado = null;
 }
@@ -1710,9 +1820,15 @@ async function cargarJuntas() {
       lista.innerHTML = '<p style="color:#666">No hay juntas registradas aún</p>';
       return;
     }
-    const hoy = new Date().toISOString().split('T')[0];
-    const proximas = juntas.filter(j => limpiarFecha(j.Fecha_Junta) >= hoy);
-    const pasadas = juntas.filter(j => limpiarFecha(j.Fecha_Junta) < hoy);
+    // Filtrar por Estatus (más confiable que comparar fechas con distintos formatos)
+    const proximas = juntas.filter(j => {
+      const est = String(j.Estatus || '').trim();
+      return est === 'Programada' || est === '';  // vacío = legacy sin estatus, lo tratamos como próxima
+    });
+    const pasadas = juntas.filter(j => {
+      const est = String(j.Estatus || '').trim();
+      return est === 'Realizada' || est === 'Cancelada';
+    });
 
     let html = '';
 
@@ -1875,6 +1991,142 @@ async function generarIncidencia() {
   } catch(e) {
     document.getElementById('msg-incidencia').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
   }
+}
+
+// ===== PANTALLA SEGURIDAD =====
+function mostrarPantallaSeguridad() {
+  document.getElementById('seguridad-screen').style.display = 'block';
+  document.getElementById('seg-nombre-header').textContent = sesion.nombre;
+  cargarBitacoraSeguridad();
+}
+
+async function registrarEntradaBitacora() {
+  const tipo = document.getElementById('seg-tipo').value;
+  const zona = document.getElementById('seg-zona').value;
+  const trabajador = document.getElementById('seg-trabajador').value.trim();
+  const notas = document.getElementById('seg-notas').value.trim();
+  if (!trabajador) {
+    document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje error">Escribe el nombre del trabajador</div>';
+    return;
+  }
+  const ahora = new Date();
+  const horaEntrada = `${String(ahora.getHours()).padStart(2,'0')}:${String(ahora.getMinutes()).padStart(2,'0')}`;
+  document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje ok">Registrando...</div>';
+  try {
+    await fetch(API, { method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({
+        accion: 'registrarBitacora', tipo_actividad: tipo, zona_area: zona,
+        trabajador, registrado_por: sesion.nombre, hora_entrada: horaEntrada, notas
+      })
+    });
+    document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje ok">✅ Entrada registrada correctamente</div>';
+    document.getElementById('seg-trabajador').value = '';
+    document.getElementById('seg-notas').value = '';
+    setTimeout(() => cargarBitacoraSeguridad(), 1500);
+  } catch(e) {
+    document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
+  }
+}
+
+async function cargarBitacoraSeguridad() {
+  const listaActivos = document.getElementById('seg-activos-lista');
+  const listaHistorial = document.getElementById('seg-historial-lista');
+  try {
+    const res = await fetch(`${API}?accion=getBitacora`);
+    const rawData = await res.json();
+    const data = Array.isArray(rawData) ? rawData : [];
+    const hoy = new Date().toISOString().split('T')[0];
+    const activos = data.filter(r => r.Estatus === 'En curso');
+    const hoyRegistros = data.filter(r => {
+      const fLimpia = limpiarFecha(r.Fecha || '');
+      return fLimpia === hoy;
+    }).slice().reverse().slice(0, 10);
+
+    listaActivos.innerHTML = activos.length === 0
+      ? '<p style="color:#666; font-size:13px">No hay actividades en curso</p>'
+      : activos.map(r => `
+        <div class="card" style="margin-bottom:8px; border-left:4px solid #137333">
+          <strong>${r.Tipo_Actividad}</strong> — ${r.Trabajador}<br>
+          <small style="color:#666">🕐 Entrada: ${r.Hora_Entrada} · ${r.Zona_Area}</small><br>
+          <button onclick="marcarSalidaBitacora('${r.ID}')" style="background:#c5221f;color:white;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;margin-top:6px">Registrar Salida</button>
+        </div>`).join('');
+
+    listaHistorial.innerHTML = hoyRegistros.length === 0
+      ? '<p style="color:#666; font-size:13px">Sin registros hoy</p>'
+      : hoyRegistros.map(r => `
+        <div style="padding:8px 0; border-bottom:1px solid #eee; font-size:13px">
+          <strong>${r.Tipo_Actividad}</strong> — ${r.Trabajador}<br>
+          <span style="color:#666">${r.Hora_Entrada}${r.Hora_Salida ? ' → ' + r.Hora_Salida : ' (en curso)'} · ${r.Zona_Area}</span>
+        </div>`).join('');
+  } catch(e) {
+    listaActivos.innerHTML = '<p style="color:#c5221f; font-size:13px">Error al cargar</p>';
+  }
+}
+
+async function marcarSalidaBitacora(id) {
+  const ahora = new Date();
+  const horaSalida = `${String(ahora.getHours()).padStart(2,'0')}:${String(ahora.getMinutes()).padStart(2,'0')}`;
+  try {
+    await fetch(API, { method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({ accion: 'actualizarEstatusBitacora', id, nuevo_estatus: 'Completado', hora_salida: horaSalida }) });
+    setTimeout(() => cargarBitacoraSeguridad(), 1500);
+  } catch(e) { alert('Error al registrar salida'); }
+}
+
+// ===== BITÁCORA (vista residentes) =====
+let bitacoraData = [];
+let filtroActual = 'todos';
+
+async function cargarBitacora() {
+  const lista = document.getElementById('bitacora-lista');
+  lista.innerHTML = '<p style="color:#666">Cargando...</p>';
+  try {
+    const res = await fetch(`${API}?accion=getBitacora`);
+    const data = await res.json();
+    bitacoraData = Array.isArray(data) ? data : [];
+    renderizarBitacora();
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c5221f">Error al cargar la bitácora</p>';
+  }
+}
+
+function filtrarBitacora(tipo) {
+  filtroActual = tipo;
+  document.getElementById('bit-filtro-todos').style.background = tipo === 'todos' ? '#1a73e8' : '#999';
+  renderizarBitacora();
+}
+
+function renderizarBitacora() {
+  const lista = document.getElementById('bitacora-lista');
+  const datos = filtroActual === 'todos'
+    ? bitacoraData
+    : bitacoraData.filter(r => r.Tipo_Actividad === filtroActual);
+  const recientes = datos.slice().reverse().slice(0, 30);
+  if (recientes.length === 0) {
+    lista.innerHTML = '<p style="color:#666">Sin registros en esta categoría</p>';
+    return;
+  }
+  const iconos = {
+    'Limpieza Áreas Comunes': '🧹',
+    'Mantenimiento Alberca': '🏊',
+    'Riego Jardines': '🌿',
+    'Poda': '✂️',
+    'Trabajo Especial / Proveedor': '🔧',
+    'Paquetería': '📦'
+  };
+  lista.innerHTML = recientes.map(r => {
+    const icono = iconos[r.Tipo_Actividad] || '📋';
+    const horario = r.Hora_Entrada ? `${r.Hora_Entrada}${r.Hora_Salida ? ' → ' + r.Hora_Salida : ''}` : '';
+    const colorEstatus = r.Estatus === 'Completado' ? '#137333' : r.Estatus === 'En curso' ? '#1a73e8' : '#999';
+    return `
+    <div class="card" style="margin-bottom:8px; border-left:4px solid ${colorEstatus}">
+      <strong>${icono} ${r.Tipo_Actividad}</strong><br>
+      <small style="color:#666">📅 ${limpiarFecha(r.Fecha)}${horario ? ' · 🕐 ' + horario : ''}</small><br>
+      <small style="color:#666">${r.Zona_Area}${r.Trabajador ? ' · ' + r.Trabajador : ''}</small><br>
+      ${r.Notas ? `<small style="color:#999; font-style:italic">${r.Notas}</small><br>` : ''}
+      <span style="font-size:11px; color:${colorEstatus}">${r.Estatus}</span>
+    </div>`;
+  }).join('');
 }
 
 async function cancelar(id) {
