@@ -201,6 +201,27 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 .loader { text-align:center; padding:32px; color:#888; font-size:14px; }
 .loader::before { content:'⏳'; display:block; font-size:32px; margin-bottom:8px; }
 
+/* ── JUNTAS ────────────────────────────────────────────────── */
+.junta-card { background:#fff; border-radius:14px; padding:16px;
+  margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,.08);
+  border-left:4px solid #1565c0; }
+.junta-card.realizada { border-left-color:#78909c; opacity:.9; }
+.junta-card.cancelada { border-left-color:#e53935; opacity:.8; }
+.junta-tipo  { font-size:15px; font-weight:700; color:#333; margin-bottom:4px; }
+.junta-fecha { font-size:13px; color:#1565c0; font-weight:600; margin-bottom:6px; }
+.junta-orden { font-size:13px; color:#555; line-height:1.5; margin-bottom:10px; }
+.junta-acciones { display:flex; gap:8px; flex-wrap:wrap; }
+.btn-confirmar { background:#1976d2; color:#fff; border:none; border-radius:8px;
+  padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer; }
+.btn-confirmar.confirmado { background:#43a047; cursor:default; }
+.btn-minuta   { background:#f8f9fa; color:#1565c0; border:1.5px solid #1565c0;
+  border-radius:8px; padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer; }
+.btn-enterado { background:#f8f9fa; color:#fb8c00; border:1.5px solid #fb8c00;
+  border-radius:8px; padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer; }
+.btn-enterado.enterado { background:#fff3e0; cursor:default; color:#e65100; }
+.seccion-titulo { font-size:12px; font-weight:700; color:#888; text-transform:uppercase;
+  letter-spacing:.6px; margin:16px 0 10px; }
+
 /* ── CERRAR SESION ─────────────────────────────────────────── */
 .btn-cerrar { background:none; border:none; color:#999; font-size:13px;
   cursor:pointer; padding:16px; width:100%; text-align:center;
@@ -496,7 +517,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
         <span class="m-title">Mudanzas</span>
         <span class="m-desc">Control de acceso</span>
       </button>
-      <button class="modulo-btn" onclick="proximamente()">
+      <button class="modulo-btn" onclick="ir('s-juntas'); cargarJuntas()">
         <span class="m-icon">🏛️</span>
         <span class="m-title">Juntas</span>
         <span class="m-desc">Asambleas y minutas</span>
@@ -601,8 +622,25 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — JUNTAS Y ASAMBLEAS
+═══════════════════════════════════════════════════════════ -->
+<div id="s-juntas" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>Juntas y Asambleas</p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="msg-juntas" class="msg"></div>
+    <div id="juntas-lista"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbz2oM-fbr0xehpVv6ir1-nizYSwumNTpFY1mcetMBRjJH_a4E6kPHnogDRMp22HqzqMxA/exec'; // <-- reemplaza con tu URL del Apps Script
+const API = 'TU_URL_AQUI'; // <-- reemplaza con tu URL del Apps Script
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -814,10 +852,7 @@ async function cargarMenuPrincipal() {
   // Saludo personalizado por género y rol
   const esFem  = sesion.genero === 'Mujer';
   const saludo = esFem ? 'Bienvenida' : 'Bienvenido';
-  const rolTxt = rolGenero(sesion.rol, sesion.genero);
-  const cargoTxt = sesion.cargo ? sesion.cargo + ', ' : '';
-  document.getElementById('menu-nombre').textContent =
-    `${saludo} ${cargoTxt}${rolTxt}, ${sesion.nombre}`;
+  document.getElementById('menu-nombre').textContent = `${saludo}, ${sesion.nombre}`;
 
   // Badges: cargo comité (dorado) y verificado
   const badges = document.getElementById('menu-badges');
@@ -931,7 +966,176 @@ async function cargarFinanzas() {
   }
 }
 
-// ── VISITAS ──────────────────────────────────────────────────
+// ── JUNTAS Y ASAMBLEAS ───────────────────────────────────────
+
+async function cargarBannerJunta() {
+  const banner = document.getElementById('banner-junta');
+  try {
+    const res   = await fetch(`${API}?accion=getJuntas`);
+    const data  = await res.json();
+    const lista = Array.isArray(data) ? data : [];
+    // Solo mostrar juntas Programadas en el banner
+    const proxima = lista.find(j => String(j.Estatus || '').trim() === 'Programada');
+    if (!proxima) { banner.classList.add('hidden'); return; }
+    document.getElementById('bj-tipo').textContent  = `🏛️ ${proxima.Tipo || 'Próxima Junta'}`;
+    document.getElementById('bj-fecha').textContent =
+      `📅 ${formatearFecha(proxima.Fecha_Junta)}${proxima.Hora ? ' — ' + fmt12(proxima.Hora) + ' hrs' : ''}`;
+    document.getElementById('bj-orden').textContent =
+      proxima.Orden_del_Dia ? `📋 ${proxima.Orden_del_Dia}` : '';
+    // Solo mostrar el botón "Unirse" si hay link
+    const btnUnirse = document.getElementById('bj-link');
+    if (btnUnirse) btnUnirse.remove();
+    if (proxima.Link_Videollamada) {
+      const btn = document.createElement('button');
+      btn.id = 'bj-link';
+      btn.textContent = '🎥 Unirse a la reunión';
+      btn.style.cssText = 'background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;';
+      btn.onclick = () => window.open(proxima.Link_Videollamada, '_blank');
+      banner.appendChild(btn);
+    }
+    banner.classList.remove('hidden');
+  } catch(e) {
+    banner.classList.add('hidden');
+  }
+}
+
+async function cargarJuntas() {
+  const lista = document.getElementById('juntas-lista');
+  lista.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const [resJ, resA] = await Promise.all([
+      fetch(`${API}?accion=getJuntas`),
+      fetch(`${API}?accion=getAsistencia`)
+    ]);
+    const juntas     = await resJ.json();
+    const asistencia = await resA.json();
+    const listaJ     = Array.isArray(juntas)     ? juntas     : [];
+    const listaA     = Array.isArray(asistencia)  ? asistencia : [];
+
+    if (listaJ.length === 0) {
+      lista.innerHTML = '<p style="color:#888;text-align:center;padding:24px">Sin juntas registradas</p>';
+      return;
+    }
+
+    const programadas = listaJ.filter(j => String(j.Estatus || '').trim() === 'Programada');
+    const realizadas  = listaJ.filter(j => String(j.Estatus || '').trim() === 'Realizada').reverse();
+
+    let html = '';
+
+    // ── Próximas ──
+    if (programadas.length > 0) {
+      html += '<p class="seccion-titulo">📅 Próximas</p>';
+      html += programadas.map(j => {
+        const idJunta  = j.Fecha_Junta;
+        const yaConfirmo = listaA.some(a =>
+          String(a.ID_Junta).trim()       === String(idJunta).trim() &&
+          String(a.Nombre_Persona).toLowerCase().trim() === sesion.nombre.toLowerCase().trim() &&
+          String(a.Casa).toUpperCase().trim()           === sesion.casa.toUpperCase().trim() &&
+          a.Confirmacion_Asistencia === 'CONFIRMADO'
+        );
+        return `
+        <div class="junta-card">
+          <div class="junta-tipo">${j.Tipo || 'Junta'}</div>
+          <div class="junta-fecha">📅 ${formatearFecha(j.Fecha_Junta)}${j.Hora ? ' — ' + fmt12(j.Hora) + ' hrs' : ''}</div>
+          ${j.Orden_del_Dia ? `<div class="junta-orden">📋 ${j.Orden_del_Dia}</div>` : ''}
+          <div class="junta-acciones">
+            ${j.Link_Videollamada
+              ? `<button class="btn-minuta" onclick="window.open('${j.Link_Videollamada}','_blank')">🎥 Unirse</button>`
+              : ''}
+            <button class="btn-confirmar ${yaConfirmo ? 'confirmado' : ''}"
+              onclick="${yaConfirmo ? '' : `confirmarAsistencia('${idJunta}')`}"
+              ${yaConfirmo ? 'disabled' : ''}>
+              ${yaConfirmo ? '✅ Asistencia confirmada' : '🙋 Confirmar asistencia'}
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // ── Historial ──
+    if (realizadas.length > 0) {
+      html += '<p class="seccion-titulo">📁 Historial</p>';
+      html += realizadas.map(j => {
+        const idJunta   = j.Fecha_Junta;
+        const registro  = listaA.find(a =>
+          String(a.ID_Junta).trim() === String(idJunta).trim() &&
+          String(a.Nombre_Persona).toLowerCase().trim() === sesion.nombre.toLowerCase().trim() &&
+          String(a.Casa).toUpperCase().trim()           === sesion.casa.toUpperCase().trim()
+        );
+        const yaEnterado = registro?.Enterado_Minuta === 'SI';
+        return `
+        <div class="junta-card realizada">
+          <div class="junta-tipo">${j.Tipo || 'Junta'}</div>
+          <div class="junta-fecha" style="color:#78909c">📅 ${formatearFecha(j.Fecha_Junta)}</div>
+          ${j.Orden_del_Dia ? `<div class="junta-orden">📋 ${j.Orden_del_Dia}</div>` : ''}
+          <div class="junta-acciones">
+            ${j.Minuta_URL
+              ? `<button class="btn-minuta" onclick="abrirMinuta('${idJunta}','${j.Minuta_URL}')">📄 Ver minuta</button>`
+              : '<span style="font-size:12px;color:#aaa">Sin minuta</span>'}
+            ${j.Minuta_URL
+              ? `<button class="btn-enterado ${yaEnterado ? 'enterado' : ''}"
+                  onclick="${yaEnterado ? '' : `marcarEnterado('${idJunta}')`}"
+                  ${yaEnterado ? 'disabled' : ''}>
+                  ${yaEnterado ? '✅ Enterado' : '📬 Marcar enterado'}
+                </button>`
+              : ''}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    lista.innerHTML = html || '<p style="color:#888;text-align:center;padding:24px">Sin juntas registradas</p>';
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c62828;text-align:center;padding:24px">Error al cargar</p>';
+  }
+}
+
+async function confirmarAsistencia(idJunta) {
+  const msg = document.getElementById('msg-juntas');
+  showMsg(msg, 'info', 'Registrando asistencia...');
+  try {
+    const res = await post({
+      accion: 'confirmarAsistencia',
+      id_junta: idJunta, nombre: sesion.nombre, casa: sesion.casa
+    });
+    if (res.ok) {
+      showMsg(msg, 'ok', '✅ Asistencia confirmada');
+      cargarJuntas();
+    } else {
+      showMsg(msg, 'error', res.error || 'Error al confirmar');
+    }
+  } catch(e) { showMsg(msg, 'error', 'Error de conexión'); }
+}
+
+async function abrirMinuta(idJunta, url) {
+  // Marcar enterado automáticamente al abrir la minuta
+  window.open(url, '_blank');
+  try {
+    await post({ accion: 'marcarEnterado', id_junta: idJunta, nombre: sesion.nombre, casa: sesion.casa });
+    setTimeout(() => cargarJuntas(), 1000);
+  } catch(e) {}
+}
+
+async function marcarEnterado(idJunta) {
+  const msg = document.getElementById('msg-juntas');
+  try {
+    const res = await post({ accion: 'marcarEnterado', id_junta: idJunta, nombre: sesion.nombre, casa: sesion.casa });
+    if (res.ok) { showMsg(msg, 'ok', '✅ Marcado como enterado'); cargarJuntas(); }
+    else showMsg(msg, 'error', res.error || 'Error');
+  } catch(e) { showMsg(msg, 'error', 'Error de conexión'); }
+}
+
+function formatearFecha(valor) {
+  if (!valor) return '';
+  const s = String(valor).split('T')[0];
+  const partes = s.split('-');
+  if (partes.length !== 3) return s;
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                 'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  return `${parseInt(partes[2])} de ${meses[parseInt(partes[1]) - 1]} de ${partes[0]}`;
+}
+
+
 
 function poblarHorasVisita() {
   const sel = document.getElementById('vis-hora');
