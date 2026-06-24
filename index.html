@@ -1,2410 +1,842 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privada App — Paamul</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background: #f0f2f5; color: #333; }
-    .header { background: #1a73e8; color: white; padding: 16px; text-align: center; }
-    .header h1 { font-size: 20px; }
-    .header p { font-size: 13px; margin-top: 4px; opacity: 0.9; }
-    .menu { display: flex; flex-direction: column; gap: 16px; padding: 24px; max-width: 400px; margin: 0 auto; }
-    .bienvenida { background: white; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .bienvenida h3 { color: #1a73e8; font-size: 16px; }
-    .saldo-box { background: #e8f0fe; border-radius: 8px; padding: 12px; margin-top: 8px; }
-    .saldo-box .monto { font-size: 22px; font-weight: bold; color: #c5221f; }
-    .saldo-box .monto.ok { color: #137333; }
-    .btn { background: white; border: none; border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 16px; font-size: 16px; width: 100%; }
-    .btn:hover { background: #e8f0fe; }
-    .btn .icono { font-size: 32px; }
-    .btn .texto h3 { font-size: 16px; color: #1a73e8; }
-    .btn .texto p { font-size: 13px; color: #666; margin-top: 4px; }
-    .pantalla { display: none; padding: 16px; max-width: 400px; margin: 0 auto; }
-    .pantalla.activa { display: block; }
-    .back { background: none; border: none; color: #1a73e8; font-size: 16px; cursor: pointer; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-size: 14px; color: #666; margin-bottom: 6px; }
-    .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-    .submit { background: #1a73e8; color: white; border: none; border-radius: 8px; padding: 14px; width: 100%; font-size: 16px; cursor: pointer; margin-top: 8px; }
-    .submit:hover { background: #1557b0; }
-    .card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .bloque { background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; border: 2px solid transparent; }
-    .bloque:hover { border-color: #1a73e8; }
-    .bloque.ocupado { background: #fce8e6; cursor: not-allowed; opacity: 0.6; }
-    .bloque.seleccionado { border-color: #1a73e8; background: #e8f0fe; }
-    .tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; margin-top: 8px; }
-    .tag.disponible { background: #e6f4ea; color: #137333; }
-    .tag.ocupado { background: #fce8e6; color: #c5221f; }
-    .mensaje { padding: 16px; border-radius: 8px; margin-bottom: 16px; text-align: center; }
-    .mensaje.ok { background: #e6f4ea; color: #137333; }
-    .mensaje.error { background: #fce8e6; color: #c5221f; }
-    .reglas-amenidad { background: #fff8e1; border: 1px solid #f9a825; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; }
-    .reglas-amenidad h4 { color: #f57f17; margin-bottom: 6px; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
-    .modal.activo { display: flex; }
-    .modal-content { background: white; border-radius: 16px; padding: 24px; max-width: 360px; width: 90%; text-align: center; }
-    .modal-content h3 { color: #137333; font-size: 20px; margin-bottom: 12px; }
-    .modal-content .reglas-modal { background: #fff8e1; border: 1px solid #f9a825; border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 13px; line-height: 1.6; text-align: left; }
-    .modal-content button { background: #1a73e8; color: white; border: none; border-radius: 8px; padding: 12px 24px; font-size: 16px; cursor: pointer; margin-top: 8px; width: 100%; }
-    h2 { font-size: 18px; margin-bottom: 16px; color: #333; }
-    .login-box { max-width: 400px; margin: 40px auto; padding: 24px; background: white; border-radius: 16px; box-shadow: 0 2px 16px rgba(0,0,0,0.1); }
-    .login-box h2 { text-align: center; color: #1a73e8; margin-bottom: 24px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Privada Paamul</title>
+<style>
+/* ── Reset & Base ─────────────────────────────────────────── */
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
+       min-height:100vh; }
 
-    /* Finanzas */
-    .semaforo { border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 16px; color: white; }
-    .semaforo.verde { background: #137333; }
-    .semaforo.rojo { background: #c5221f; }
-    .semaforo .estatus-label { font-size: 13px; opacity: 0.9; }
-    .semaforo .estatus-valor { font-size: 22px; font-weight: bold; margin-top: 4px; }
-    .totales-finanzas { display: flex; gap: 12px; margin-bottom: 16px; }
-    .total-box { flex: 1; background: white; border-radius: 12px; padding: 14px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-    .total-box .label { font-size: 12px; color: #666; }
-    .total-box .valor { font-size: 18px; font-weight: bold; margin-top: 4px; }
-    .total-box.adeudo .valor { color: #c5221f; }
-    .total-box.abonado .valor { color: #137333; }
-    .total-box.atrasado { background: #e6f4ea; }
-    .total-box.atrasado .label { color: #137333; }
-    .total-box.atrasado .valor { color: #137333; }
-    .desglose-titulo { font-size: 13px; color: #666; margin: 16px 0 8px; font-weight: bold; }
-    .finanzas-card { background: white; border-radius: 10px; padding: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-    .finanzas-card .concepto { font-size: 14px; color: #333; }
-    .finanzas-card .monto-item { font-weight: bold; color: #137333; font-size: 15px; }
+/* ── Utilidades ───────────────────────────────────────────── */
+.hidden { display:none !important; }
+.screen { display:none; min-height:100vh; flex-direction:column; }
+.screen.active { display:flex; }
 
-    /* Reglamento */
-    .reglamento-box { background: white; border-radius: 12px; padding: 20px; max-width: 500px; margin: 16px auto; max-height: 60vh; overflow-y: auto; box-shadow: 0 2px 12px rgba(0,0,0,0.1); font-size: 14px; line-height: 1.6; }
-    .reglamento-box p { margin-bottom: 10px; }
+/* ── PANTALLA INICIO ──────────────────────────────────────── */
+#s-inicio {
+  background: linear-gradient(160deg,#0d47a1 0%,#1565c0 50%,#1976d2 100%);
+  align-items:center; justify-content:center; gap:0; padding:32px 24px;
+}
+.inicio-logo { text-align:center; margin-bottom:48px; }
+.inicio-logo .emoji { font-size:72px; display:block; margin-bottom:12px;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.3)); }
+.inicio-logo h1 { color:#fff; font-size:28px; font-weight:700;
+  letter-spacing:0.5px; text-shadow:0 2px 8px rgba(0,0,0,0.3); }
+.inicio-logo p  { color:rgba(255,255,255,0.8); font-size:14px; margin-top:6px; }
+.inicio-btns { display:flex; flex-direction:column; gap:14px; width:100%; max-width:340px; }
+.btn-primary { background:#fff; color:#1565c0; border:none; border-radius:14px;
+  padding:16px; font-size:17px; font-weight:700; cursor:pointer;
+  box-shadow:0 4px 16px rgba(0,0,0,0.2); transition:transform .15s; }
+.btn-primary:active { transform:scale(0.97); }
+.btn-secondary { background:rgba(255,255,255,0.15); color:#fff; border:2px solid rgba(255,255,255,0.5);
+  border-radius:14px; padding:16px; font-size:17px; font-weight:600;
+  cursor:pointer; backdrop-filter:blur(4px); transition:transform .15s; }
+.btn-secondary:active { transform:scale(0.97); }
 
-    /* Banner Junta */
-    .banner-junta { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-    .banner-junta h3 { font-size: 15px; margin-bottom: 6px; }
-    .banner-junta p { font-size: 13px; opacity: 0.9; margin-bottom: 4px; }
-    .banner-junta button { background: white; color: #1a73e8; border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; width: 100%; }
+/* ── HEADER GENERAL ───────────────────────────────────────── */
+.app-header { background:linear-gradient(135deg,#1565c0,#1976d2);
+  color:#fff; padding:16px 20px 14px; display:flex;
+  align-items:center; gap:12px; box-shadow:0 2px 8px rgba(0,0,0,0.15); }
+.app-header .back { background:none; border:none; color:#fff; font-size:22px;
+  cursor:pointer; padding:4px; line-height:1; }
+.app-header .header-title { flex:1; }
+.app-header .header-title h1 { font-size:17px; font-weight:700; }
+.app-header .header-title p  { font-size:12px; opacity:.85; margin-top:2px; }
 
-    /* Comité */
-    .badge-comite { display: inline-block; background: #f9a825; color: #333; font-size: 11px; font-weight: bold; padding: 3px 10px; border-radius: 12px; margin-top: 6px; }
-    .admin-card { background: white; border-radius: 12px; padding: 14px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-    .admin-card .meta { font-size: 12px; color: #999; margin: 4px 0 8px; }
-    .admin-card select { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 14px; }
+/* ── CONTENIDO ────────────────────────────────────────────── */
+.content { flex:1; padding:16px; max-width:480px; width:100%; margin:0 auto; }
 
-    /* Directorio */
-    .directorio-card { background: white; border-radius: 12px; padding: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); cursor: pointer; }
-    .directorio-card:hover { background: #f0f7ff; }
-    .directorio-card .nombre { font-size: 14px; font-weight: bold; color: #333; }
-    .directorio-card .tipo { font-size: 12px; color: #999; }
-    .directorio-card .llamar { background: #137333; color: white; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 16px; text-decoration: none; }
+/* ── FORMS ─────────────────────────────────────────────────── */
+.card { background:#fff; border-radius:16px; padding:20px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.08); margin-bottom:16px; }
+.card-title { font-size:16px; font-weight:700; color:#1565c0; margin-bottom:16px; }
+.fg { margin-bottom:14px; }
+.fg label { display:block; font-size:13px; color:#666; margin-bottom:6px; font-weight:500; }
+.fg input, .fg select {
+  width:100%; padding:13px 14px; border:1.5px solid #ddd; border-radius:10px;
+  font-size:15px; background:#fff; transition:border-color .2s; outline:none; }
+.fg input:focus, .fg select:focus { border-color:#1976d2; }
+.fg input.error { border-color:#e53935; }
+.err-msg { color:#e53935; font-size:12px; margin-top:5px; display:none; }
+.err-msg.show { display:block; }
+.hint { color:#888; font-size:12px; margin-top:5px; }
 
-    textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; font-family: Arial, sans-serif; resize: vertical; min-height: 90px; }
+/* Selector de género con emojis */
+.gender-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.gender-opt { border:2px solid #ddd; border-radius:12px; padding:16px 12px;
+  text-align:center; cursor:pointer; transition:all .2s; background:#fff; }
+.gender-opt.selected { border-color:#1976d2; background:#e3f0ff; }
+.gender-opt .g-emoji { font-size:32px; display:block; margin-bottom:6px; }
+.gender-opt .g-label { font-size:13px; font-weight:600; color:#333; }
+.gender-opt.selected .g-label { color:#1565c0; }
 
-    /* Switch de mesas */
-    .mesa-switch-card { background: white; border-radius: 14px; padding: 18px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: space-between; border: 2px solid transparent; transition: border-color 0.2s; }
-    .mesa-switch-card.ocupada { background: #fce8e6; border-color: #c5221f; }
-    .mesa-switch-card.disponible { border-color: #137333; }
-    .mesa-info h3 { font-size: 15px; color: #333; }
-    .mesa-info .por-quien { font-size: 12px; color: #c5221f; margin-top:3px; }
-    .mesa-info .hora-ocup { font-size: 11px; color: #999; }
-    .switch-btn { border: none; border-radius: 24px; padding: 10px 18px; font-size: 14px; font-weight: bold; cursor: pointer; min-width: 90px; }
-    .switch-btn.ocupar { background: #1a73e8; color: white; }
-    .switch-btn.liberar { background: #c5221f; color: white; }
-    .switch-btn:disabled { background: #ccc; cursor: not-allowed; }
+/* Selector de rol */
+.rol-grid { display:flex; flex-direction:column; gap:8px; }
+.rol-opt { border:2px solid #ddd; border-radius:10px; padding:13px 16px;
+  cursor:pointer; display:flex; align-items:center; gap:12px;
+  transition:all .2s; background:#fff; }
+.rol-opt.selected { border-color:#1976d2; background:#e3f0ff; }
+.rol-opt .rol-emoji { font-size:24px; }
+.rol-opt .rol-info h4 { font-size:14px; font-weight:600; color:#333; }
+.rol-opt .rol-info p  { font-size:12px; color:#888; margin-top:2px; }
+.rol-opt.selected .rol-info h4 { color:#1565c0; }
 
-    /* Panel Seguridad rediseñado */
-    .seg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-    .seg-btn-grande { background: white; border: none; border-radius: 16px; padding: 20px 12px; text-align: center; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,0.12); transition: transform 0.1s; }
-    .seg-btn-grande:active { transform: scale(0.97); }
-    .seg-btn-grande .seg-icono { font-size: 36px; display: block; margin-bottom: 8px; }
-    .seg-btn-grande .seg-label { font-size: 13px; font-weight: bold; color: #333; }
-    .seg-modulo { display: none; background: white; border-radius: 14px; padding: 16px; margin-top: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .seg-modulo.activo { display: block; }
-    .seg-subopcion { display: flex; gap: 10px; margin-bottom: 14px; }
-    .seg-subopcion button { flex: 1; padding: 12px; border: 2px solid #1a73e8; border-radius: 10px; background: white; color: #1a73e8; font-size: 14px; font-weight: bold; cursor: pointer; }
-    .seg-subopcion button.activo { background: #1a73e8; color: white; }
-    .llave-agua-estado { border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 12px; }
-    .llave-agua-estado.abierta { background: #e6f4ea; }
-    .llave-agua-estado.cerrada { background: #fce8e6; }
-    .pkg-card { background: #f8f9fa; border-radius: 10px; padding: 12px; margin-bottom: 8px; font-size: 13px; }
-  </style>
+/* Aviso propietario */
+.aviso-verificacion { background:#fff8e1; border:1.5px solid #f9a825;
+  border-radius:10px; padding:12px 14px; margin-top:10px; display:none; }
+.aviso-verificacion.show { display:block; }
+.aviso-verificacion p { font-size:13px; color:#e65100; }
+
+/* Botón submit */
+.btn-submit { background:linear-gradient(135deg,#1565c0,#1976d2); color:#fff;
+  border:none; border-radius:12px; padding:15px; width:100%; font-size:16px;
+  font-weight:700; cursor:pointer; box-shadow:0 3px 10px rgba(21,101,192,.3);
+  transition:transform .15s, opacity .15s; margin-top:4px; }
+.btn-submit:active { transform:scale(0.98); }
+.btn-submit:disabled { opacity:.6; cursor:not-allowed; }
+.btn-link { background:none; border:none; color:#1976d2; font-size:14px;
+  cursor:pointer; text-decoration:underline; padding:8px 0; }
+
+/* ── MENSAJES ──────────────────────────────────────────────── */
+.msg { border-radius:10px; padding:12px 14px; margin-bottom:14px;
+  font-size:14px; display:none; }
+.msg.show { display:block; }
+.msg.ok    { background:#e8f5e9; color:#2e7d32; }
+.msg.error { background:#ffebee; color:#c62828; }
+.msg.info  { background:#e3f2fd; color:#1565c0; }
+
+/* ── REGLAMENTO ───────────────────────────────────────────── */
+.reglamento-scroll { max-height:50vh; overflow-y:auto; background:#f9f9f9;
+  border-radius:10px; padding:14px; margin-bottom:16px; font-size:13px;
+  line-height:1.7; border:1.5px solid #eee; }
+.check-item { display:flex; align-items:flex-start; gap:10px;
+  margin-bottom:12px; cursor:pointer; }
+.check-item input[type=checkbox] { width:20px; height:20px; flex-shrink:0;
+  accent-color:#1976d2; margin-top:2px; cursor:pointer; }
+.check-item span { font-size:14px; line-height:1.5; color:#333; }
+.firma-text { font-weight:600; color:#1565c0; font-style:italic;
+  font-size:14px; margin:12px 0 16px; text-align:center; }
+
+/* ── MENÚ PRINCIPAL ───────────────────────────────────────── */
+#s-menu { flex-direction:column; }
+#s-menu .content { padding-bottom:24px; }
+
+/* Tarjeta de bienvenida */
+.bienvenida-card { background:linear-gradient(135deg,#1565c0,#1976d2);
+  border-radius:16px; padding:20px; color:#fff; margin-bottom:16px;
+  box-shadow:0 4px 14px rgba(21,101,192,.3); }
+.bienvenida-card .depto { font-size:12px; opacity:.8; margin-bottom:4px; }
+.bienvenida-card .nombre { font-size:19px; font-weight:700; }
+.bienvenida-card .cargo-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(255,215,0,.2); border:1px solid rgba(255,215,0,.6);
+  border-radius:20px; padding:4px 12px; margin-top:8px; font-size:12px;
+  color:#ffd700; font-weight:600; }
+.bienvenida-card .verificado-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(255,215,0,.15); border:1px solid rgba(255,215,0,.5);
+  border-radius:20px; padding:3px 10px; margin-top:6px; font-size:11px;
+  color:#ffe082; }
+
+/* Tarjeta de finanzas en home */
+.finanzas-home { background:#fff; border-radius:14px; padding:16px;
+  margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,.08);
+  cursor:pointer; display:flex; align-items:center; justify-content:space-between;
+  transition:background .15s; }
+.finanzas-home:active { background:#f0f7ff; }
+.finanzas-home .fh-label { font-size:13px; color:#666; margin-bottom:4px; }
+.finanzas-home .fh-estatus { font-size:18px; font-weight:700; }
+.finanzas-home .fh-estatus.ok      { color:#2e7d32; }
+.finanzas-home .fh-estatus.adeudo  { color:#c62828; }
+.finanzas-home .fh-estatus.convenio{ color:#e65100; }
+.finanzas-home .fh-chevron { font-size:22px; color:#bbb; }
+
+/* Banner junta */
+.banner-junta { background:linear-gradient(135deg,#0d47a1,#1565c0);
+  border-radius:14px; padding:16px; color:#fff; margin-bottom:16px;
+  box-shadow:0 3px 10px rgba(13,71,161,.3); }
+.banner-junta h3 { font-size:14px; font-weight:700; margin-bottom:6px; }
+.banner-junta p  { font-size:13px; opacity:.9; margin-bottom:3px; }
+
+/* Grid de módulos */
+.modulos-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.modulo-btn { background:#fff; border:none; border-radius:14px; padding:18px 12px;
+  text-align:center; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.08);
+  transition:transform .15s; }
+.modulo-btn:active { transform:scale(0.96); }
+.modulo-btn .m-icon  { font-size:30px; display:block; margin-bottom:8px; }
+.modulo-btn .m-title { font-size:13px; font-weight:700; color:#333;
+  display:block; margin-bottom:3px; }
+.modulo-btn .m-desc  { font-size:11px; color:#888; }
+.modulo-btn.full-width { grid-column:span 2; }
+
+/* ── PANTALLA FINANZAS ────────────────────────────────────── */
+.fin-resumen { display:grid; grid-template-columns:1fr 1fr; gap:10px;
+  margin-bottom:16px; }
+.fin-box { background:#fff; border-radius:12px; padding:14px;
+  text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.07); }
+.fin-box .fb-label { font-size:11px; color:#888; margin-bottom:5px; }
+.fin-box .fb-valor { font-size:20px; font-weight:700; }
+.fin-box.adeudo .fb-valor  { color:#c62828; }
+.fin-box.abonado .fb-valor { color:#2e7d32; }
+
+.fin-desglose-title { font-size:13px; font-weight:700; color:#666;
+  margin:4px 0 10px; text-transform:uppercase; letter-spacing:.5px; }
+.fin-item { background:#fff; border-radius:10px; padding:13px 16px;
+  margin-bottom:8px; display:flex; justify-content:space-between;
+  align-items:center; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.fin-item .fi-nombre { font-size:14px; color:#333; }
+.fin-item .fi-monto  { font-size:15px; font-weight:700; color:#2e7d32; }
+.fin-item .fi-semaforo { margin-left:6px; font-size:14px; }
+
+/* Semáforo cuota */
+.cuota-rojo    { color:#c62828; }
+.cuota-amarillo{ color:#e65100; }
+.cuota-verde   { color:#2e7d32; }
+
+/* ── LOADING ───────────────────────────────────────────────── */
+.loader { text-align:center; padding:32px; color:#888; font-size:14px; }
+.loader::before { content:'⏳'; display:block; font-size:32px; margin-bottom:8px; }
+
+/* ── CERRAR SESION ─────────────────────────────────────────── */
+.btn-cerrar { background:none; border:none; color:#999; font-size:13px;
+  cursor:pointer; padding:16px; width:100%; text-align:center;
+  border-top:1px solid #eee; margin-top:8px; }
+</style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="login-screen">
-  <div class="header">
-    <h1>🏘️ Paamul App</h1>
-    <p>Acceso para residentes</p>
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA 1 — INICIO
+═══════════════════════════════════════════════════════════ -->
+<div id="s-inicio" class="screen active">
+  <div class="inicio-logo">
+    <span class="emoji">🏘️</span>
+    <h1>Privada Paamul</h1>
+    <p>Residencial privada · Solidaridad, Q. Roo</p>
   </div>
-  <div class="login-box">
-    <h2>🔐 Iniciar Sesión</h2>
-    <div id="msg-login"></div>
-    <div class="form-group">
-      <label>Número de depto</label>
-      <input type="text" id="login-casa" placeholder="Ej: 4A" style="text-transform:uppercase" onblur="cargarNombresLogin()">
+  <div class="inicio-btns">
+    <button class="btn-primary" onclick="ir('s-login')">Entrar</button>
+    <button class="btn-secondary" onclick="ir('s-registro')">Registrarse</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA 2 — REGISTRO
+═══════════════════════════════════════════════════════════ -->
+<div id="s-registro" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-inicio')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>Crear cuenta</p>
     </div>
-    <div class="form-group">
-      <label>PIN de acceso</label>
-      <input type="password" id="login-pin" placeholder="Tu PIN">
-    </div>
-    <!-- Selector si ya hay personas registradas en esta casa -->
-    <div class="form-group" id="login-selector-grupo" style="display:none">
-      <label>¿Quién eres?</label>
-      <select id="login-nombre-selector" onchange="onNombreSelectorChange()">
-        <option value="">Selecciona tu nombre...</option>
-      </select>
-    </div>
-    <!-- Campos para registrarse por primera vez -->
-    <div id="login-registro-nuevo" style="display:none">
-      <div class="form-group">
-        <label>Tratamiento</label>
-        <select id="login-tratamiento">
-          <option value="Sr.">Sr.</option>
-          <option value="Sra.">Sra.</option>
-          <option value="Srta.">Srta.</option>
-          <option value="Lic.">Lic.</option>
-          <option value="Ing.">Ing.</option>
-          <option value="Dr.">Dr.</option>
-          <option value="Dra.">Dra.</option>
-        </select>
+  </div>
+  <div class="content" style="overflow-y:auto">
+
+    <div class="msg" id="reg-msg"></div>
+
+    <div class="card">
+      <p class="card-title">👤 Selecciona tu género</p>
+      <div class="gender-grid">
+        <div class="gender-opt" id="g-hombre" onclick="selGender('Hombre')">
+          <span class="g-emoji">🧔</span>
+          <span class="g-label">Hombre</span>
+        </div>
+        <div class="gender-opt" id="g-mujer" onclick="selGender('Mujer')">
+          <span class="g-emoji">👩</span>
+          <span class="g-label">Mujer</span>
+        </div>
       </div>
-      <div class="form-group">
+    </div>
+
+    <div class="card">
+      <p class="card-title">🏠 ¿Cuál es tu rol?</p>
+      <div class="rol-grid">
+        <div class="rol-opt" id="r-propietario" onclick="selRol('Propietario')">
+          <span class="rol-emoji">🔑</span>
+          <div class="rol-info">
+            <h4>Propietario</h4>
+            <p>Dueño del departamento</p>
+          </div>
+        </div>
+        <div class="rol-opt" id="r-residente" onclick="selRol('Residente')">
+          <span class="rol-emoji">🏠</span>
+          <div class="rol-info">
+            <h4>Residente</h4>
+            <p>Inquilino o familiar</p>
+          </div>
+        </div>
+        <div class="rol-opt" id="r-administrador" onclick="selRol('Administrador')">
+          <span class="rol-emoji">📋</span>
+          <div class="rol-info">
+            <h4>Administrador</h4>
+            <p>Encargado del depto</p>
+          </div>
+        </div>
+      </div>
+      <div class="aviso-verificacion" id="aviso-prop">
+        <p>⏳ <strong>Verificación requerida.</strong> Tu registro será revisado
+        y aprobado por el Comité de la privada antes de poder acceder.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">📝 Tus datos</p>
+      <div class="fg">
+        <label>Número de departamento</label>
+        <input type="text" id="reg-casa" placeholder="Ej: 4A" style="text-transform:uppercase">
+        <span class="err-msg" id="err-casa">Ingresa tu número de depto</span>
+      </div>
+      <div class="fg">
         <label>Nombre completo</label>
-        <input type="text" id="login-nombre" placeholder="Nombre y apellido">
+        <input type="text" id="reg-nombre" placeholder="Nombre y apellido">
+        <span class="err-msg" id="err-nombre">Ingresa tu nombre completo</span>
       </div>
-      <div class="form-group">
-        <label id="login-relacion-label">Tu relación con el depto</label>
-        <select id="login-relacion">
-          <option value="">Selecciona...</option>
-        </select>
+      <div class="fg">
+        <label>Teléfono</label>
+        <input type="tel" id="reg-telefono" placeholder="10 dígitos" maxlength="10">
+        <span class="err-msg" id="err-tel">Ingresa tu número de teléfono</span>
       </div>
-      <div class="form-group">
-        <label>Teléfono (opcional)</label>
-        <input type="tel" id="login-telefono" placeholder="10 dígitos">
+      <div class="fg">
+        <label>Clave de acceso</label>
+        <input type="text" id="reg-clave" placeholder="Ej: 123A" maxlength="4"
+          style="text-transform:uppercase; letter-spacing:4px; font-size:20px;
+                 font-weight:700; text-align:center;">
+        <span class="hint">3 números y 1 letra, en cualquier orden. Ej: 742B, A391</span>
+        <span class="err-msg" id="err-clave">La clave debe tener 3 números y 1 letra</span>
       </div>
     </div>
-    <button class="submit" onclick="iniciarSesion()">Entrar</button>
+
+    <button class="btn-submit" id="btn-registrar" onclick="registrar()">
+      Crear mi cuenta
+    </button>
+    <div style="text-align:center; margin-top:8px">
+      <button class="btn-link" onclick="ir('s-login')">Ya tengo cuenta — Entrar</button>
+    </div>
   </div>
 </div>
 
-<!-- APP PRINCIPAL -->
-<!-- PANTALLA SEGURIDAD (solo para Rol=Seguridad) -->
-<div id="seguridad-screen" style="display:none">
-  <div class="header">
-    <h1>🛡️ Paamul — Caseta</h1>
-    <p id="seg-nombre-header">Agente</p>
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA 3 — LOGIN
+═══════════════════════════════════════════════════════════ -->
+<div id="s-login" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-inicio')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>Ingresa a tu cuenta</p>
+    </div>
   </div>
-  <div style="padding:16px; max-width:500px; margin:0 auto">
-    <div id="msg-seguridad"></div>
-
-    <!-- 4 Módulos principales en grid -->
-    <div class="seg-grid">
-      <button class="seg-btn-grande" onclick="toggleModuloSeg('paqueteria')">
-        <span class="seg-icono">📦</span>
-        <span class="seg-label">Paquetería</span>
-      </button>
-      <button class="seg-btn-grande" onclick="toggleModuloSeg('agua')">
-        <span class="seg-icono">🚰</span>
-        <span class="seg-label">Llave de Agua</span>
-      </button>
-      <button class="seg-btn-grande" onclick="toggleModuloSeg('servicios')">
-        <span class="seg-icono">🛠️</span>
-        <span class="seg-label">Servicios</span>
-      </button>
-      <button class="seg-btn-grande" onclick="toggleModuloSeg('incidencia')">
-        <span class="seg-icono">⚠️</span>
-        <span class="seg-label">Incidencia</span>
-      </button>
+  <div class="content">
+    <div class="msg" id="login-msg"></div>
+    <div class="card">
+      <p class="card-title">🔐 Acceso</p>
+      <div class="fg">
+        <label>Número de departamento</label>
+        <input type="text" id="login-casa" placeholder="Ej: 4A" style="text-transform:uppercase">
+      </div>
+      <div class="fg">
+        <label>Tu clave de acceso</label>
+        <input type="text" id="login-clave" placeholder="Ej: 123A" maxlength="4"
+          style="text-transform:uppercase; letter-spacing:4px; font-size:20px;
+                 font-weight:700; text-align:center;">
+      </div>
+      <button class="btn-submit" onclick="login()">Entrar</button>
     </div>
-
-    <!-- MÓDULO PAQUETERÍA -->
-    <div id="seg-mod-paqueteria" class="seg-modulo">
-      <h3 style="font-size:15px; margin-bottom:12px">📦 Paquetería</h3>
-      <div class="seg-subopcion">
-        <button id="seg-pkg-btn-recibir" class="activo" onclick="toggleSubPkg('recibir')">📥 Recibir</button>
-        <button id="seg-pkg-btn-entregar" onclick="toggleSubPkg('entregar')">📤 Entregar</button>
-      </div>
-      <div id="seg-pkg-recibir">
-        <div class="form-group">
-          <label>Compañía</label>
-          <select id="seg-pkg-compania">
-            <option value="Mercado Libre">Mercado Libre</option>
-            <option value="Amazon">Amazon</option>
-            <option value="J&T Express">J&T Express</option>
-            <option value="Estafeta">Estafeta</option>
-            <option value="DHL">DHL</option>
-            <option value="FedEx">FedEx</option>
-            <option value="Otro">Otro</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Departamento</label>
-          <input type="text" id="seg-pkg-depto" placeholder="Ej: 4A" style="text-transform:uppercase">
-        </div>
-        <div class="form-group">
-          <label>Nombre del destinatario</label>
-          <input type="text" id="seg-pkg-destinatario" placeholder="Nombre completo">
-        </div>
-        <button class="submit" onclick="recibirPaquete()">Registrar Recepción</button>
-      </div>
-      <div id="seg-pkg-entregar" style="display:none">
-        <p style="font-size:13px; color:#666; margin-bottom:12px">Paquetes pendientes de entrega:</p>
-        <div id="seg-pkg-pendientes"><p style="color:#666; font-size:13px">Cargando...</p></div>
-      </div>
+    <div style="text-align:center">
+      <button class="btn-link" onclick="ir('s-registro')">¿Primera vez? Regístrate</button>
     </div>
-
-    <!-- MÓDULO LLAVE DE AGUA -->
-    <div id="seg-mod-agua" class="seg-modulo">
-      <h3 style="font-size:15px; margin-bottom:12px">🚰 Control de Agua</h3>
-      <div id="agua-estado-box" class="llave-agua-estado abierta">
-        <div style="font-size:32px">🚰</div>
-        <div style="font-size:16px; font-weight:bold; margin:6px 0" id="agua-estado-texto">Verificando...</div>
-        <div style="font-size:12px; color:#666">Horario regular: 11:00 — 19:00 hrs</div>
-      </div>
-      <button class="submit" id="agua-btn-toggle" onclick="toggleAgua()">Cargando...</button>
-      <div style="margin-top:12px">
-        <p style="font-size:13px; color:#666; margin-bottom:6px">Registros de hoy:</p>
-        <div id="agua-historial"><p style="font-size:12px; color:#999">Sin registros</p></div>
-      </div>
-    </div>
-
-    <!-- MÓDULO SERVICIOS Y MANTENIMIENTO -->
-    <div id="seg-mod-servicios" class="seg-modulo">
-      <h3 style="font-size:15px; margin-bottom:12px">🛠️ Servicios y Mantenimiento</h3>
-      <div class="form-group">
-        <label>Tipo de actividad</label>
-        <select id="seg-serv-tipo">
-          <option value="Limpieza Áreas Comunes">🧹 Limpieza Áreas Comunes</option>
-          <option value="Mantenimiento Alberca">🏊 Mantenimiento Alberca</option>
-          <option value="Riego Jardines">🌿 Riego Jardines</option>
-          <option value="Poda">✂️ Poda</option>
-          <option value="Trabajo Especial / Proveedor">🔧 Proveedor Externo</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Zona / Área</label>
-        <select id="seg-serv-zona">
-          <option value="Área General">Área General</option>
-          <option value="Alberca / Deck">Alberca / Deck</option>
-          <option value="Jardines">Jardines</option>
-          <option value="Acceso / Caseta">Acceso / Caseta</option>
-          <option value="Edificio">Edificio (ver notas)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Nombre del trabajador / proveedor</label>
-        <input type="text" id="seg-trabajador" placeholder="Nombre completo">
-      </div>
-      <div class="form-group">
-        <label>Notas</label>
-        <input type="text" id="seg-notas" placeholder="Detalles adicionales...">
-      </div>
-      <button class="submit" onclick="registrarEntradaBitacora()">Registrar Entrada</button>
-      <div style="margin-top:14px">
-        <p style="font-size:13px; color:#666; margin-bottom:8px">Actividades en curso:</p>
-        <div id="seg-activos-lista"><p style="font-size:12px; color:#999">Sin actividades activas</p></div>
-      </div>
-    </div>
-
-    <!-- MÓDULO REPORTAR INCIDENCIA -->
-    <div id="seg-mod-incidencia" class="seg-modulo">
-      <h3 style="font-size:15px; margin-bottom:12px">⚠️ Reportar Incidencia</h3>
-      <div class="form-group">
-        <label>Tipo</label>
-        <select id="seg-inc-tipo">
-          <option value="Queja">Queja de residente</option>
-          <option value="Falla / Mantenimiento">Falla / Mantenimiento</option>
-          <option value="Seguridad">Incidente de seguridad</option>
-          <option value="Otro">Otro</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Departamento (opcional)</label>
-        <input type="text" id="seg-inc-depto" placeholder="Ej: 4A" style="text-transform:uppercase">
-      </div>
-      <div class="form-group">
-        <label>Descripción</label>
-        <textarea id="seg-inc-descripcion" placeholder="Describe lo que ocurrió..."></textarea>
-      </div>
-      <button class="submit" onclick="registrarIncidenciaSeguridad()">Enviar Reporte</button>
-    </div>
-
-    <button style="background:none; border:none; color:#999; font-size:13px; cursor:pointer; padding:16px; width:100%;" onclick="cerrarSesion()">Cerrar sesión</button>
   </div>
 </div>
 
-
-<!-- REGLAMENTO (bloqueante en primer ingreso) -->
-<div id="reglamento-screen" style="display:none">
-  <div class="header">
-    <h1>📜 Reglamento Interno</h1>
-    <p>Paamul — Lectura obligatoria</p>
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA 4 — REGLAMENTO
+═══════════════════════════════════════════════════════════ -->
+<div id="s-reglamento" class="screen">
+  <div class="app-header">
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>Aceptación de reglamento</p>
+    </div>
   </div>
-  <div class="reglamento-box" id="reglamento-texto">Cargando reglamento...</div>
-  <div style="max-width:500px; margin:0 auto; padding:0 16px 32px">
-    <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; margin-bottom:12px; font-size:14px; line-height:1.4">
-      <input type="checkbox" id="check-leido" onchange="validarChecksReglamento()" style="width:auto; margin-top:3px">
-      He leído el reglamento interno de Privada Paamul.
-    </label>
-    <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; margin-bottom:16px; font-size:14px; line-height:1.4">
-      <input type="checkbox" id="check-acepto" onchange="validarChecksReglamento()" style="width:auto; margin-top:3px">
-      Acepto y me comprometo a cumplir las normas y sanciones estipuladas.
-    </label>
-    <button class="submit" id="btn-aceptar-reglamento" onclick="aceptarReglamento()" disabled style="opacity:0.5; cursor:not-allowed">Continuar</button>
-  </div>
-</div>
-
-<div id="app-screen" style="display:none">
-
-  <div class="header">
-    <h1>🏘️ Paamul App</h1>
-    <p id="header-bienvenida">Departamento</p>
-  </div>
-
-  <div id="menu" class="menu">
-    <div id="banner-junta-container"></div>
-    <div class="bienvenida">
-      <h3 id="nombre-residente">Cargando...</h3>
-      <div id="badge-comite-container"></div>
-      <div class="saldo-box">
-        <div style="font-size:13px; color:#666; margin-bottom:4px">Saldo pendiente</div>
-        <div class="monto" id="saldo-pendiente">Cargando...</div>
+  <div class="content" style="overflow-y:auto">
+    <div class="card">
+      <p class="card-title">📜 Reglamento Interno</p>
+      <div class="reglamento-scroll" id="reg-texto">
+        <div class="loader">Cargando reglamento...</div>
       </div>
-    </div>
-    <button class="btn" onclick="mostrar('visitas')">
-      <span class="icono">🚗</span>
-      <div class="texto">
-        <h3>Registrar Visita</h3>
-        <p>Avisa que viene alguien a tu casa</p>
-      </div>
-    </button>
-    <button class="btn" onclick="mostrar('reservas')">
-      <span class="icono">📅</span>
-      <div class="texto">
-        <h3>Reservar Amenidad</h3>
-        <p>Palapa, mesas y más</p>
-      </div>
-    </button>
-    <button class="btn" onclick="mostrar('mis-reservas')">
-      <span class="icono">📋</span>
-      <div class="texto">
-        <h3>Mis Reservas</h3>
-        <p>Ver y cancelar tus reservas</p>
-      </div>
-    </button>
-    <button class="btn" onclick="mostrar('finanzas')">
-      <span class="icono">💰</span>
-      <div class="texto">
-        <h3>Mis Finanzas</h3>
-        <p>Consulta tu estado de cuenta</p>
-      </div>
-    </button>
-    <button class="btn" id="btn-servicios" onclick="mostrar('servicios')">
-      <span class="icono">🔑</span>
-      <div class="texto">
-        <h3>Servicios Adicionales</h3>
-        <p>Llave de azotea y escalera</p>
-      </div>
-    </button>
-    <button class="btn" onclick="mostrar('accesos')">
-      <span class="icono">🚙</span>
-      <div class="texto">
-        <h3>Solicitar Chip y Control Vehicular</h3>
-        <p>Dispositivos de acceso vehicular y peatonal</p>
-      </div>
-    </button>
-    <button class="btn" onclick="mostrar('mudanzas')">
-      <span class="icono">📦</span>
-      <div class="texto">
-        <h3>Mudanzas</h3>
-        <p>Registra entrada o salida de muebles</p>
-      </div>
-    </button>
-    <button class="btn" onclick="mostrar('reportes')">
-      <span class="icono">📝</span>
-      <div class="texto">
-        <h3>Reportes e Inconformidades</h3>
-        <p>Quejas, fallas o sugerencias</p>
-      </div>
-    </button>
-    <button class="btn" onclick="mostrar('juntas')">
-      <span class="icono">🏛️</span>
-      <div class="texto">
-        <h3>Juntas y Asambleas</h3>
-        <p>Próximas reuniones, minutas y asistencia</p>
-      </div>
-    </button>
-    <button class="btn" onclick="mostrar('bitacora')">
-      <span class="icono">📋</span>
-      <div class="texto">
-        <h3>Bitácora de Mantenimiento</h3>
-        <p>Limpieza, alberca, jardines y proveedores</p>
-      </div>
-    </button>
-    <button class="btn" onclick="mostrar('directorio')">
-      <span class="icono">📞</span>
-      <div class="texto">
-        <h3>Directorio de Emergencias</h3>
-        <p>Seguridad, administración y más</p>
-      </div>
-    </button>
-    <button class="btn" id="btn-admin" style="display:none; background:#fff8e1" onclick="mostrar('admin')">
-      <span class="icono">🛡️</span>
-      <div class="texto">
-        <h3>Panel del Comité</h3>
-        <p>Gestiona mudanzas y reportes</p>
-      </div>
-    </button>
-    <button style="background:none; border:none; color:#999; font-size:13px; cursor:pointer; padding:8px;" onclick="cerrarSesion()">Cerrar sesión</button>
-  </div>
-
-  <!-- PANTALLA VISITAS -->
-  <div id="visitas" class="pantalla">
-    <button class="back" onclick="mostrar('menu')">← Regresar</button>
-    <h2>🚗 Registrar Visita</h2>
-    <div id="msg-visita"></div>
-    <div class="form-group">
-      <label>Nombre del visitante</label>
-      <input type="text" id="v-nombre" placeholder="Nombre completo">
-    </div>
-    <div class="form-group">
-      <label>Fecha de llegada</label>
-      <input type="date" id="v-fecha">
-    </div>
-    <div class="form-group">
-      <label>Hora estimada</label>
-      <input type="time" id="v-hora">
-    </div>
-    <div class="form-group">
-      <label>¿Trae auto?</label>
-      <select id="v-auto">
-        <option value="No">No</option>
-        <option value="Si">Sí</option>
-      </select>
-    </div>
-    <button class="submit" onclick="registrarVisita()">Registrar Visita</button>
-  </div>
-
-  <!-- PANTALLA RESERVAS -->
-  <div id="reservas" class="pantalla">
-    <button class="back" onclick="mostrar('menu')">← Regresar</button>
-    <h2>📅 Reservar Amenidad</h2>
-    <div id="msg-reserva"></div>
-    <div class="form-group">
-      <label>Nombre completo</label>
-      <input type="text" id="r-nombre" placeholder="Nombre y apellido">
-    </div>
-    <div class="form-group">
-      <label>¿Qué quieres reservar?</label>
-      <select id="r-amenidad" onchange="onAmenidadChange()">
-        <option value="">Selecciona...</option>
-      </select>
-    </div>
-    <div id="regla-amenidad-box" style="display:none" class="reglas-amenidad">
-      <h4>📋 Reglamento</h4>
-      <p id="regla-amenidad-texto"></p>
-    </div>
-    <div class="form-group">
-      <label>Fecha</label>
-      <input type="date" id="r-fecha" onchange="onFechaChange()" min="">
-    </div>
-    <div id="horarios-container"></div>
-    <!-- MESAS: Switch de ocupación en tiempo real -->
-    <div id="mesas-container" style="display:none">
-      <div id="regla-mesas-box" style="background:#fff8e1; border:1px solid #f9a825; border-radius:8px; padding:12px; margin-bottom:16px; font-size:13px; line-height:1.6; display:none">
-        <h4 style="color:#f57f17; margin-bottom:6px">📋 Condiciones de uso</h4>
-        <p id="regla-mesas-texto"></p>
-      </div>
-      <p style="font-size:13px; color:#666; margin-bottom:12px">Selecciona una mesa disponible para ocuparla ahora:</p>
-      <div id="mesas-switches-container"></div>
-    </div>
-    <div class="form-group" style="display:none" id="r-notas-grupo">
-      <label>Notas (opcional)</label>
-      <input type="text" id="r-notas" placeholder="Algún comentario...">
-    </div>
-    <button class="submit" onclick="registrarReserva()" style="display:none" id="btn-reservar">Confirmar Reserva</button>
-  </div>
-
-  <!-- PANTALLA MIS RESERVAS -->
-  <div id="mis-reservas" class="pantalla">
-    <button class="back" onclick="mostrar('menu')">← Regresar</button>
-    <h2>📋 Mis Reservas</h2>
-    <div id="mis-reservas-lista" style="margin-top:16px"></div>
-  </div>
-
-  <!-- PANTALLA FINANZAS -->
-  <div id="finanzas" class="pantalla">
-    <button class="back" onclick="mostrar('menu')">← Regresar</button>
-    <h2>💰 Mis Finanzas</h2>
-    <div id="finanzas-lista"></div>
-  </div>
-
-  <!-- PANTALLA SERVICIOS ADICIONALES -->
-  <div id="servicios" class="pantalla">
-    <button class="back" onclick="mostrar('menu')">← Regresar</button>
-    <h2>🔑 Servicios Adicionales</h2>
-    <div id="msg-servicios"></div>
-    <p style="font-size:13px; color:#666; margin-bottom:16px">Tu edificio: <strong id="servicios-edificio">—</strong></p>
-    <div class="form-group">
-      <label>¿Qué necesitas?</label>
-      <select id="serv-articulo" onchange="onArticuloChange()">
-        <option value="">Selecciona...</option>
-        <option value="Llave de Azotea">Llave de Azotea</option>
-        <option value="Escalera Comunitaria">Escalera Comunitaria</option>
-      </select>
-    </div>
-    <div id="regla-servicio-box" style="display:none" class="reglas-amenidad">
-      <h4>📋 Reglamento</h4>
-      <p id="regla-servicio-texto"></p>
-    </div>
-    <div id="estado-servicio-box"></div>
-    <div class="form-group" id="serv-accion-grupo" style="display:none">
-      <label>¿Qué deseas hacer?</label>
-      <select id="serv-accion">
-        <option value="Préstamo">Solicitar (Préstamo)</option>
-        <option value="Devolución">Registrar Devolución</option>
-      </select>
-    </div>
-    <button class="submit" onclick="registrarServicio()" style="display:none" id="btn-servicio">Confirmar</button>
-  </div>
-
-  <!-- PANTALLA ACCESOS (Chip / Control Vehicular) -->
-  <div id="accesos" class="pantalla">
-    <button class="back" onclick="mostrar('menu')">← Regresar</button>
-    <h2>🚙 Solicitar Chip / Control</h2>
-    <div id="msg-accesos"></div>
-    <div class="form-group">
-      <label>¿Qué deseas solicitar?</label>
-      <select id="acc-articulo" onchange="onArticuloAccesoChange()">
-        <option value="">Selecciona...</option>
-        <option value="Control Vehicular">Control Vehicular</option>
-        <option value="Chip Peatonal">Chip Peatonal</option>
-      </select>
-    </div>
-    <div id="info-acceso-box"></div>
-    <button class="submit" onclick="registrarSolicitudAcceso()" style="display:none" id="btn-acceso">Confirmar Solicitud</button>
-  </div>
-
-  <!-- PANTALLA MUDANZAS -->
-  <div id="mudanzas" class="pantalla">
-    <button class="back" onclick="mostrar('menu')">← Regresar</button>
-    <h2>📦 Registro de Mudanza</h2>
-    <div id="msg-mudanzas"></div>
-    <div class="form-group">
-      <label>Tipo de movimiento</label>
-      <select id="mud-tipo">
-        <option value="Entrada de muebles">Entrada de muebles</option>
-        <option value="Salida de muebles">Salida de muebles</option>
-        <option value="Mudanza completa">Mudanza completa (entrada/salida de residente)</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Fecha de la mudanza</label>
-      <input type="date" id="mud-fecha">
-    </div>
-    <div class="form-group">
-      <label>Nombre del responsable</label>
-      <input type="text" id="mud-responsable" placeholder="Nombre completo">
-    </div>
-    <div class="form-group">
-      <label style="display:flex; align-items:center; gap:8px; cursor:pointer">
-        <input type="checkbox" id="mud-firma" style="width:auto">
-        Firmo de conformidad y confirmo que los datos son correctos
+      <p class="firma-text" id="firma-texto"></p>
+      <label class="check-item">
+        <input type="checkbox" id="chk-leido" onchange="validarChecks()">
+        <span id="chk-leido-label">He leído el reglamento interno de Privada Paamul.</span>
       </label>
+      <label class="check-item">
+        <input type="checkbox" id="chk-acepto" onchange="validarChecks()">
+        <span id="chk-acepto-label">Acepto y me comprometo a cumplir las normas y sanciones estipuladas.</span>
+      </label>
+      <button class="btn-submit" id="btn-acepto" onclick="aceptarReglamento()" disabled>
+        Continuar
+      </button>
     </div>
-    <button class="submit" onclick="registrarMudanza()">Enviar Solicitud</button>
-  </div>
-
-  <!-- PANTALLA REPORTES -->
-  <div id="reportes" class="pantalla">
-    <button class="back" onclick="mostrar('menu')">← Regresar</button>
-    <h2>📝 Reportes e Inconformidades</h2>
-    <div id="msg-reportes"></div>
-    <div class="form-group">
-      <label>Tipo de reporte</label>
-      <select id="rep-tipo">
-        <option value="Queja">Queja</option>
-        <option value="Falla / Mantenimiento">Falla / Mantenimiento</option>
-        <option value="Sugerencia">Sugerencia</option>
-        <option value="Otro">Otro</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Describe tu reporte</label>
-      <textarea id="rep-descripcion" placeholder="Cuéntanos qué pasó o qué sugieres..."></textarea>
-    </div>
-    <button class="submit" onclick="registrarReporte()">Enviar Reporte</button>
-  </div>
-
-  <!-- PANTALLA JUNTAS Y ASAMBLEAS -->
-  <div id="juntas" class="pantalla">
-    <button class="back" onclick="mostrar('menu')">← Regresar</button>
-    <h2>🏛️ Juntas y Asambleas</h2>
-    <div id="juntas-lista"><p style="color:#666">Cargando...</p></div>
-  </div>
-
-  <!-- PANTALLA BITÁCORA -->
-  <div id="bitacora" class="pantalla">
-    <button class="back" onclick="mostrar('menu')">← Regresar</button>
-    <h2>📋 Bitácora de Mantenimiento</h2>
-    <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap">
-      <button onclick="filtrarBitacora('todos')" id="bit-filtro-todos" class="submit" style="margin-top:0; font-size:13px; padding:8px 12px">Todos</button>
-      <button onclick="filtrarBitacora('Limpieza Áreas Comunes')" class="submit" style="margin-top:0; font-size:13px; padding:8px 12px; background:#999">🧹 Limpieza</button>
-      <button onclick="filtrarBitacora('Mantenimiento Alberca')" class="submit" style="margin-top:0; font-size:13px; padding:8px 12px; background:#999">🏊 Alberca</button>
-      <button onclick="filtrarBitacora('Riego Jardines')" class="submit" style="margin-top:0; font-size:13px; padding:8px 12px; background:#999">🌿 Riego</button>
-      <button onclick="filtrarBitacora('Poda')" class="submit" style="margin-top:0; font-size:13px; padding:8px 12px; background:#999">✂️ Poda</button>
-    </div>
-    <div id="bitacora-lista"><p style="color:#666">Cargando...</p></div>
-  </div>
-
-  <!-- PANTALLA DIRECTORIO -->
-  <div id="directorio" class="pantalla">
-    <button class="back" onclick="mostrar('menu')">← Regresar</button>
-    <h2>📞 Directorio de Emergencias</h2>
-    <div id="directorio-lista"><p style="color:#666">Cargando...</p></div>
-  </div>
-
-  <!-- PANTALLA ADMIN COMITÉ -->
-  <div id="admin" class="pantalla">
-    <button class="back" onclick="mostrar('menu')">← Regresar</button>
-    <h2>🛡️ Panel del Comité</h2>
-    <div style="display:flex; gap:8px; margin-bottom:16px">
-      <button onclick="mostrarTabAdmin('mudanzas')" id="tab-admin-mudanzas" class="submit" style="margin-top:0; font-size:13px; padding:10px">📦 Mudanzas</button>
-      <button onclick="mostrarTabAdmin('reportes')" id="tab-admin-reportes" class="submit" style="margin-top:0; font-size:13px; padding:10px; background:#999">📝 Reportes</button>
-      <button onclick="mostrarTabAdmin('accesos')" id="tab-admin-accesos" class="submit" style="margin-top:0; font-size:13px; padding:10px; background:#999">🚙 Accesos</button>
-      <button onclick="mostrarTabAdmin('incidencias')" id="tab-admin-incidencias" class="submit" style="margin-top:0; font-size:13px; padding:10px; background:#999">⚠️ Incidencias</button>
-    </div>
-    <div id="admin-nueva-incidencia" style="display:none; background:white; border-radius:12px; padding:16px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.1)">
-      <h3 style="font-size:15px; margin-bottom:12px">➕ Nueva Incidencia</h3>
-      <div id="msg-incidencia"></div>
-      <div class="form-group">
-        <label>Departamento</label>
-        <input type="text" id="inc-casa" placeholder="Ej: 4A" style="text-transform:uppercase">
-      </div>
-      <div class="form-group">
-        <label>Tipo</label>
-        <select id="inc-tipo">
-          <option value="Llamada de Atención">Llamada de Atención (sin costo)</option>
-          <option value="Multa">Multa (con costo)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Concepto</label>
-        <select id="inc-concepto" onchange="onConceptoChange()">
-          <option value="">Cargando conceptos...</option>
-        </select>
-      </div>
-      <div id="inc-info-concepto" style="display:none; background:#fff8e1; border-radius:8px; padding:12px; margin-bottom:12px; font-size:13px;"></div>
-      <div class="form-group">
-        <label>Monto (se calcula automático si es Multa)</label>
-        <input type="number" id="inc-monto" placeholder="0" readonly style="background:#f5f5f5">
-      </div>
-      <button class="submit" onclick="generarIncidencia()">Registrar Incidencia</button>
-    </div>
-    <div id="admin-lista"><p style="color:#666">Cargando...</p></div>
-  </div>
-
-</div>
-
-<!-- MODAL CONFIRMACION -->
-<div id="modal-confirmacion" class="modal">
-  <div class="modal-content">
-    <h3>✅ Reserva Confirmada</h3>
-    <p id="modal-resumen" style="font-size:14px; color:#666; margin-bottom:8px"></p>
-    <div class="reglas-modal" id="modal-reglas"></div>
-    <button onclick="cerrarModal()">Entendido ✓</button>
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA 5 — MENÚ PRINCIPAL
+═══════════════════════════════════════════════════════════ -->
+<div id="s-menu" class="screen">
+  <div class="app-header">
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p id="menu-depto">Departamento —</p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+
+    <!-- Bienvenida -->
+    <div class="bienvenida-card">
+      <div class="depto" id="menu-depto2">Departamento —</div>
+      <div class="nombre" id="menu-nombre">—</div>
+      <div id="menu-badges"></div>
+    </div>
+
+    <!-- Banner junta (se oculta si no hay) -->
+    <div class="banner-junta hidden" id="banner-junta">
+      <h3 id="bj-tipo">🏛️ Próxima Junta</h3>
+      <p id="bj-fecha"></p>
+      <p id="bj-orden"></p>
+    </div>
+
+    <!-- Finanzas en home -->
+    <div class="finanzas-home" onclick="ir('s-finanzas'); cargarFinanzas()">
+      <div>
+        <div class="fh-label">💳 Consultar estado de cuenta</div>
+        <div class="fh-estatus" id="home-estatus">Cargando...</div>
+      </div>
+      <span class="fh-chevron">›</span>
+    </div>
+
+    <!-- Grid de módulos (Fase 1: solo los disponibles) -->
+    <div class="modulos-grid">
+      <button class="modulo-btn" onclick="proximamente()">
+        <span class="m-icon">🚗</span>
+        <span class="m-title">Visitas</span>
+        <span class="m-desc">Registra accesos</span>
+      </button>
+      <button class="modulo-btn" onclick="proximamente()">
+        <span class="m-icon">🏊</span>
+        <span class="m-title">Amenidades</span>
+        <span class="m-desc">Piscina, palapa y más</span>
+      </button>
+      <button class="modulo-btn" onclick="proximamente()">
+        <span class="m-icon">📝</span>
+        <span class="m-title">Reportes</span>
+        <span class="m-desc">Quejas y sugerencias</span>
+      </button>
+      <button class="modulo-btn" onclick="proximamente()">
+        <span class="m-icon">📦</span>
+        <span class="m-title">Mudanzas</span>
+        <span class="m-desc">Control de acceso</span>
+      </button>
+      <button class="modulo-btn" onclick="proximamente()">
+        <span class="m-icon">🏛️</span>
+        <span class="m-title">Juntas</span>
+        <span class="m-desc">Asambleas y minutas</span>
+      </button>
+      <button class="modulo-btn" onclick="proximamente()">
+        <span class="m-icon">📞</span>
+        <span class="m-title">Directorio</span>
+        <span class="m-desc">Emergencias</span>
+      </button>
+    </div>
+
+    <button class="btn-cerrar" onclick="cerrarSesion()">Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA 6 — FINANZAS
+═══════════════════════════════════════════════════════════ -->
+<div id="s-finanzas" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p id="fin-depto">Mis Finanzas</p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="fin-contenido"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════════════ -->
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbzX_7OjwzPyQ019H5zVrk1I98Sf2mFMfd268t41uOG4iwEwE1pniqYCU1l43XRpXHZiVA/exec';
-let horarioSeleccionado = null;
-let amenidades = [];
-let reglas = [];
-let reservas = [];
-let horarios = [];
+const API = 'TU_URL_AQUI'; // <-- reemplaza con tu URL del Apps Script
+
+// ── Estado global ──────────────────────────────────────────
 let sesion = null;
 
-// Conceptos del desglose de finanzas: clave del Sheet -> etiqueta bonita
-const CONCEPTOS_FINANZAS = [
-  { key: 'Controles', label: 'Controles' },
-  { key: 'Chips', label: 'Chips' },
-  { key: 'Multas', label: 'Multas' },
-  { key: 'Cuota', label: 'Cuota' },
-  { key: 'Mtto', label: 'Mantenimiento' },
-  { key: 'Luz', label: 'Luz' }
-];
-
-// Limpia fechas tipo "2026-06-18T05:00:00.000Z" dejando solo "2026-06-18"
-function limpiarFecha(valor) {
-  if (!valor) return '';
-  const str = String(valor);
-  return str.includes('T') ? str.split('T')[0] : str;
+// ── Navegación ─────────────────────────────────────────────
+function ir(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
 }
 
-const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-
-// Convierte "2026-06-18" o un ISO completo a "18 de Junio"
-function formatearFechaBonita(valor) {
-  if (!valor) return '';
-  const soloFecha = limpiarFecha(valor); // yyyy-MM-dd
-  const partes = soloFecha.split('-');
-  if (partes.length !== 3) return soloFecha;
-  const dia = parseInt(partes[2]);
-  const mes = MESES_ES[parseInt(partes[1]) - 1] || '';
-  if (isNaN(dia) || !mes) return soloFecha;
-  return `${dia} de ${mes}`;
-}
-
-// Limpia horas que pudieran venir como ISO ("1899-12-31T20:00:00.000Z") dejando solo "20:00"
-function limpiarHora(valor) {
-  if (!valor) return '';
-  const str = String(valor);
-  if (str.includes('T')) {
-    const horaParte = str.split('T')[1] || '';
-    return horaParte.substring(0, 5);
-  }
-  return str;
-}
-
-// Convierte montos tipo "$5,850.00" o "5850" a número real (5850)
-function limpiarMonto(valor) {
-  if (valor === null || valor === undefined || valor === '') return 0;
-  if (typeof valor === 'number') return valor;
-  const limpio = String(valor).replace(/[^0-9.\-]/g, '');
-  const num = parseFloat(limpio);
-  return isNaN(num) ? 0 : num;
-}
-
-function generarDispositivoId() {
-  let id = localStorage.getItem('paamul_dispositivo_id');
+// ── Persistencia de dispositivo ────────────────────────────
+function getDispositivoId() {
+  let id = localStorage.getItem('paamul_disp');
   if (!id) {
-    id = 'disp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
-    localStorage.setItem('paamul_dispositivo_id', id);
+    id = 'D' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
+    localStorage.setItem('paamul_disp', id);
   }
   return id;
 }
 
-// Calcula el edificio a partir del número de depto. Ej: 4A -> depto 4 -> Edificio 2 (3-4)
-function calcularEdificio(casa) {
-  const match = String(casa).match(/\d+/);
-  if (!match) return null;
-  const numero = parseInt(match[0]);
-  return Math.ceil(numero / 2);
-}
-
-window.onload = () => {
-  const hoy = new Date().toISOString().split('T')[0];
-  const rfecha = document.getElementById('r-fecha');
-  if (rfecha) rfecha.min = hoy;
-  const vfecha = document.getElementById('v-fecha');
-  if (vfecha) vfecha.min = hoy;
-
-  const sesionGuardada = localStorage.getItem('paamul_sesion');
-  if (sesionGuardada) {
-    try {
-      sesion = JSON.parse(sesionGuardada);
-      // Si ya aceptó el reglamento y tiene nivel válido, entramos directo sin consultar el Sheet.
-      // Esto evita el bucle de "solicitar PIN de nuevo" cuando localStorage tiene la sesión guardada.
-      if (sesion && sesion.casa && sesion.nivel) {
-        iniciarApp();
-        return;
+// ── Arranque: verificar dispositivo guardado ────────────────
+window.onload = async () => {
+  const dispId = getDispositivoId();
+  // Intentar entrar automáticamente si el dispositivo ya está registrado
+  try {
+    const res  = await fetch(`${API}?accion=buscarDispositivo&id=${encodeURIComponent(dispId)}`);
+    const data = await res.json();
+    if (data && data.ok) {
+      sesion = data;
+      if (!sesion.acepto) {
+        await cargarReglamento();
+        ir('s-reglamento');
+      } else {
+        await cargarMenuPrincipal();
+        ir('s-menu');
       }
-    } catch(e) {
-      localStorage.removeItem('paamul_sesion');
+      return;
     }
-  }
+  } catch(e) {}
+  // Sin sesión guardada → pantalla de inicio
+  ir('s-inicio');
 };
 
-// ===== OPCIONES DE RELACIÓN POR NIVEL =====
-const RELACIONES_PRINCIPAL = ['Propietario/a', 'Cónyuge / Pareja', 'Administrador/a del depto'];
-const RELACIONES_RESIDENTE = ['Residente / Inquilino', 'Familiar directo', 'Encargado/a'];
+// ── REGISTRO ───────────────────────────────────────────────
+let generoSeleccionado = null;
+let rolSeleccionado    = null;
 
-let nombresLoginCargados = [];
-let nivelLoginDetectado = null;
+function selGender(g) {
+  generoSeleccionado = g;
+  document.getElementById('g-hombre').classList.toggle('selected', g === 'Hombre');
+  document.getElementById('g-mujer').classList.toggle('selected',  g === 'Mujer');
+}
 
-async function cargarNombresLogin() {
-  const casa = document.getElementById('login-casa').value.trim().toUpperCase();
-  if (!casa) return;
+function selRol(r) {
+  rolSeleccionado = r;
+  ['propietario','residente','administrador'].forEach(x =>
+    document.getElementById('r-' + x).classList.remove('selected')
+  );
+  document.getElementById('r-' + r.toLowerCase()).classList.add('selected');
+  document.getElementById('aviso-prop').classList.toggle('show', r === 'Propietario');
+}
+
+async function registrar() {
+  const msg      = document.getElementById('reg-msg');
+  const casa     = document.getElementById('reg-casa').value.trim().toUpperCase();
+  const nombre   = document.getElementById('reg-nombre').value.trim();
+  const telefono = document.getElementById('reg-telefono').value.trim();
+  const clave    = document.getElementById('reg-clave').value.trim().toUpperCase();
+
+  // Validaciones
+  let ok = true;
+  const mostrar = (id, show) => {
+    document.getElementById(id).classList.toggle('show', show);
+    if (show) ok = false;
+  };
+  mostrar('err-casa',  !casa);
+  mostrar('err-nombre',!nombre);
+  mostrar('err-tel',   !telefono || telefono.length < 10);
+  const claveValida = /^(?=.*\d.*\d.*\d)(?=.*[a-zA-Z])[0-9a-zA-Z]{4}$/.test(clave);
+  mostrar('err-clave', !claveValida);
+
+  if (!generoSeleccionado) { showMsg(msg, 'error', 'Selecciona tu género'); return; }
+  if (!rolSeleccionado)    { showMsg(msg, 'error', 'Selecciona tu rol'); return; }
+  if (!ok) return;
+
+  const btn = document.getElementById('btn-registrar');
+  btn.disabled = true; btn.textContent = 'Registrando...';
+
   try {
-    const res = await fetch(`${API}?accion=getPersonasCasa`);
-    const data = await res.json();
-    nombresLoginCargados = data.filter(p => String(p.Casa).toUpperCase().trim() === casa);
-    const sel = document.getElementById('login-nombre-selector');
-    const grupoSel = document.getElementById('login-selector-grupo');
-    if (nombresLoginCargados.length > 0) {
-      sel.innerHTML = '<option value="">Selecciona tu nombre...</option>';
-      nombresLoginCargados.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.Nombre;
-        opt.textContent = (p.Relacion ? p.Relacion + ' — ' : '') + p.Nombre;
-        sel.appendChild(opt);
-      });
-      const optNuevo = document.createElement('option');
-      optNuevo.value = '__nuevo__';
-      optNuevo.textContent = '+ Primera vez / Registrar nuevo acceso';
-      sel.appendChild(optNuevo);
-      grupoSel.style.display = 'block';
-      document.getElementById('login-registro-nuevo').style.display = 'none';
+    const res  = await post({ accion:'registrar', casa, nombre, genero:generoSeleccionado,
+      rol:rolSeleccionado, telefono, clave, dispositivo_id: getDispositivoId() });
+    if (res.ok) {
+      if (res.estatus === 'Pendiente') {
+        showMsg(msg, 'info',
+          '⏳ Registro enviado. El Comité verificará tu cuenta. Te avisaremos pronto.');
+      } else {
+        showMsg(msg, 'ok', '✅ ¡Cuenta creada! Ya puedes ingresar.');
+        setTimeout(() => ir('s-login'), 1800);
+      }
     } else {
-      grupoSel.style.display = 'none';
-      document.getElementById('login-registro-nuevo').style.display = 'block';
+      showMsg(msg, 'error', res.error || 'Error al registrar');
     }
   } catch(e) {
-    document.getElementById('login-selector-grupo').style.display = 'none';
-    document.getElementById('login-registro-nuevo').style.display = 'block';
+    showMsg(msg, 'error', 'Error de conexión, intenta de nuevo');
   }
+  btn.disabled = false; btn.textContent = 'Crear mi cuenta';
 }
 
-function onNombreSelectorChange() {
-  const val = document.getElementById('login-nombre-selector').value;
-  if (val === '__nuevo__') {
-    document.getElementById('login-registro-nuevo').style.display = 'block';
-    document.getElementById('login-nombre').value = '';
-    poblarRelaciones(nivelLoginDetectado);
-  } else {
-    document.getElementById('login-registro-nuevo').style.display = 'none';
-    document.getElementById('login-nombre').value = val;
-  }
-}
+// ── LOGIN ───────────────────────────────────────────────────
+async function login() {
+  const msg   = document.getElementById('login-msg');
+  const casa  = document.getElementById('login-casa').value.trim().toUpperCase();
+  const clave = document.getElementById('login-clave').value.trim().toUpperCase();
+  if (!casa || !clave) { showMsg(msg, 'error', 'Ingresa tu depto y clave'); return; }
 
-function poblarRelaciones(nivel) {
-  const sel = document.getElementById('login-relacion');
-  const label = document.getElementById('login-relacion-label');
-  const opciones = nivel === 'Residente' ? RELACIONES_RESIDENTE : RELACIONES_PRINCIPAL;
-  label.textContent = nivel === 'Residente' ? 'Tu rol en el depto' : 'Tu relación con el depto';
-  sel.innerHTML = '<option value="">Selecciona...</option>';
-  opciones.forEach(op => {
-    const opt = document.createElement('option');
-    opt.value = op; opt.textContent = op;
-    sel.appendChild(opt);
-  });
-}
-
-async function iniciarSesion() {
-  const casa = document.getElementById('login-casa').value.trim().toUpperCase();
-  const pin = document.getElementById('login-pin').value.trim();
-  if (!casa || !pin) {
-    document.getElementById('msg-login').innerHTML = '<div class="mensaje error">Ingresa tu depto y PIN</div>';
-    return;
-  }
-  document.getElementById('msg-login').innerHTML = '<div class="mensaje ok">Validando...</div>';
+  showMsg(msg, 'info', 'Verificando...');
   try {
-    const casasRes = await fetch(`${API}?accion=getCasas`);
-    const casasData = await casasRes.json();
-    const casaEncontrada = casasData.find(c => String(c.ID_Casa).toUpperCase().trim() === casa);
-    if (!casaEncontrada) {
-      document.getElementById('msg-login').innerHTML = '<div class="mensaje error">Depto no encontrado</div>';
-      return;
-    }
-
-    const rolFila = String(casaEncontrada.Rol || '').trim();
-
-    // Agentes de seguridad: validación directa con PIN_Principal_1
-    if (rolFila === 'Seguridad') {
-      const pinSeg = String(casaEncontrada.PIN_Principal_1 || '').trim();
-      if (pinSeg !== pin) {
-        document.getElementById('msg-login').innerHTML = '<div class="mensaje error">PIN incorrecto</div>';
-        return;
+    const res = await post({ accion:'login', casa, clave, dispositivo_id: getDispositivoId() });
+    if (res.ok) {
+      sesion = res;
+      if (!sesion.acepto) {
+        await cargarReglamento();
+        ir('s-reglamento');
+      } else {
+        await cargarMenuPrincipal();
+        ir('s-menu');
       }
-      const nombreSeg = String(casaEncontrada.Nombre_Residente || casaEncontrada.ID_Casa).trim();
-      sesion = {
-        casa: casaEncontrada.ID_Casa, nombre: nombreSeg,
-        nivel: 'Seguridad', numPin: 1, rolComite: 'Seguridad',
-        edificio: 0, aceptoReglamento: true, puesto: '',
-        verFinanzasCompletas: false, verHistorialCompleto: false,
-        verJuntasHistorico: false, verPanelComite: false
-      };
-      localStorage.setItem('paamul_sesion', JSON.stringify(sesion));
-      iniciarApp();
-      return;
-    }
-
-    const pinsMap = [
-      { col: 'PIN_Principal_1', nivel: 'Principal', num: 1 },
-      { col: 'PIN_Principal_2', nivel: 'Principal', num: 2 },
-      { col: 'PIN_Residente_1', nivel: 'Residente', num: 1 },
-      { col: 'PIN_Residente_2', nivel: 'Residente', num: 2 },
-    ];
-    let nivel = null, numPin = null;
-    for (const p of pinsMap) {
-      if (String(casaEncontrada[p.col] || '').trim() === pin && pin !== '') {
-        nivel = p.nivel; numPin = p.num; break;
-      }
-    }
-    if (!nivel) {
-      document.getElementById('msg-login').innerHTML = '<div class="mensaje error">PIN incorrecto</div>';
-      return;
-    }
-    nivelLoginDetectado = nivel;
-
-    const selectorVal = document.getElementById('login-nombre-selector').value;
-    let nombreFinal = '';
-    if (selectorVal && selectorVal !== '__nuevo__') {
-      nombreFinal = selectorVal;
+    } else if (res.pendiente) {
+      showMsg(msg, 'info',
+        '⏳ Tu registro está pendiente de verificación por el Comité.');
     } else {
-      const tratamiento = document.getElementById('login-tratamiento')?.value || '';
-      const nombreTexto = document.getElementById('login-nombre').value.trim();
-      if (!nombreTexto) {
-        document.getElementById('msg-login').innerHTML = '<div class="mensaje error">Escribe tu nombre completo</div>';
-        return;
-      }
-      nombreFinal = (tratamiento + ' ' + nombreTexto).trim();
-      const relacion = document.getElementById('login-relacion')?.value || '';
-      const telefono = document.getElementById('login-telefono')?.value || '';
-      try {
-        await fetch(API, { method: 'POST', mode: 'no-cors',
-          body: JSON.stringify({ accion: 'registrarPersona', casa, relacion, nombre: nombreFinal, nivel, telefono }) });
-      } catch(e) {}
+      showMsg(msg, 'error', res.error || 'Casa o clave incorrecta');
     }
-
-    const dispositivoId = generarDispositivoId();
-    // Usamos text/plain para poder leer la respuesta (evita preflight CORS de Apps Script)
-    try {
-      await fetch(API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ accion: 'validarPin', casa, pin, dispositivo_id: dispositivoId })
-      });
-    } catch(e) {}
-
-    // La aceptación del reglamento se verifica UNA VEZ desde el Sheet.
-    // Después queda en localStorage y no se vuelve a consultar (evita el bucle).
-    let aceptoReglamento = false;
-    try {
-      const personasRes = await fetch(`${API}?accion=getPersonasCasa`);
-      const personasData = await personasRes.json();
-      const persona = personasData.find(p =>
-        String(p.Casa).toUpperCase().trim() === casa &&
-        String(p.Nombre).toLowerCase().trim() === nombreFinal.toLowerCase().trim()
-      );
-      aceptoReglamento = persona ? String(persona.Acepto_Reglamento || '').trim().toUpperCase() === 'SI' : false;
-    } catch(e) {}
-
-    sesion = {
-      casa: casaEncontrada.ID_Casa, nombre: nombreFinal, nivel, numPin,
-      edificio: calcularEdificio(casaEncontrada.ID_Casa), aceptoReglamento, rolComite: rolFila,
-      puesto: String(casaEncontrada.Puesto || '').trim(),
-      verFinanzasCompletas: nivel === 'Principal',
-      verHistorialCompleto: nivel === 'Principal',
-      verJuntasHistorico: nivel === 'Principal',
-      verPanelComite: nivel === 'Principal' && numPin === 1 && rolFila === 'Comite'
-    };
-    localStorage.setItem('paamul_sesion', JSON.stringify(sesion));
-    iniciarApp();
   } catch(e) {
-    document.getElementById('msg-login').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
+    showMsg(msg, 'error', 'Error de conexión, intenta de nuevo');
   }
 }
 
-async function iniciarApp() {
-  document.getElementById('login-screen').style.display = 'none';
-  // Agentes de seguridad van directo a su pantalla, sin reglamento
-  if (sesion.nivel === 'Seguridad') {
-    mostrarPantallaSeguridad();
-    return;
-  }
-  if (!sesion.aceptoReglamento) { mostrarReglamento(); return; }
-  mostrarAppPrincipal();
-}
-
-async function mostrarReglamento() {
-  document.getElementById('reglamento-screen').style.display = 'block';
-  document.getElementById('check-leido').checked = false;
-  document.getElementById('check-acepto').checked = false;
-  validarChecksReglamento();
+// ── REGLAMENTO ──────────────────────────────────────────────
+async function cargarReglamento() {
   try {
-    const res = await fetch(`${API}?accion=getReglas`);
-    const data = await res.json();
-    const reglamento = data.find(r => r.Amenidad === 'Reglamento');
-    document.getElementById('reglamento-texto').innerHTML = reglamento ? reglamento.Regla : 'No se encontró el reglamento. Contacta a la administración.';
+    const res   = await fetch(`${API}?accion=getReglas`);
+    const reglas = await res.json();
+    // Usar la regla con Amenidad = "Reglamento" o la primera disponible
+    const reg = Array.isArray(reglas)
+      ? (reglas.find(r => r.Amenidad === 'Reglamento') || reglas[0])
+      : null;
+    document.getElementById('reg-texto').innerHTML =
+      reg ? (reg.Texto_Reglamento || reg.Regla || 'Reglamento no disponible')
+          : 'Reglamento no disponible';
   } catch(e) {
-    document.getElementById('reglamento-texto').innerHTML = 'Error al cargar el reglamento. Intenta de nuevo.';
+    document.getElementById('reg-texto').textContent = 'No se pudo cargar el reglamento.';
   }
+
+  // Personalizar checkboxes con los datos de la sesión
+  if (sesion) {
+    const art = sesion.genero === 'Mujer' ? 'Yo, ' : 'Yo, ';
+    const rolTxt = rolGenero(sesion.rol, sesion.genero);
+    const firma = `${art}${rolTxt} del Departamento ${sesion.casa}, ${sesion.nombre}`;
+    document.getElementById('firma-texto').textContent = firma;
+    document.getElementById('chk-leido-label').textContent =
+      `He leído el reglamento interno de Privada Paamul.`;
+    document.getElementById('chk-acepto-label').textContent =
+      `Acepto y me comprometo a cumplir las normas y sanciones estipuladas.`;
+  }
+
+  // Resetear checks
+  document.getElementById('chk-leido').checked  = false;
+  document.getElementById('chk-acepto').checked = false;
+  validarChecks();
 }
 
-function validarChecksReglamento() {
-  const habilitado = document.getElementById('check-leido').checked && document.getElementById('check-acepto').checked;
-  const btn = document.getElementById('btn-aceptar-reglamento');
-  btn.disabled = !habilitado;
-  btn.style.opacity = habilitado ? '1' : '0.5';
-  btn.style.cursor = habilitado ? 'pointer' : 'not-allowed';
+function validarChecks() {
+  const ok = document.getElementById('chk-leido').checked &&
+             document.getElementById('chk-acepto').checked;
+  const btn = document.getElementById('btn-acepto');
+  btn.disabled = !ok;
+  btn.style.opacity = ok ? '1' : '0.5';
 }
 
 async function aceptarReglamento() {
-  if (!document.getElementById('check-leido').checked || !document.getElementById('check-acepto').checked) return;
-  try {
-    await fetch(API, { method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion: 'aceptarReglamento', casa: sesion.casa, nombre: sesion.nombre, nivel: sesion.nivel }) });
-    sesion.aceptoReglamento = true;
-    localStorage.setItem('paamul_sesion', JSON.stringify(sesion));
-    document.getElementById('reglamento-screen').style.display = 'none';
-    mostrarAppPrincipal();
-  } catch(e) { alert('Error al guardar tu aceptación, intenta de nuevo.'); }
-}
-
-async function mostrarAppPrincipal() {
-  document.getElementById('app-screen').style.display = 'block';
-  document.getElementById('header-bienvenida').textContent = `Departamento ${sesion.casa}`;
-  const nombreEl = document.getElementById('nombre-residente');
-  nombreEl.textContent = sesion.puesto ? `Bienvenido ${sesion.puesto}, ${sesion.nombre}` : `Bienvenido, ${sesion.nombre}`;
-  if (sesion.verPanelComite) {
-    document.getElementById('badge-comite-container').innerHTML = '<span class="badge-comite">⭐ Comité</span>';
-    document.getElementById('btn-admin').style.display = 'flex';
-  }
-  if (!sesion.verFinanzasCompletas) {
-    const btnFinanzas = document.querySelector("button[onclick=\"mostrar('finanzas')\"]");
-    if (btnFinanzas) btnFinanzas.style.display = 'none';
-  }
-  document.getElementById('servicios-edificio').textContent = `Edificio ${sesion.edificio}`;
-  cargarAmenidades(); cargarMisReservas(); cargarBannerJunta(); await aplicarBloqueosPorAdeudo();
-}
-
-
-// Si el rol es Residente y su Estatus es ADEUDO, bloquea Reservas y Visitas (deja solo Servicios Adicionales)
-async function aplicarBloqueosPorAdeudo() {
-  document.getElementById('saldo-pendiente').textContent = 'Cargando...';
-  try {
-    const res = await fetch(`${API}?accion=getFinanzas`);
-    const data = await res.json();
-    const fin = obtenerFinanzasCasa(data);
-    const estatus = fin ? String(fin.Estatus || '').trim().toUpperCase() : '';
-    sesion.bloqueado = (sesion.nivel === 'Residente' && !ESTATUS_OK.includes(estatus));
-
-    const elSaldo = document.getElementById('saldo-pendiente');
-    if (sesion.nivel === 'Principal') {
-      const adeudo = fin ? limpiarMonto(fin.Adeudo) : 0;
-      if (adeudo <= 0) { elSaldo.textContent = '✅ Sin adeudos'; elSaldo.classList.add('ok'); }
-      else { elSaldo.textContent = `$${adeudo.toLocaleString('es-MX')} MXN`; elSaldo.classList.remove('ok'); }
-    } else {
-      // Residente: solo ve el estatus general, no montos
-      if (estatus) {
-        const ok = ESTATUS_OK.includes(estatus);
-        elSaldo.textContent = ok ? `✅ ${fin.Estatus}` : `⚠️ ${fin.Estatus}`;
-        elSaldo.classList.toggle('ok', ok);
-      } else {
-        elSaldo.textContent = 'Sin información';
-      }
-    }
-
-    const btnVisitas = document.querySelector('button[onclick="mostrar(\'visitas\')"]');
-    const btnReservas = document.querySelector('button[onclick="mostrar(\'reservas\')"]');
-    if (sesion.bloqueado) {
-      [btnVisitas, btnReservas].forEach(btn => {
-        if (btn) { btn.style.opacity = '0.45'; btn.style.cursor = 'not-allowed'; btn.onclick = mostrarBloqueoAdeudo; }
-      });
-    }
-  } catch(e) {
-    document.getElementById('saldo-pendiente').textContent = 'No disponible';
-  }
-}
-
-function mostrarBloqueoAdeudo() {
-  const reglaBloqueo = reglas.find(r => r.Amenidad === 'Cuenta_Bloqueada');
-  const msg = reglaBloqueo ? reglaBloqueo.Regla : 'Tu cuenta presenta un adeudo. Por favor regulariza tu situación con la administración.';
-  alert('⚠️ ' + msg);
-}
-
-function cerrarSesion() {
-  localStorage.removeItem('paamul_sesion');
-  sesion = null;
-  location.reload();
-}
-
-function obtenerFinanzasCasa(data) {
-  return data.find(f => String(f.Casa).toUpperCase().trim() === String(sesion.casa).toUpperCase().trim());
-}
-
-function mostrar(id) {
-  document.getElementById('menu').style.display = id === 'menu' ? 'flex' : 'none';
-  document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
-  if (id !== 'menu') {
-    document.getElementById(id).classList.add('activa');
-    if (id === 'finanzas') cargarFinanzas();
-    if (id === 'directorio') cargarDirectorio();
-    if (id === 'admin') cargarAdmin();
-    if (id === 'juntas') cargarJuntas();
-    if (id === 'bitacora') cargarBitacora();
-  }
-  horarioSeleccionado = null;
-}
-
-async function registrarVisita() {
-  const casa = sesion.casa;
-  const nombre = document.getElementById('v-nombre').value.trim();
-  const fecha = document.getElementById('v-fecha').value;
-  const hora = document.getElementById('v-hora').value;
-  const auto = document.getElementById('v-auto').value;
-  if (!nombre || !fecha || !hora) {
-    document.getElementById('msg-visita').innerHTML = '<div class="mensaje error">Por favor llena todos los campos</div>';
-    return;
-  }
-  document.getElementById('msg-visita').innerHTML = '<div class="mensaje ok">Registrando...</div>';
-  try {
-    await fetch(API, {
-      method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion: 'registrarVisita', casa, nombre_residente: sesion.nombre, nombre_visitante: nombre, fecha, hora_estimada: hora, trae_auto: auto })
-    });
-    const reglaVisita = reglas.find(r => r.Amenidad === 'Visita');
-    const msgExtra = reglaVisita ? `<br><br>📌 <em>${reglaVisita.Regla}</em>` : '';
-    document.getElementById('msg-visita').innerHTML = `<div class="mensaje ok">✅ Visita registrada correctamente${msgExtra}</div>`;
-    document.getElementById('v-nombre').value = '';
-    document.getElementById('v-fecha').value = '';
-    document.getElementById('v-hora').value = '';
-  } catch(e) {
-    document.getElementById('msg-visita').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
-  }
-}
-
-async function cargarAmenidades() {
-  try {
-    const [resA, resR] = await Promise.all([
-      fetch(`${API}?accion=getAmenidades`),
-      fetch(`${API}?accion=getReglas`)
-    ]);
-    amenidades = await resA.json();
-    reglas = await resR.json();
-    const sel = document.getElementById('r-amenidad');
-    sel.innerHTML = '<option value="">Selecciona...</option>';
-    amenidades.forEach(a => {
-      const opt = document.createElement('option');
-      opt.value = a.ID_Amenidad;
-      opt.textContent = a.Nombre;
-      sel.appendChild(opt);
-    });
-    document.getElementById('r-nombre').value = sesion.nombre || '';
-  } catch(e) { console.error('Error cargando amenidades', e); }
-}
-
-function onAmenidadChange() {
-  document.getElementById('horarios-container').innerHTML = '';
-  document.getElementById('mesas-container').style.display = 'none';
-  document.getElementById('r-notas-grupo').style.display = 'none';
-  document.getElementById('btn-reservar').style.display = 'none';
-  horarioSeleccionado = null;
-  const amenidad = document.getElementById('r-amenidad').value;
-  if (amenidad) {
-    const nombreAmenidad = amenidad === 'PAL-01' ? 'Palapa' : 'Juego de Mesa, Sillas y Sombrilla';
-    const regla = reglas.find(r => r.Amenidad === nombreAmenidad);
-    if (regla) {
-      document.getElementById('regla-amenidad-texto').textContent = regla.Regla;
-      document.getElementById('regla-amenidad-box').style.display = 'block';
-    } else {
-      document.getElementById('regla-amenidad-box').style.display = 'none';
-    }
-  } else {
-    document.getElementById('regla-amenidad-box').style.display = 'none';
-  }
-  const fecha = document.getElementById('r-fecha').value;
-  if (fecha) onFechaChange();
-}
-
-async function onFechaChange() {
-  const amenidad = document.getElementById('r-amenidad').value;
-  const fecha = document.getElementById('r-fecha').value;
-  if (!amenidad || !fecha) return;
-  // Mesas: SOLO el día de hoy
-  if (amenidad !== 'PAL-01') {
-    const hoy = new Date().toISOString().split('T')[0];
-    if (fecha !== hoy) {
-      document.getElementById('mesas-container').style.display = 'none';
-      document.getElementById('horarios-container').innerHTML = '<div class="mensaje error">Las mesas y sombrillas solo se pueden reservar para el día de hoy</div>';
-      return;
-    }
-  }
-  try {
-    const [resH, resR] = await Promise.all([
-      fetch(`${API}?accion=getHorarios`),
-      fetch(`${API}?accion=getReservas`)
-    ]);
-    horarios = await resH.json();
-    reservas = await resR.json();
-    if (amenidad === 'PAL-01') {
-      mostrarBloquesPalapa(amenidad, fecha);
-    } else {
-      mostrarSelectorMesas(amenidad, fecha);
-    }
-  } catch(e) { console.error('Error cargando horarios', e); }
-}
-
-function mostrarBloquesPalapa(amenidad, fecha) {
-  const container = document.getElementById('horarios-container');
-  document.getElementById('mesas-container').style.display = 'none';
-  const reservasHoy = reservas.filter(r => r.ID_Amenidad === amenidad && limpiarFecha(r.Fecha) === fecha && r.Estatus === 'Activa');
-  const horariosAmenidad = horarios.filter(h => h.ID_Amenidad === amenidad && h.Activo === 'SI');
-  if (horariosAmenidad.length === 0) {
-    container.innerHTML = '<p style="color:#666">No hay horarios configurados</p>';
-    return;
-  }
-  container.innerHTML = '<div class="form-group"><label>Selecciona bloque</label></div>';
-  horariosAmenidad.forEach(h => {
-    const ocupado = reservasHoy.some(r => r.ID_Horario === h.ID_Horario);
-    const div = document.createElement('div');
-    div.className = `bloque ${ocupado ? 'ocupado' : ''}`;
-    div.id = `bloque-${h.ID_Horario}`;
-    div.innerHTML = `<strong>${h.Hora_Inicio} - ${h.Hora_Fin}</strong><br><span class="tag ${ocupado ? 'ocupado' : 'disponible'}">${ocupado ? 'Ocupado' : 'Disponible'}</span>`;
-    if (!ocupado) div.onclick = () => seleccionarBloque(h);
-    container.appendChild(div);
-  });
-}
-
-function seleccionarBloque(horario) {
-  document.querySelectorAll('.bloque').forEach(b => b.classList.remove('seleccionado'));
-  document.getElementById(`bloque-${horario.ID_Horario}`).classList.add('seleccionado');
-  horarioSeleccionado = horario;
-  document.getElementById('r-notas-grupo').style.display = 'block';
-  document.getElementById('btn-reservar').style.display = 'block';
-}
-
-function mostrarSelectorMesas(amenidad, fecha) {
-  // Switch de ocupación en tiempo real: cargamos estado actual de todas las mesas
-  document.getElementById('horarios-container').innerHTML = '';
-  const container = document.getElementById('mesas-container');
-  container.style.display = 'block';
-
-  // Mostrar regla dinámica de mesas desde el Sheet
-  const regla = reglas.find(r => r.Amenidad === 'Juego de Mesa, Sillas y Sombrilla');
-  const reglaBox = document.getElementById('regla-mesas-box');
-  const reglaTxt = document.getElementById('regla-mesas-texto');
-  if (regla && reglaBox) {
-    reglaTxt.textContent = regla.Regla;
-    reglaBox.style.display = 'block';
-  }
-
-  cargarSwitchesMesas(fecha);
-}
-
-async function cargarSwitchesMesas(fecha) {
-  const container = document.getElementById('mesas-switches-container');
-  if (!container) return;
-  container.innerHTML = '<p style="color:#666; font-size:13px">Verificando disponibilidad...</p>';
-  try {
-    const res = await fetch(`${API}?accion=getOcupacionMesas`);
-    const ocupadas = await res.json();
-    const listaOcupadas = Array.isArray(ocupadas) ? ocupadas : [];
-
-    // Las 3 mesas con sombrilla
-    const mesasDisponibles = amenidades.filter(a => a.ID_Amenidad !== 'PAL-01');
-    container.innerHTML = mesasDisponibles.map(mesa => {
-      const ocupacion = listaOcupadas.find(o => o.ID_Amenidad === mesa.ID_Amenidad);
-      const esMia = ocupacion && String(ocupacion.Casa).toUpperCase().trim() === String(sesion.casa).toUpperCase().trim();
-      const estaOcupada = !!ocupacion;
-
-      return `
-      <div class="mesa-switch-card ${estaOcupada ? 'ocupada' : 'disponible'}">
-        <div class="mesa-info">
-          <h3>${mesa.Nombre}</h3>
-          ${estaOcupada
-            ? `<div class="por-quien">🔴 Ocupada — Depto ${ocupacion.Casa}</div>
-               <div class="hora-ocup">Desde ${ocupacion.Hora_Inicio || ''}</div>`
-            : '<div style="color:#137333; font-size:12px; margin-top:3px">✅ Disponible</div>'
-          }
-        </div>
-        <button
-          class="switch-btn ${esMia ? 'liberar' : estaOcupada ? '' : 'ocupar'}"
-          ${estaOcupada && !esMia ? 'disabled' : ''}
-          onclick="${esMia ? `liberarMesaSwitch('${mesa.ID_Amenidad}')` : `ocuparMesaSwitch('${mesa.ID_Amenidad}', '${mesa.Nombre}')`}"
-        >
-          ${esMia ? 'Liberar' : estaOcupada ? 'Ocupada' : 'Ocupar'}
-        </button>
-      </div>`;
-    }).join('');
-  } catch(e) {
-    container.innerHTML = '<p style="color:#c5221f; font-size:13px">Error al cargar disponibilidad</p>';
-  }
-}
-
-async function ocuparMesaSwitch(idAmenidad, nombreMesa) {
-  const nombre = document.getElementById('r-nombre').value.trim();
-  if (!nombre) {
-    document.getElementById('msg-reserva').innerHTML = '<div class="mensaje error">Escribe tu nombre primero</div>';
-    return;
-  }
-  document.getElementById('msg-reserva').innerHTML = '<div class="mensaje ok">Ocupando mesa...</div>';
-  try {
-    const res = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ accion: 'ocuparMesa', casa: sesion.casa, nombre, id_amenidad: idAmenidad })
-    });
-    const data = await res.json();
-    if (data.ok) {
-      document.getElementById('msg-reserva').innerHTML = `<div class="mensaje ok">✅ ${nombreMesa} ocupada. Recuerda dejarla limpia al terminar.</div>`;
-      document.getElementById('modal-reglas').innerHTML = `<strong>📋 Recuerda:</strong><br>${obtenerRegla(idAmenidad)}`;
-      document.getElementById('modal-resumen').textContent = `${nombreMesa} — Hoy — Depto ${sesion.casa}`;
-      document.getElementById('modal-confirmacion').classList.add('activo');
-      setTimeout(() => {
-        const f = document.getElementById('r-fecha').value;
-        cargarSwitchesMesas(f);
-      }, 1500);
-    } else {
-      document.getElementById('msg-reserva').innerHTML = `<div class="mensaje error">⚠️ ${data.error}</div>`;
-    }
-  } catch(e) {
-    document.getElementById('msg-reserva').innerHTML = '<div class="mensaje error">Error de conexión</div>';
-  }
-}
-
-async function liberarMesaSwitch(idAmenidad) {
-  document.getElementById('msg-reserva').innerHTML = '<div class="mensaje ok">Liberando mesa...</div>';
-  try {
-    const res = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ accion: 'liberarMesa', casa: sesion.casa, id_amenidad: idAmenidad })
-    });
-    const data = await res.json();
-    if (data.ok) {
-      document.getElementById('msg-reserva').innerHTML = '<div class="mensaje ok">✅ Mesa liberada correctamente</div>';
-      const f = document.getElementById('r-fecha').value;
-      setTimeout(() => cargarSwitchesMesas(f), 1000);
-    } else {
-      document.getElementById('msg-reserva').innerHTML = `<div class="mensaje error">⚠️ ${data.error}</div>`;
-    }
-  } catch(e) {
-    document.getElementById('msg-reserva').innerHTML = '<div class="mensaje error">Error de conexión</div>';
-  }
-}
-
-// onHoraChange y verificarDisponibilidad ya no aplican a mesas (son solo para palapa ahora si se necesita)
-function onHoraChange() {}
-function verificarDisponibilidad() {}
-
-async function registrarReserva() {
-  // Para palapa: flujo de bloques fijos (sin cambios)
-  const casa = sesion.casa;
-  const nombre = document.getElementById('r-nombre').value.trim();
-  const amenidad = document.getElementById('r-amenidad').value;
-  const fecha = document.getElementById('r-fecha').value;
-  const notas = document.getElementById('r-notas').value;
-  if (!nombre || !amenidad || !fecha || !horarioSeleccionado) {
-    document.getElementById('msg-reserva').innerHTML = '<div class="mensaje error">Por favor completa todos los campos</div>';
-    return;
-  }
-  document.getElementById('msg-reserva').innerHTML = '<div class="mensaje ok">Registrando...</div>';
-  try {
-    const res = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({
-        accion: 'registrarReserva', casa, nombre,
-        id_amenidad: amenidad, fecha,
-        id_horario: horarioSeleccionado.ID_Horario,
-        hora_inicio: horarioSeleccionado.Hora_Inicio,
-        duracion: horarioSeleccionado.Duracion_Hrs || '', notas
-      })
-    });
-    const data = await res.json();
-    if (!data.ok) {
-      document.getElementById('msg-reserva').innerHTML = `<div class="mensaje error">⚠️ ${data.error || 'No se pudo completar la reserva'}</div>`;
-      return;
-    }
-    const nombreAmenidad = amenidades.find(a => a.ID_Amenidad === amenidad)?.Nombre || amenidad;
-    document.getElementById('modal-resumen').textContent = `${nombreAmenidad} — ${fecha} — ${horarioSeleccionado.Hora_Inicio} a ${horarioSeleccionado.Hora_Fin}`;
-    document.getElementById('modal-reglas').innerHTML = `<strong>📋 Recuerda:</strong><br>${obtenerRegla(amenidad)}`;
-    document.getElementById('modal-confirmacion').classList.add('activo');
-    document.getElementById('msg-reserva').innerHTML = '';
-    horarioSeleccionado = null;
-    document.getElementById('btn-reservar').style.display = 'none';
-    document.getElementById('r-notas-grupo').style.display = 'none';
-  } catch(e) {
-    document.getElementById('msg-reserva').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
-  }
-}
-
-
-function cerrarModal() {
-  document.getElementById('modal-confirmacion').classList.remove('activo');
-  cargarMisReservas();
-}
-
-async function cargarMisReservas() {
   if (!sesion) return;
-  const lista = document.getElementById('mis-reservas-lista');
-  if (lista) lista.innerHTML = '<p style="color:#666">Cargando...</p>';
   try {
-    const res = await fetch(`${API}?accion=getReservas`);
-    const data = await res.json();
-    const misReservas = data.filter(r => String(r.Casa).toUpperCase().trim() === String(sesion.casa).toUpperCase().trim());
-    if (!lista) return;
-    if (misReservas.length === 0) {
-      lista.innerHTML = '<p style="color:#666">No tienes reservas</p>';
-      return;
-    }
-    lista.innerHTML = misReservas.map(r => {
-      const esCancelada = r.Estatus === 'Cancelada';
-      const esFinalizada = r.Estatus === 'Finalizada';
-      const fechaLimpia = limpiarFecha(r.Fecha);
-      return `
-      <div class="card" style="border-left: 4px solid ${esCancelada ? '#c5221f' : esFinalizada ? '#999' : '#1a73e8'}">
-        <strong>${r.Casa}</strong> — ${r.Nombre || ''}<br>
-        <span style="color:#1a73e8">${r.ID_Amenidad}</span>${r.Duracion_Hrs ? ' — ' + r.Duracion_Hrs + ' hrs' : ''}<br>
-        <small style="color:#666">📅 ${fechaLimpia}</small><br>
-        <small style="color:#999">Estatus: ${r.Estatus}</small><br>
-        ${!esCancelada && !esFinalizada ? `<button onclick="cancelar('${r.ID_Reserva}')" style="background:#c5221f;color:white;border:none;border-radius:6px;padding:8px 12px;margin-top:8px;cursor:pointer">Cancelar</button>` : ''}
-      </div>`;
-    }).join('');
-  } catch(e) {
-    if (lista) lista.innerHTML = '<p style="color:#c5221f">Error al cargar reservas</p>';
-  }
-}
-
-// Estatus considerados "al corriente" (verde) vs "alerta" (rojo)
-const ESTATUS_OK = ['OK', 'CONVENIO'];
-const ESTATUS_ALERTA = ['ADEUDO', 'F. LUZ', 'F. MANTO'];
-
-async function cargarFinanzas() {
-  const lista = document.getElementById('finanzas-lista');
-  lista.innerHTML = '<p style="color:#666">Cargando...</p>';
-  try {
-    const res = await fetch(`${API}?accion=getFinanzas`);
-    const data = await res.json();
-    const fin = obtenerFinanzasCasa(data);
-
-    if (!fin) {
-      lista.innerHTML = '<div class="mensaje ok">✅ Sin información financiera registrada</div>';
-      return;
-    }
-
-    const estatus = String(fin.Estatus || '').trim().toUpperCase();
-    const esOk = ESTATUS_OK.includes(estatus);
-
-    // Residente: solo ve el estatus, sin montos ni desglose (privacidad financiera del propietario)
-    if (sesion.nivel === 'Residente') {
-      lista.innerHTML = `
-        <div class="semaforo ${esOk ? 'verde' : 'rojo'}">
-          <div class="estatus-label">Estatus del mes</div>
-          <div class="estatus-valor">${esOk ? '✅' : '⚠️'} ${fin.Estatus || 'Sin estatus'}</div>
-        </div>
-        ${!esOk ? `<p style="font-size:13px; color:#666; text-align:center; margin-top:8px">Por favor consulta con el propietario o la administración para más detalles.</p>` : ''}
-      `;
-      return;
-    }
-
-    const adeudo = limpiarMonto(fin.Adeudo);
-    const abonado = limpiarMonto(fin.Abonado);
-    const atrasado = limpiarMonto(fin.Monto_Atrasado);
-
-    // Semáforo
-    let html = `
-      <div class="semaforo ${esOk ? 'verde' : 'rojo'}">
-        <div class="estatus-label">Estatus de cuenta</div>
-        <div class="estatus-valor">${esOk ? '✅' : '⚠️'} ${fin.Estatus || 'Sin estatus'}</div>
-      </div>
-      <div class="totales-finanzas">
-        <div class="total-box adeudo">
-          <div class="label">Adeudo total</div>
-          <div class="valor">$${adeudo.toLocaleString('es-MX')}</div>
-        </div>
-        <div class="total-box abonado">
-          <div class="label">Abonado</div>
-          <div class="valor">$${abonado.toLocaleString('es-MX')}</div>
-        </div>
-      </div>
-      ${atrasado > 0 ? `
-      <div class="total-box atrasado" style="margin-bottom:16px">
-        <div class="label">💵 Monto atrasado (cubierto)</div>
-        <div class="valor">$${atrasado.toLocaleString('es-MX')}</div>
-      </div>` : ''}
-    `;
-
-    // Desglose, ocultando conceptos en $0
-    const conceptosConSaldo = CONCEPTOS_FINANZAS
-      .map(c => ({ label: c.label, key: c.key, monto: limpiarMonto(fin[c.key]) }))
-      .filter(c => c.monto !== 0);
-
-    if (conceptosConSaldo.length > 0) {
-      html += `<div class="desglose-titulo">Desglose por concepto</div>`;
-      html += conceptosConSaldo.map(c => {
-        // Semáforo especial para Cuota
-        let colorMonto = '#137333'; // verde por defecto
-        let iconoExtra = '';
-        if (c.key === 'Cuota') {
-          if (c.monto < 500) { colorMonto = '#c5221f'; iconoExtra = ' 🔴'; }
-          else if (c.monto < 1000) { colorMonto = '#f57f17'; iconoExtra = ' 🟡'; }
-          else { colorMonto = '#137333'; iconoExtra = ' 🟢'; }
-        }
-        return `
-        <div class="finanzas-card">
-          <div class="concepto">${c.label}${iconoExtra}</div>
-          <div class="monto-item" style="color:${colorMonto}">$${c.monto.toLocaleString('es-MX')}</div>
-        </div>`;
-      }).join('');
-    }
-
-    lista.innerHTML = html;
-  } catch(e) {
-    lista.innerHTML = '<p style="color:#c5221f">Error al cargar finanzas</p>';
-  }
-}
-
-// ===== SERVICIOS ADICIONALES =====
-let serviciosData = [];
-let estadoArticuloActual = null; // 'libre' o 'prestado'
-
-function nombreReglaServicio(articulo) {
-  if (articulo === 'Llave de Azotea') return 'Llave de Azotea';
-  if (articulo === 'Escalera Comunitaria') return 'Escalera Comunitaria';
-  return '';
-}
-
-async function onArticuloChange() {
-  const articulo = document.getElementById('serv-articulo').value;
-  const reglaBox = document.getElementById('regla-servicio-box');
-  const estadoBox = document.getElementById('estado-servicio-box');
-  const accionGrupo = document.getElementById('serv-accion-grupo');
-  const btn = document.getElementById('btn-servicio');
-  document.getElementById('msg-servicios').innerHTML = '';
-
-  if (!articulo) {
-    reglaBox.style.display = 'none';
-    estadoBox.innerHTML = '';
-    accionGrupo.style.display = 'none';
-    btn.style.display = 'none';
-    return;
-  }
-
-  // Mostrar regla dinámica desde el Sheet
-  const regla = reglas.find(r => r.Amenidad === nombreReglaServicio(articulo));
-  if (regla) {
-    document.getElementById('regla-servicio-texto').textContent = regla.Regla;
-    reglaBox.style.display = 'block';
-  } else {
-    reglaBox.style.display = 'none';
-  }
-
-  estadoBox.innerHTML = '<p style="color:#666; font-size:13px">Consultando disponibilidad...</p>';
-  try {
-    const res = await fetch(`${API}?accion=getServicios`);
-    serviciosData = await res.json();
-    const prestamoActivo = serviciosData.find(s =>
-      String(s.Edificio) === String(sesion.edificio) &&
-      s.Articulo === articulo &&
-      s.Accion === 'Préstamo' &&
-      s.Estatus === 'Activo'
-    );
-
-    if (prestamoActivo) {
-      estadoArticuloActual = 'prestado';
-      estadoBox.innerHTML = `<div class="mensaje error">⚠️ Actualmente prestado al depto ${prestamoActivo.Departamento} de tu edificio</div>`;
-      // Solo permite Devolución si fue tu mismo depto quien lo tiene, si no, solo informa
-      if (String(prestamoActivo.Departamento).toUpperCase() === String(sesion.casa).toUpperCase()) {
-        accionGrupo.style.display = 'block';
-        document.getElementById('serv-accion').innerHTML = '<option value="Devolución">Registrar Devolución</option>';
-      } else {
-        accionGrupo.style.display = 'none';
-      }
-    } else {
-      estadoArticuloActual = 'libre';
-      estadoBox.innerHTML = `<div class="mensaje ok">✅ Disponible en tu edificio</div>`;
-      accionGrupo.style.display = 'block';
-      document.getElementById('serv-accion').innerHTML = '<option value="Préstamo">Solicitar (Préstamo)</option>';
-    }
-    btn.style.display = accionGrupo.style.display === 'block' ? 'block' : 'none';
-  } catch(e) {
-    estadoBox.innerHTML = '<p style="color:#c5221f">Error al consultar disponibilidad</p>';
-  }
-}
-
-async function registrarServicio() {
-  const articulo = document.getElementById('serv-articulo').value;
-  const accionServicio = document.getElementById('serv-accion').value;
-  if (!articulo || !accionServicio) {
-    document.getElementById('msg-servicios').innerHTML = '<div class="mensaje error">Selecciona el artículo y la acción</div>';
-    return;
-  }
-  document.getElementById('msg-servicios').innerHTML = '<div class="mensaje ok">Procesando...</div>';
-  try {
-    await fetch(API, {
-      method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({
-        accion: 'registrarServicio',
-        casa: sesion.casa,
-        edificio: sesion.edificio,
-        articulo,
-        accion_servicio: accionServicio
-      })
-    });
-    document.getElementById('msg-servicios').innerHTML = `<div class="mensaje ok">✅ ${accionServicio === 'Préstamo' ? 'Solicitud registrada' : 'Devolución registrada'} correctamente</div>`;
-    document.getElementById('serv-articulo').value = '';
-    onArticuloChange();
-  } catch(e) {
-    document.getElementById('msg-servicios').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
-  }
-}
-
-// ===== BANNER DE JUNTA =====
-async function cargarBannerJunta() {
-  const container = document.getElementById('banner-junta-container');
-  try {
-    const res = await fetch(`${API}?accion=getJuntas`);
-    const juntas = await res.json();
-    const lista = Array.isArray(juntas) ? juntas : [];
-    // Solo mostrar juntas con Estatus = 'Programada' (o sin estatus para compatibilidad)
-    const proxima = lista.find(j => {
-      const est = String(j.Estatus || '').trim();
-      return est === 'Programada' || est === '';
-    });
-    if (!proxima) { container.innerHTML = ''; return; }
-    const fechaBonita = formatearFechaBonita(proxima.Fecha_Junta);
-    const horaLimpia = limpiarHora(proxima.Hora);
-    container.innerHTML = `
-      <div class="banner-junta">
-        <h3>🏛️ ${proxima.Tipo || 'Próxima Junta'}</h3>
-        <p>📅 ${fechaBonita}${horaLimpia ? ' — ' + horaLimpia + ' hrs' : ''}</p>
-        ${proxima.Orden_del_Dia ? `<p>📋 ${proxima.Orden_del_Dia}</p>` : ''}
-        ${proxima.Link_Videollamada ? `<button onclick="window.open('${proxima.Link_Videollamada}', '_blank')">Unirse a la Reunión</button>` : ''}
-      </div>
-    `;
-  } catch(e) {
-    container.innerHTML = '';
-  }
-}
-
-// ===== DIRECTORIO =====
-let directorioCargado = false;
-async function cargarDirectorio() {
-  if (directorioCargado) return;
-  const lista = document.getElementById('directorio-lista');
-  try {
-    const res = await fetch(`${API}?accion=getDirectorio`);
-    const data = await res.json();
-    if (data.length === 0) {
-      lista.innerHTML = '<p style="color:#666">No hay contactos registrados</p>';
-      return;
-    }
-    lista.innerHTML = data.map(d => {
-      const telLimpio = String(d.Telefono || '').replace(/[^0-9+]/g, '');
-      return `
-      <a href="tel:${telLimpio}" class="directorio-card" style="text-decoration:none">
-        <div>
-          <div class="nombre">${d.Nombre_Servicio}</div>
-          <div class="tipo">${d.Tipo || ''} — ${d.Telefono}</div>
-        </div>
-        <span class="llamar">📞</span>
-      </a>
-    `;
-    }).join('');
-    directorioCargado = true;
-  } catch(e) {
-    console.error('Error directorio:', e);
-    lista.innerHTML = '<p style="color:#c5221f">Error al cargar el directorio</p>';
-  }
-}
-
-// ===== MUDANZAS =====
-async function registrarMudanza() {
-  const tipo = document.getElementById('mud-tipo').value;
-  const fecha = document.getElementById('mud-fecha').value;
-  const responsable = document.getElementById('mud-responsable').value.trim();
-  const firmaOk = document.getElementById('mud-firma').checked;
-  if (!fecha || !responsable || !firmaOk) {
-    document.getElementById('msg-mudanzas').innerHTML = '<div class="mensaje error">Completa todos los campos y confirma la firma de conformidad</div>';
-    return;
-  }
-  document.getElementById('msg-mudanzas').innerHTML = '<div class="mensaje ok">Enviando...</div>';
-  try {
-    await fetch(API, {
-      method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({
-        accion: 'registrarMudanza', casa: sesion.casa,
-        tipo_movimiento: tipo, fecha_mudanza: fecha,
-        responsable, firma_digital: `${responsable} - Firmado de conformidad`
-      })
-    });
-    document.getElementById('msg-mudanzas').innerHTML = '<div class="mensaje ok">✅ Solicitud enviada. El comité la revisará pronto.</div>';
-    document.getElementById('mud-fecha').value = '';
-    document.getElementById('mud-responsable').value = '';
-    document.getElementById('mud-firma').checked = false;
-  } catch(e) {
-    document.getElementById('msg-mudanzas').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
-  }
-}
-
-// ===== REPORTES =====
-async function registrarReporte() {
-  const tipo = document.getElementById('rep-tipo').value;
-  const descripcion = document.getElementById('rep-descripcion').value.trim();
-  if (!descripcion) {
-    document.getElementById('msg-reportes').innerHTML = '<div class="mensaje error">Por favor describe tu reporte</div>';
-    return;
-  }
-  document.getElementById('msg-reportes').innerHTML = '<div class="mensaje ok">Enviando...</div>';
-  try {
-    await fetch(API, {
-      method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion: 'registrarReporte', casa: sesion.casa, tipo, descripcion })
-    });
-    document.getElementById('msg-reportes').innerHTML = '<div class="mensaje ok">✅ Reporte enviado correctamente</div>';
-    document.getElementById('rep-descripcion').value = '';
-  } catch(e) {
-    document.getElementById('msg-reportes').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
-  }
-}
-
-// ===== PANEL ADMIN COMITÉ =====
-let tabAdminActual = 'mudanzas';
-
-function mostrarTabAdmin(tab) {
-  tabAdminActual = tab;
-  document.getElementById('tab-admin-mudanzas').style.background = tab === 'mudanzas' ? '#1a73e8' : '#999';
-  document.getElementById('tab-admin-reportes').style.background = tab === 'reportes' ? '#1a73e8' : '#999';
-  document.getElementById('tab-admin-accesos').style.background = tab === 'accesos' ? '#1a73e8' : '#999';
-  document.getElementById('tab-admin-incidencias').style.background = tab === 'incidencias' ? '#1a73e8' : '#999';
-  const incBox = document.getElementById('admin-nueva-incidencia');
-  if (tab === 'incidencias') {
-    incBox.style.display = 'block';
-    if (catalogoConceptos.length === 0) cargarCatalogoConceptos();
-  } else {
-    incBox.style.display = 'none';
-  }
-  cargarAdmin();
-}
-
-const ESTATUS_MUDANZA_OPCIONES = ['Pendiente', 'Aprobada', 'Rechazada', 'Realizada'];
-const ESTATUS_REPORTE_OPCIONES = ['Abierto', 'En proceso', 'Resuelto', 'Cerrado'];
-const ESTATUS_ACCESO_OPCIONES = ['Pendiente', 'Entregado', 'Cancelado'];
-const ARTICULOS_ACCESO = ['Control Vehicular', 'Chip Peatonal'];
-
-async function cargarAdmin() {
-  const lista = document.getElementById('admin-lista');
-  lista.innerHTML = '<p style="color:#666">Cargando...</p>';
-  try {
-    if (tabAdminActual === 'mudanzas') {
-      const res = await fetch(`${API}?accion=getMudanzas`);
-      const data = await res.json();
-      if (data.length === 0) { lista.innerHTML = '<p style="color:#666">Sin solicitudes de mudanza</p>'; return; }
-      lista.innerHTML = data.slice().reverse().map(m => `
-        <div class="admin-card">
-          <strong>${m.Departamento}</strong> — ${m.Tipo_Movimiento}
-          <div class="meta">Fecha: ${limpiarFecha(m.Fecha_Mudanza)} · Responsable: ${m.Responsable}</div>
-          <select onchange="cambiarEstatusAdmin('mudanza', '${m.ID}', this.value)">
-            ${ESTATUS_MUDANZA_OPCIONES.map(op => `<option value="${op}" ${m.Estatus === op ? 'selected' : ''}>${op}</option>`).join('')}
-          </select>
-        </div>
-      `).join('');
-    } else if (tabAdminActual === 'reportes') {
-      const res = await fetch(`${API}?accion=getReportes`);
-      const data = await res.json();
-      if (data.length === 0) { lista.innerHTML = '<p style="color:#666">Sin reportes registrados</p>'; return; }
-      lista.innerHTML = data.slice().reverse().map(r => `
-        <div class="admin-card">
-          <strong>${r.Departamento}</strong> — ${r.Tipo}
-          <div class="meta">${r.Descripcion}</div>
-          <select onchange="cambiarEstatusAdmin('reporte', '${r.ID}', this.value)">
-            ${ESTATUS_REPORTE_OPCIONES.map(op => `<option value="${op}" ${r.Estatus === op ? 'selected' : ''}>${op}</option>`).join('')}
-          </select>
-        </div>
-      `).join('');
-    } else if (tabAdminActual === 'accesos') {
-      const res = await fetch(`${API}?accion=getServicios`);
-      const data = await res.json();
-      const solicitudesAcceso = data.filter(s => s.Accion === 'Solicitud' && ARTICULOS_ACCESO.includes(s.Articulo));
-      if (solicitudesAcceso.length === 0) { lista.innerHTML = '<p style="color:#666">Sin solicitudes de chip/control</p>'; return; }
-      lista.innerHTML = solicitudesAcceso.slice().reverse().map(s => `
-        <div class="admin-card">
-          <strong>${s.Departamento}</strong> — ${s.Articulo}
-          <div class="meta">Edificio ${s.Edificio} · ${s.Fecha_Hora}</div>
-          <select onchange="cambiarEstatusAdmin('acceso', '${s.ID}', this.value)">
-            ${ESTATUS_ACCESO_OPCIONES.map(op => `<option value="${op}" ${s.Estatus === op ? 'selected' : ''}>${op}</option>`).join('')}
-          </select>
-        </div>
-      `).join('');
-    } else {
-      // Incidencias
-      const res = await fetch(`${API}?accion=getMultas`);
-      const data = await res.json();
-      if (data.length === 0) { lista.innerHTML = '<p style="color:#666">Sin incidencias registradas</p>'; return; }
-      lista.innerHTML = data.slice().reverse().map(m => {
-        const monto = parseFloat(m.Monto_Penalizacion) || 0;
-        const colorMonto = monto > 0 ? '#c5221f' : '#137333';
-        return `
-        <div class="admin-card">
-          <strong>${m.Casa}</strong> — ${m.Tipo_Incidencia}
-          <div class="meta">${m.ID_Concepto} · ${m.Fecha} · <span style="color:${colorMonto}; font-weight:bold">$${monto.toLocaleString('es-MX')}</span></div>
-          <select onchange="cambiarEstatusAdmin('multa', '${m.Folio}', this.value)">
-            ${['Pendiente','Notificado','Pagado','Cancelado'].map(op => `<option value="${op}" ${m.Estatus === op ? 'selected' : ''}>${op}</option>`).join('')}
-          </select>
-        </div>`;
-      }).join('');
-    }
-  } catch(e) {
-    lista.innerHTML = '<p style="color:#c5221f">Error al cargar información</p>';
-  }
-}
-
-async function cambiarEstatusAdmin(tipo, id, nuevoEstatus) {
-  let accion;
-  if (tipo === 'mudanza') accion = 'actualizarEstatusMudanza';
-  else if (tipo === 'reporte') accion = 'actualizarEstatusReporte';
-  else if (tipo === 'multa') accion = 'actualizarEstatusMulta';
-  else accion = 'actualizarEstatusServicio';
-  try {
-    await fetch(API, { method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion, id, folio: id, nuevo_estatus: nuevoEstatus }) });
-  } catch(e) { alert('Error al actualizar el estatus, intenta de nuevo'); }
-}
-
-// ===== ACCESOS (Chip / Control Vehicular) =====
-let accesosData = [];
-
-async function onArticuloAccesoChange() {
-  const articulo = document.getElementById('acc-articulo').value;
-  const box = document.getElementById('info-acceso-box');
-  const btn = document.getElementById('btn-acceso');
-  document.getElementById('msg-accesos').innerHTML = '';
-
-  if (!articulo) { box.innerHTML = ''; btn.style.display = 'none'; return; }
-
-  box.innerHTML = '<p style="color:#666; font-size:13px">Consultando inventario...</p>';
-  try {
-    const [resAcc, resServ] = await Promise.all([
-      fetch(`${API}?accion=getAccesos`),
-      fetch(`${API}?accion=getServicios`)
-    ]);
-    accesosData = await resAcc.json();
-    const serviciosData = await resServ.json();
-
-    const item = accesosData.find(a => a.Articulo === articulo);
-    if (!item) {
-      box.innerHTML = '<div class="mensaje error">Artículo no disponible</div>';
-      btn.style.display = 'none';
-      return;
-    }
-
-    const costo = limpiarMonto(item.Costo);
-    const stockDisponible = parseInt(item.Stock_Disponible) || 0;
-    const limitePorCasa = parseInt(item.Limite_Por_Casa) || 999;
-
-    const entregados = serviciosData.filter(s =>
-      String(s.Departamento).toUpperCase().trim() === String(sesion.casa).toUpperCase().trim() &&
-      s.Articulo === articulo &&
-      s.Estatus === 'Entregado'
-    ).length;
-
-    let html = `
-      <div class="card">
-        <strong>${articulo}</strong><br>
-        <span style="color:#1a73e8; font-size:18px; font-weight:bold">$${costo.toLocaleString('es-MX')} MXN</span><br>
-        <small style="color:#666">Ya tienes ${entregados} de ${limitePorCasa} permitidos</small>
-      </div>
-    `;
-
-    if (stockDisponible <= 0) {
-      html += '<div class="mensaje error">Temporalmente sin existencias, contacta al comité</div>';
-      btn.style.display = 'none';
-    } else if (entregados >= limitePorCasa) {
-      html += '<div class="mensaje error">Has alcanzado el límite máximo permitido por departamento.</div>';
-      btn.style.display = 'none';
-    } else {
-      html += `<div class="mensaje ok">✅ Disponible — quedan ${stockDisponible} en inventario</div>`;
-      btn.style.display = 'block';
-    }
-    box.innerHTML = html;
-  } catch(e) {
-    box.innerHTML = '<p style="color:#c5221f">Error al consultar inventario</p>';
-    btn.style.display = 'none';
-  }
-}
-
-async function registrarSolicitudAcceso() {
-  const articulo = document.getElementById('acc-articulo').value;
-  if (!articulo) return;
-  document.getElementById('msg-accesos').innerHTML = '<div class="mensaje ok">Procesando...</div>';
-  try {
-    await fetch(API, {
-      method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion: 'registrarSolicitudAcceso', casa: sesion.casa, edificio: sesion.edificio, articulo })
-    });
-    document.getElementById('msg-accesos').innerHTML = '<div class="mensaje ok">✅ Solicitud registrada. El comité la procesará pronto.</div>';
-    document.getElementById('acc-articulo').value = '';
-    document.getElementById('info-acceso-box').innerHTML = '';
-    document.getElementById('btn-acceso').style.display = 'none';
-  } catch(e) {
-    document.getElementById('msg-accesos').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
-  }
-}
-
-// ===== JUNTAS Y ASAMBLEAS =====
-async function cargarJuntas() {
-  const lista = document.getElementById('juntas-lista');
-  lista.innerHTML = '<p style="color:#666">Cargando...</p>';
-  try {
-    const resJ = await fetch(`${API}?accion=getJuntas`);
-    const juntasRaw = await resJ.json();
-    const juntas = Array.isArray(juntasRaw) ? juntasRaw : [];
-
-    let asistencia = [];
-    try {
-      const resA = await fetch(`${API}?accion=getAsistencia`);
-      const asistenciaRaw = await resA.json();
-      asistencia = Array.isArray(asistenciaRaw) ? asistenciaRaw : [];
-    } catch(e) {}
-
-    if (juntas.length === 0) {
-      lista.innerHTML = '<p style="color:#666">No hay juntas registradas aún</p>';
-      return;
-    }
-    // Filtrar por Estatus (más confiable que comparar fechas con distintos formatos)
-    const proximas = juntas.filter(j => {
-      const est = String(j.Estatus || '').trim();
-      return est === 'Programada' || est === '';  // vacío = legacy sin estatus, lo tratamos como próxima
-    });
-    const pasadas = juntas.filter(j => {
-      const est = String(j.Estatus || '').trim();
-      return est === 'Realizada' || est === 'Cancelada';
-    });
-
-    let html = '';
-
-    if (proximas.length > 0) {
-      html += '<h3 style="font-size:15px; color:#1a73e8; margin-bottom:12px">📅 Próximas Juntas</h3>';
-      html += proximas.map(j => {
-        const idJunta = limpiarFecha(j.Fecha_Junta);
-        const yaConfirmo = asistencia.some(a =>
-          a.ID_Junta === idJunta &&
-          String(a.Nombre).toLowerCase().trim() === sesion.nombre.toLowerCase().trim() &&
-          String(a.Casa).toUpperCase().trim() === sesion.casa.toUpperCase().trim() &&
-          a.Confirmacion_Asistencia === 'CONFIRMADO'
-        );
-        return `
-        <div class="card" style="border-left:4px solid #1a73e8; margin-bottom:12px">
-          <strong>${j.Tipo || 'Junta'}</strong><br>
-          <small style="color:#666">📅 ${formatearFechaBonita(j.Fecha_Junta)}${j.Hora ? ' — ' + limpiarHora(j.Hora) + ' hrs' : ''}</small><br>
-          ${j.Orden_del_Dia ? `<p style="font-size:13px; margin:6px 0; color:#555">📋 ${j.Orden_del_Dia}</p>` : ''}
-          ${j.Link_Videollamada ? `<button onclick="window.open('${j.Link_Videollamada}','_blank')" style="background:#1a73e8;color:white;border:none;border-radius:6px;padding:8px 12px;font-size:13px;cursor:pointer;margin-top:6px">🎥 Unirse</button>` : ''}
-          ${yaConfirmo
-            ? `<button disabled style="background:#999;color:white;border:none;border-radius:6px;padding:8px 12px;font-size:13px;margin-top:6px;margin-left:6px">✅ Asistencia Confirmada</button>`
-            : `<button onclick="confirmarAsistencia('${idJunta}')" style="background:#137333;color:white;border:none;border-radius:6px;padding:8px 12px;font-size:13px;cursor:pointer;margin-top:6px;margin-left:6px">🙋 Confirmar Asistencia</button>`
-          }
-        </div>`;
-      }).join('');
-    } else {
-      html += '<p style="color:#666; margin-bottom:16px">No hay juntas próximas programadas</p>';
-    }
-
-    // Histórico solo para nivel Principal
-    if (sesion.verJuntasHistorico && pasadas.length > 0) {
-      html += '<h3 style="font-size:15px; color:#666; margin:16px 0 12px">📁 Histórico de Juntas</h3>';
-      html += pasadas.slice().reverse().map(j => {
-        const idJunta = limpiarFecha(j.Fecha_Junta);
-        const registroAsistencia = asistencia.find(a =>
-          a.ID_Junta === idJunta &&
-          String(a.Nombre).toLowerCase().trim() === sesion.nombre.toLowerCase().trim() &&
-          String(a.Casa).toUpperCase().trim() === sesion.casa.toUpperCase().trim()
-        );
-        const yaEnterado = registroAsistencia?.Enterado_Minuta === 'SI';
-        return `
-        <div class="card" style="border-left:4px solid #999; margin-bottom:12px">
-          <strong>${j.Tipo || 'Junta'}</strong><br>
-          <small style="color:#999">📅 ${formatearFechaBonita(j.Fecha_Junta)}</small><br>
-          ${j.Orden_del_Dia ? `<p style="font-size:13px; margin:6px 0; color:#777">📋 ${j.Orden_del_Dia}</p>` : ''}
-          <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
-            ${j.Minuta_URL ? `<button onclick="window.open('${j.Minuta_URL}','_blank')" style="background:#1a73e8;color:white;border:none;border-radius:6px;padding:8px 12px;font-size:13px;cursor:pointer">📄 Ver Minuta</button>` : '<span style="font-size:12px;color:#999">Minuta no disponible</span>'}
-            ${j.Minuta_URL && !yaEnterado
-              ? `<button onclick="marcarEnterado('${idJunta}')" style="background:#f57f17;color:white;border:none;border-radius:6px;padding:8px 12px;font-size:13px;cursor:pointer">✅ Marcar Enterado</button>`
-              : j.Minuta_URL ? `<button disabled style="background:#999;color:white;border:none;border-radius:6px;padding:8px 12px;font-size:13px">✅ Enterado</button>` : ''
-            }
-          </div>
-        </div>`;
-      }).join('');
-    }
-
-    lista.innerHTML = html;
-  } catch(e) {
-    console.error('Error juntas:', e);
-    lista.innerHTML = '<p style="color:#666">No hay juntas registradas aún</p>';
-  }
-}
-
-async function confirmarAsistencia(idJunta) {
-  try {
-    await fetch(API, { method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion: 'confirmarAsistencia', id_junta: idJunta, nombre: sesion.nombre, casa: sesion.casa }) });
-    cargarJuntas(); // Recarga para actualizar el botón
-  } catch(e) { alert('Error al confirmar, intenta de nuevo'); }
-}
-
-async function abrirMinuta(idJunta, url) {
-  window.open(url, '_blank');
-}
-
-async function marcarEnterado(idJunta) {
-  try {
-    await fetch(API, { method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion: 'marcarEnterado', id_junta: idJunta, nombre: sesion.nombre, casa: sesion.casa }) });
-    cargarJuntas(); // Recarga para actualizar el botón
-  } catch(e) { alert('Error al registrar, intenta de nuevo'); }
-}
-
-// ===== INCIDENCIAS =====
-let catalogoConceptos = [];
-
-async function cargarCatalogoConceptos() {
-  const sel = document.getElementById('inc-concepto');
-  try {
-    const res = await fetch(`${API}?accion=getCatalogoConceptos`);
-    const data = await res.json();
-    catalogoConceptos = Array.isArray(data) ? data : [];
-    if (catalogoConceptos.length === 0) {
-      sel.innerHTML = '<option value="">Sin conceptos cargados en el Sheet</option>';
-      return;
-    }
-    sel.innerHTML = '<option value="">Selecciona concepto...</option>';
-    catalogoConceptos.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c.ID_Concepto;
-      opt.textContent = `${c.ID_Concepto} — ${c.Nombre_Corto}`;
-      sel.appendChild(opt);
-    });
-  } catch(e) {
-    sel.innerHTML = '<option value="">Error al cargar conceptos</option>';
-    console.error('Error catálogo:', e);
-  }
-}
-
-function onConceptoChange() {
-  const id = document.getElementById('inc-concepto').value;
-  const tipo = document.getElementById('inc-tipo').value;
-  const concepto = catalogoConceptos.find(c => c.ID_Concepto === id);
-  const infoBox = document.getElementById('inc-info-concepto');
-  const montoInput = document.getElementById('inc-monto');
-  if (!concepto) { infoBox.style.display = 'none'; montoInput.value = ''; return; }
-  const monto = tipo === 'Llamada de Atención' ? 0 : (parseFloat(concepto.Costo_Base) || 0);
-  montoInput.value = monto;
-  infoBox.style.display = 'block';
-  infoBox.innerHTML = `<strong>${concepto.Nombre_Corto}</strong><br>${concepto.Descripcion_Reglamento || ''}`;
-}
-
-async function generarIncidencia() {
-  const casa = document.getElementById('inc-casa').value.trim().toUpperCase();
-  const tipo = document.getElementById('inc-tipo').value;
-  const idConcepto = document.getElementById('inc-concepto').value;
-  const monto = parseFloat(document.getElementById('inc-monto').value) || 0;
-  if (!casa || !idConcepto) {
-    document.getElementById('msg-incidencia').innerHTML = '<div class="mensaje error">Completa depto y concepto</div>';
-    return;
-  }
-  const concepto = catalogoConceptos.find(c => c.ID_Concepto === idConcepto);
-  if (!concepto) return;
-
-  const ahora = new Date().toLocaleDateString('es-MX');
-  // Construir mensaje con la plantilla del catálogo
-  let mensajeFinal = concepto.Plantilla_Mensaje || '';
-  mensajeFinal = mensajeFinal.replace(/{Casa}/g, casa)
-    .replace(/{Fecha}/g, ahora)
-    .replace(/{Monto}/g, `$${monto.toLocaleString('es-MX')} MXN`)
-    .replace(/{Tipo}/g, tipo);
-
-  document.getElementById('msg-incidencia').innerHTML = '<div class="mensaje ok">Registrando...</div>';
-  try {
-    await fetch(API, { method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({
-        accion: 'registrarIncidencia', casa, id_concepto: idConcepto,
-        tipo_incidencia: tipo, monto, mensaje_notificacion: mensajeFinal
-      })
-    });
-    document.getElementById('msg-incidencia').innerHTML = `
-      <div class="mensaje ok">✅ Incidencia registrada correctamente</div>
-      <div style="background:#f5f5f5;border-radius:8px;padding:12px;margin-top:8px;font-size:13px">
-        <strong>📋 Mensaje generado para notificar al residente:</strong><br><br>${mensajeFinal}
-      </div>`;
-    document.getElementById('inc-casa').value = '';
-    document.getElementById('inc-concepto').value = '';
-    document.getElementById('inc-monto').value = '';
-    document.getElementById('inc-info-concepto').style.display = 'none';
-  } catch(e) {
-    document.getElementById('msg-incidencia').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
-  }
-}
-
-// ===== PANTALLA SEGURIDAD =====
-function mostrarPantallaSeguridad() {
-  document.getElementById('seguridad-screen').style.display = 'block';
-  document.getElementById('seg-nombre-header').textContent = sesion.nombre;
-  cargarBitacoraSeguridad();
-  cargarPaquetesPendientes();
-  actualizarEstadoAgua();
-}
-
-let moduloSegActivo = null;
-function toggleModuloSeg(mod) {
-  const mods = ['paqueteria', 'agua', 'servicios', 'incidencia'];
-  mods.forEach(m => {
-    const el = document.getElementById('seg-mod-' + m);
-    if (el) el.classList.remove('activo');
-  });
-  if (moduloSegActivo === mod) { moduloSegActivo = null; return; }
-  moduloSegActivo = mod;
-  const el = document.getElementById('seg-mod-' + mod);
-  if (el) {
-    el.classList.add('activo');
-    if (mod === 'agua') actualizarEstadoAgua();
-    if (mod === 'paqueteria') cargarPaquetesPendientes();
-    if (mod === 'servicios') cargarBitacoraSeguridad();
-  }
-}
-
-function toggleSubPkg(sub) {
-  document.getElementById('seg-pkg-recibir').style.display = sub === 'recibir' ? 'block' : 'none';
-  document.getElementById('seg-pkg-entregar').style.display = sub === 'entregar' ? 'block' : 'none';
-  document.getElementById('seg-pkg-btn-recibir').className = sub === 'recibir' ? 'activo' : '';
-  document.getElementById('seg-pkg-btn-entregar').className = sub === 'entregar' ? 'activo' : '';
-}
-
-// ---- PAQUETERÍA ----
-async function recibirPaquete() {
-  const compania = document.getElementById('seg-pkg-compania').value;
-  const depto = document.getElementById('seg-pkg-depto').value.trim().toUpperCase();
-  const destinatario = document.getElementById('seg-pkg-destinatario').value.trim();
-  if (!depto || !destinatario) {
-    document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje error">Completa departamento y destinatario</div>';
-    return;
-  }
-  document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje ok">Registrando...</div>';
-  try {
-    await fetch(API, { method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion: 'registrarPaquete', compania, departamento: depto,
-        destinatario, recibido_por: sesion.nombre }) });
-    document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje ok">✅ Paquete registrado correctamente</div>';
-    document.getElementById('seg-pkg-depto').value = '';
-    document.getElementById('seg-pkg-destinatario').value = '';
-    setTimeout(() => cargarPaquetesPendientes(), 1500);
-  } catch(e) {
-    document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje error">Error de conexión</div>';
-  }
-}
-
-async function cargarPaquetesPendientes() {
-  const lista = document.getElementById('seg-pkg-pendientes');
-  if (!lista) return;
-  try {
-    const res = await fetch(`${API}?accion=getPaquetes`);
-    const data = await res.json();
-    const pendientes = Array.isArray(data) ? data.filter(p => p.Estatus === 'En Caseta') : [];
-    if (pendientes.length === 0) { lista.innerHTML = '<p style="color:#666; font-size:13px">Sin paquetes pendientes</p>'; return; }
-    lista.innerHTML = pendientes.map(p => `
-      <div class="pkg-card">
-        <strong>📦 ${p.Departamento}</strong> — ${p.Destinatario}<br>
-        <small style="color:#666">${p.Compania} · ${limpiarFecha(p.Fecha_Ingreso)} ${p.Hora_Ingreso || ''}</small><br>
-        <button onclick="marcarEntregaPaquete('${p.ID}')" style="background:#137333;color:white;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;margin-top:6px">Marcar Entregado</button>
-      </div>`).join('');
-  } catch(e) { lista.innerHTML = '<p style="color:#c5221f; font-size:13px">Error al cargar</p>'; }
-}
-
-async function marcarEntregaPaquete(id) {
-  const entregadoA = prompt('¿Nombre de quien retira el paquete?');
-  if (!entregadoA) return;
-  try {
-    await fetch(API, { method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion: 'entregarPaquete', id, entregado_a: entregadoA }) });
-    document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje ok">✅ Entrega registrada</div>';
-    setTimeout(() => cargarPaquetesPendientes(), 1500);
-  } catch(e) { alert('Error al registrar entrega'); }
-}
-
-// ---- LLAVE DE AGUA ----
-async function actualizarEstadoAgua() {
-  const estadoBox = document.getElementById('agua-estado-box');
-  const estadoTxt = document.getElementById('agua-estado-texto');
-  const btn = document.getElementById('agua-btn-toggle');
-  const historial = document.getElementById('agua-historial');
-  try {
-    const res = await fetch(`${API}?accion=getBitacora`);
-    const rawData = await res.json();
-    const data = Array.isArray(rawData) ? rawData : [];
-    const hoy = new Date().toISOString().split('T')[0];
-    const registrosAgua = data.filter(r => r.Tipo_Actividad === 'Control Agua' && limpiarFecha(r.Fecha || '') === hoy);
-    const ultimoRegistro = registrosAgua.length > 0 ? registrosAgua[registrosAgua.length - 1] : null;
-    const estaAbierta = !ultimoRegistro || ultimoRegistro.Zona_Area === 'Apertura';
-
-    estadoBox.className = 'llave-agua-estado ' + (estaAbierta ? 'abierta' : 'cerrada');
-    estadoTxt.textContent = estaAbierta ? '💧 Agua ABIERTA' : '🔴 Agua CERRADA';
-    btn.textContent = estaAbierta ? '🔴 Cerrar Llave' : '💧 Abrir Llave';
-    btn.style.background = estaAbierta ? '#c5221f' : '#137333';
-
-    historial.innerHTML = registrosAgua.length === 0
-      ? '<p style="font-size:12px; color:#999">Sin registros hoy</p>'
-      : registrosAgua.map(r => `<div style="font-size:12px; padding:4px 0; border-bottom:1px solid #eee">${r.Hora_Entrada} — ${r.Zona_Area}</div>`).join('');
-  } catch(e) {
-    estadoTxt.textContent = 'Error al verificar';
-  }
-}
-
-async function toggleAgua() {
-  const estadoTxt = document.getElementById('agua-estado-texto').textContent;
-  const accion = estadoTxt.includes('ABIERTA') ? 'Cierre' : 'Apertura';
-  const hora = new Date();
-  const horaStr = `${String(hora.getHours()).padStart(2,'0')}:${String(hora.getMinutes()).padStart(2,'0')}`;
-  try {
-    await fetch(API, { method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion: 'registrarBitacora', tipo_actividad: 'Control Agua',
-        zona_area: accion, trabajador: sesion.nombre, registrado_por: sesion.nombre,
-        hora_entrada: horaStr, notas: accion + ' de llave de agua' }) });
-    document.getElementById('msg-seguridad').innerHTML = `<div class="mensaje ok">✅ ${accion} registrada a las ${horaStr}</div>`;
-    setTimeout(() => actualizarEstadoAgua(), 1500);
-  } catch(e) { alert('Error al registrar'); }
-}
-
-// ---- SERVICIOS Y MANTENIMIENTO ----
-async function registrarEntradaBitacora() {
-  const tipo = document.getElementById('seg-serv-tipo').value;
-  const zona = document.getElementById('seg-serv-zona').value;
-  const trabajador = document.getElementById('seg-trabajador').value.trim();
-  const notas = document.getElementById('seg-notas').value.trim();
-  if (!trabajador) {
-    document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje error">Escribe el nombre del trabajador</div>';
-    return;
-  }
-  const ahora = new Date();
-  const horaEntrada = `${String(ahora.getHours()).padStart(2,'0')}:${String(ahora.getMinutes()).padStart(2,'0')}`;
-  document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje ok">Registrando...</div>';
-  try {
-    // Usamos text/plain para poder confirmar que el servidor lo recibió
     const res = await fetch(API, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ accion: 'registrarBitacora', tipo_actividad: tipo, zona_area: zona,
-        trabajador, registrado_por: sesion.nombre, hora_entrada: horaEntrada, notas })
+      body: JSON.stringify({ accion:'aceptarReglamento', casa:sesion.casa, nombre:sesion.nombre })
     });
     const data = await res.json();
     if (data.ok) {
-      document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje ok">✅ Entrada registrada (ID: ' + data.id + ')</div>';
-      document.getElementById('seg-trabajador').value = '';
-      document.getElementById('seg-notas').value = '';
-      setTimeout(() => cargarBitacoraSeguridad(), 1500);
-    } else {
-      document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje error">Error: ' + (data.error || 'desconocido') + '</div>';
+      sesion.acepto = true;
+      await cargarMenuPrincipal();
+      ir('s-menu');
     }
   } catch(e) {
-    document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje error">Error de conexión, intenta de nuevo</div>';
+    alert('Error al guardar. Intenta de nuevo.');
   }
 }
 
-async function cargarBitacoraSeguridad() {
-  const listaActivos = document.getElementById('seg-activos-lista');
-  if (!listaActivos) return;
-  try {
-    const res = await fetch(`${API}?accion=getBitacora`);
-    const rawData = await res.json();
-    const data = Array.isArray(rawData) ? rawData : [];
-    const activos = data.filter(r => r.Estatus === 'En curso' && r.Tipo_Actividad !== 'Control Agua');
-    listaActivos.innerHTML = activos.length === 0
-      ? '<p style="color:#666; font-size:13px">No hay actividades en curso</p>'
-      : activos.map(r => `
-        <div class="card" style="margin-bottom:8px; border-left:4px solid #137333">
-          <strong>${r.Tipo_Actividad}</strong> — ${r.Trabajador}<br>
-          <small style="color:#666">🕐 ${r.Hora_Entrada} · ${r.Zona_Area}</small><br>
-          <button onclick="marcarSalidaBitacora('${r.ID}')" style="background:#c5221f;color:white;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;margin-top:6px">Registrar Salida</button>
-        </div>`).join('');
-  } catch(e) {
-    listaActivos.innerHTML = '<p style="color:#c5221f; font-size:13px">Error al cargar</p>';
+// ── MENÚ PRINCIPAL ──────────────────────────────────────────
+async function cargarMenuPrincipal() {
+  if (!sesion) return;
+
+  document.getElementById('menu-depto').textContent  = `Departamento ${sesion.casa}`;
+  document.getElementById('menu-depto2').textContent = `Departamento ${sesion.casa}`;
+
+  // Saludo personalizado por género y rol
+  const esFem  = sesion.genero === 'Mujer';
+  const saludo = esFem ? 'Bienvenida' : 'Bienvenido';
+  const rolTxt = rolGenero(sesion.rol, sesion.genero);
+  const cargoTxt = sesion.cargo ? sesion.cargo + ', ' : '';
+  document.getElementById('menu-nombre').textContent =
+    `${saludo} ${cargoTxt}${rolTxt}, ${sesion.nombre}`;
+
+  // Badges: cargo comité (dorado) y verificado
+  const badges = document.getElementById('menu-badges');
+  badges.innerHTML = '';
+  if (sesion.cargo) {
+    badges.innerHTML += `<span class="cargo-badge">⭐ ${sesion.cargo}</span>`;
   }
+  if (sesion.rol === 'Propietario' && sesion.verificado) {
+    badges.innerHTML += `<span class="verificado-badge">✔ Propietario verificado</span>`;
+  }
+
+  // Cargar estatus de finanzas
+  cargarEstatusHome();
 }
 
-async function marcarSalidaBitacora(id) {
-  const ahora = new Date();
-  const horaSalida = `${String(ahora.getHours()).padStart(2,'0')}:${String(ahora.getMinutes()).padStart(2,'0')}`;
+async function cargarEstatusHome() {
+  const el = document.getElementById('home-estatus');
   try {
-    const res = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ accion: 'actualizarEstatusBitacora', id, nuevo_estatus: 'Completado', hora_salida: horaSalida })
-    });
+    const res  = await fetch(`${API}?accion=getFinanzas&casa=${encodeURIComponent(sesion.casa)}`);
     const data = await res.json();
-    if (data.ok) setTimeout(() => cargarBitacoraSeguridad(), 1000);
-    else alert('Error al registrar salida');
-  } catch(e) { alert('Error al registrar salida'); }
-}
+    if (!data) { el.textContent = 'Sin información'; return; }
 
-// ---- REPORTAR INCIDENCIA (seguridad) ----
-async function registrarIncidenciaSeguridad() {
-  const tipo = document.getElementById('seg-inc-tipo').value;
-  const depto = document.getElementById('seg-inc-depto').value.trim().toUpperCase();
-  const descripcion = document.getElementById('seg-inc-descripcion').value.trim();
-  if (!descripcion) {
-    document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje error">Describe la incidencia</div>';
-    return;
-  }
-  document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje ok">Enviando...</div>';
-  try {
-    await fetch(API, { method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion: 'registrarReporte', casa: depto || 'CASETA',
-        tipo, descripcion: `[Reporte Seguridad - ${sesion.nombre}] ${descripcion}` }) });
-    document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje ok">✅ Reporte enviado al comité</div>';
-    document.getElementById('seg-inc-descripcion').value = '';
-    document.getElementById('seg-inc-depto').value = '';
+    const estatus = String(data.Estatus || '').toUpperCase().trim();
+    const config = {
+      'OK':       { txt:'✅ Al corriente',  cls:'ok'       },
+      'ADEUDO':   { txt:'⚠️ Adeudo pendiente', cls:'adeudo' },
+      'CONVENIO': { txt:'🤝 Convenio activo',  cls:'convenio'},
+      'F. LUZ':   { txt:'⚠️ Falla en Luz',     cls:'adeudo' },
+      'F. MANTO': { txt:'⚠️ Falla Mantenimiento', cls:'adeudo'},
+    };
+    const cfg = config[estatus] || { txt: estatus || 'Sin datos', cls:'ok' };
+    el.textContent  = cfg.txt;
+    el.className    = 'fh-estatus ' + cfg.cls;
   } catch(e) {
-    document.getElementById('msg-seguridad').innerHTML = '<div class="mensaje error">Error de conexión</div>';
+    el.textContent = 'No disponible';
   }
 }
 
-
-// ===== BITÁCORA (vista residentes) =====
-let bitacoraData = [];
-let filtroActual = 'todos';
-
-async function cargarBitacora() {
-  const lista = document.getElementById('bitacora-lista');
-  lista.innerHTML = '<p style="color:#666">Cargando...</p>';
+// ── FINANZAS DETALLE ────────────────────────────────────────
+async function cargarFinanzas() {
+  if (!sesion) return;
+  document.getElementById('fin-depto').textContent = `Departamento ${sesion.casa}`;
+  const contenido = document.getElementById('fin-contenido');
+  contenido.innerHTML = '<div class="loader">Cargando...</div>';
   try {
-    const res = await fetch(`${API}?accion=getBitacora`);
-    const data = await res.json();
-    bitacoraData = Array.isArray(data) ? data : [];
-    renderizarBitacora();
+    const res  = await fetch(`${API}?accion=getFinanzas&casa=${encodeURIComponent(sesion.casa)}`);
+    const d    = await res.json();
+    if (!d) { contenido.innerHTML = '<p style="color:#888;text-align:center;padding:32px">Sin información financiera</p>'; return; }
+
+    const estatus  = String(d.Estatus || '').toUpperCase().trim();
+    const colores  = { 'OK':'#2e7d32','ADEUDO':'#c62828','CONVENIO':'#e65100' };
+    const iconos   = { 'OK':'✅','ADEUDO':'⚠️','CONVENIO':'🤝' };
+    const colorEst = colores[estatus] || '#555';
+    const iconoEst = iconos[estatus]  || '•';
+
+    const adeudo  = d.Adeudo_Total    || 0;
+    const abonado = d.Abonado         || 0;
+    const cuota   = d.Cuota_2026      || 0;
+    const manto   = d.Mantenimiento   || 0;
+    const luz     = d.Luz             || 0;
+    const multas  = d.Multas          || 0;
+
+    // Semáforo cuota
+    let cuotaClase = 'cuota-verde', cuotaIcon = '🟢';
+    if (cuota < 500)       { cuotaClase = 'cuota-rojo';    cuotaIcon = '🔴'; }
+    else if (cuota < 1000) { cuotaClase = 'cuota-amarillo'; cuotaIcon = '🟡'; }
+
+    const fmt = n => '$' + Number(n).toLocaleString('es-MX', {minimumFractionDigits:0});
+
+    // Solo mostrar conceptos con saldo > 0
+    const conceptos = [
+      { nombre:'Cuota 2026', valor:cuota, claseExtra:cuotaClase, icono:cuotaIcon },
+      { nombre:'Mantenimiento', valor:manto },
+      { nombre:'Luz', valor:luz },
+      { nombre:'Multas', valor:multas },
+    ].filter(c => c.valor > 0);
+
+    contenido.innerHTML = `
+      <div style="background:#fff; border-radius:12px; padding:14px 16px; margin-bottom:14px;
+                  display:flex; align-items:center; gap:12px;
+                  box-shadow:0 2px 8px rgba(0,0,0,.07)">
+        <span style="font-size:28px">${iconoEst}</span>
+        <div>
+          <div style="font-size:12px;color:#888">Estatus de cuenta</div>
+          <div style="font-size:17px;font-weight:700;color:${colorEst}">${d.Estatus || '—'}</div>
+        </div>
+      </div>
+      <div class="fin-resumen">
+        <div class="fin-box adeudo">
+          <div class="fb-label">Adeudo total</div>
+          <div class="fb-valor">${fmt(adeudo)}</div>
+        </div>
+        <div class="fin-box abonado">
+          <div class="fb-label">Abonado</div>
+          <div class="fb-valor">${fmt(abonado)}</div>
+        </div>
+      </div>
+      ${conceptos.length > 0 ? `
+        <p class="fin-desglose-title">Desglose por concepto</p>
+        ${conceptos.map(c => `
+          <div class="fin-item">
+            <span class="fi-nombre ${c.claseExtra || ''}">${c.nombre}
+              ${c.icono ? `<span class="fi-semaforo">${c.icono}</span>` : ''}
+            </span>
+            <span class="fi-monto">${fmt(c.valor)}</span>
+          </div>`).join('')}
+      ` : '<p style="color:#888;text-align:center;padding:16px">Sin conceptos pendientes ✅</p>'}
+    `;
   } catch(e) {
-    lista.innerHTML = '<p style="color:#c5221f">Error al cargar la bitácora</p>';
+    contenido.innerHTML = '<p style="color:#c62828;text-align:center;padding:32px">Error al cargar finanzas</p>';
   }
 }
 
-function filtrarBitacora(tipo) {
-  filtroActual = tipo;
-  document.getElementById('bit-filtro-todos').style.background = tipo === 'todos' ? '#1a73e8' : '#999';
-  renderizarBitacora();
+// ── CERRAR SESIÓN ───────────────────────────────────────────
+function cerrarSesion() {
+  sesion = null;
+  localStorage.removeItem('paamul_disp');
+  ir('s-inicio');
 }
 
-function renderizarBitacora() {
-  const lista = document.getElementById('bitacora-lista');
-  const datos = filtroActual === 'todos'
-    ? bitacoraData
-    : bitacoraData.filter(r => r.Tipo_Actividad === filtroActual);
-  const recientes = datos.slice().reverse().slice(0, 30);
-  if (recientes.length === 0) {
-    lista.innerHTML = '<p style="color:#666">Sin registros en esta categoría</p>';
-    return;
-  }
-  const iconos = {
-    'Limpieza Áreas Comunes': '🧹',
-    'Mantenimiento Alberca': '🏊',
-    'Riego Jardines': '🌿',
-    'Poda': '✂️',
-    'Trabajo Especial / Proveedor': '🔧',
-    'Paquetería': '📦'
-  };
-  lista.innerHTML = recientes.map(r => {
-    const icono = iconos[r.Tipo_Actividad] || '📋';
-    const horario = r.Hora_Entrada ? `${r.Hora_Entrada}${r.Hora_Salida ? ' → ' + r.Hora_Salida : ''}` : '';
-    const colorEstatus = r.Estatus === 'Completado' ? '#137333' : r.Estatus === 'En curso' ? '#1a73e8' : '#999';
-    return `
-    <div class="card" style="margin-bottom:8px; border-left:4px solid ${colorEstatus}">
-      <strong>${icono} ${r.Tipo_Actividad}</strong><br>
-      <small style="color:#666">📅 ${limpiarFecha(r.Fecha)}${horario ? ' · 🕐 ' + horario : ''}</small><br>
-      <small style="color:#666">${r.Zona_Area}${r.Trabajador ? ' · ' + r.Trabajador : ''}</small><br>
-      ${r.Notas ? `<small style="color:#999; font-style:italic">${r.Notas}</small><br>` : ''}
-      <span style="font-size:11px; color:${colorEstatus}">${r.Estatus}</span>
-    </div>`;
-  }).join('');
+// ── UTILIDADES ──────────────────────────────────────────────
+function rolGenero(rol, genero) {
+  const f = genero === 'Mujer';
+  return { Propietario: f ? 'Propietaria' : 'Propietario',
+           Residente:   'Residente',
+           Administrador: f ? 'Administradora' : 'Administrador' }[rol] || rol;
 }
 
-async function cancelar(id) {
-  if (!confirm('¿Seguro que quieres cancelar esta reserva?')) return;
-  try {
-    await fetch(API, {
-      method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ accion: 'cancelarReserva', id_reserva: id })
-    });
-    setTimeout(() => cargarMisReservas(), 1500);
-  } catch(e) {
-    alert('Error al cancelar, intenta de nuevo');
-  }
+function showMsg(el, tipo, txt) {
+  el.className = `msg ${tipo} show`;
+  el.textContent = txt;
+}
+
+function proximamente() {
+  alert('📦 Módulo en construcción — próximamente disponible');
+}
+
+async function post(datos) {
+  const res = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(datos)
+  });
+  return res.json();
 }
 </script>
 </body>
