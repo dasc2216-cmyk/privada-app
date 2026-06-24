@@ -640,7 +640,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbztl1BqYoIVadr6_mhpx8ycPWOX7Wd9ad8O7o8a7PyVkNXn5sZBl1G3OcH0cHSSlpDbog/exec'; // <-- reemplaza con tu URL del Apps Script
+const API = 'TU_URL_AQUI'; // <-- reemplaza con tu URL del Apps Script
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -974,22 +974,33 @@ async function cargarBannerJunta() {
     const res   = await fetch(`${API}?accion=getJuntas`);
     const data  = await res.json();
     const lista = Array.isArray(data) ? data : [];
-    // Solo mostrar juntas Programadas en el banner
-    const proxima = lista.find(j => String(j.Estatus || '').trim() === 'Programada');
+    if (lista.length === 0) { banner.classList.add('hidden'); return; }
+
+    const hoy = new Date().toISOString().split('T')[0];
+
+    // Buscar junta Programada, o si no hay estatus, por fecha futura
+    const proxima = lista.find(j => {
+      const est   = String(j.Estatus || '').trim().toLowerCase();
+      const fecha = String(j.Fecha_Junta || '').split('T')[0];
+      return est === 'programada' || (est === '' && fecha >= hoy);
+    });
+
     if (!proxima) { banner.classList.add('hidden'); return; }
+
     document.getElementById('bj-tipo').textContent  = `🏛️ ${proxima.Tipo || 'Próxima Junta'}`;
     document.getElementById('bj-fecha').textContent =
       `📅 ${formatearFecha(proxima.Fecha_Junta)}${proxima.Hora ? ' — ' + fmt12(proxima.Hora) + ' hrs' : ''}`;
     document.getElementById('bj-orden').textContent =
       proxima.Orden_del_Dia ? `📋 ${proxima.Orden_del_Dia}` : '';
-    // Solo mostrar el botón "Unirse" si hay link
-    const btnUnirse = document.getElementById('bj-link');
-    if (btnUnirse) btnUnirse.remove();
-    if (proxima.Link_Videollamada) {
+
+    // Botón Unirse solo si hay link
+    const btnExistente = document.getElementById('bj-link');
+    if (btnExistente) btnExistente.remove();
+    if (proxima.Link_Videollamada && String(proxima.Link_Videollamada).startsWith('http')) {
       const btn = document.createElement('button');
       btn.id = 'bj-link';
       btn.textContent = '🎥 Unirse a la reunión';
-      btn.style.cssText = 'background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;';
+      btn.style.cssText = 'background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;width:100%;';
       btn.onclick = () => window.open(proxima.Link_Videollamada, '_blank');
       banner.appendChild(btn);
     }
@@ -1017,8 +1028,16 @@ async function cargarJuntas() {
       return;
     }
 
-    const programadas = listaJ.filter(j => String(j.Estatus || '').trim() === 'Programada');
-    const realizadas  = listaJ.filter(j => String(j.Estatus || '').trim() === 'Realizada').reverse();
+    const hoyStr     = new Date().toISOString().split('T')[0];
+    const programadas = listaJ.filter(j => {
+      const est   = String(j.Estatus || '').trim().toLowerCase();
+      const fecha = String(j.Fecha_Junta || '').split('T')[0];
+      return est === 'programada' || (est === '' && fecha >= hoyStr);
+    });
+    const realizadas  = listaJ.filter(j => {
+      const est = String(j.Estatus || '').trim().toLowerCase();
+      return est === 'realizada' || est === 'cancelada';
+    }).reverse();
 
     let html = '';
 
