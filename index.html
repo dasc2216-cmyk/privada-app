@@ -3,104 +3,45 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Privada Paamul</title>
+<title>Prueba — Visitas y Amenidades</title>
 <style>
-/* ── Reset & Base ─────────────────────────────────────────── */
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
-       min-height:100vh; }
-
-/* ── Utilidades ───────────────────────────────────────────── */
-.hidden { display:none !important; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222; min-height:100vh; }
 .screen { display:none; min-height:100vh; flex-direction:column; }
 .screen.active { display:flex; }
 
-/* ── PANTALLA INICIO ──────────────────────────────────────── */
-#s-inicio {
-  background: linear-gradient(160deg,#0d47a1 0%,#1565c0 50%,#1976d2 100%);
-  align-items:center; justify-content:center; gap:0; padding:32px 24px;
-}
-.inicio-logo { text-align:center; margin-bottom:48px; }
-.inicio-logo .emoji { font-size:72px; display:block; margin-bottom:12px;
-  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.3)); }
-.inicio-logo h1 { color:#fff; font-size:28px; font-weight:700;
-  letter-spacing:0.5px; text-shadow:0 2px 8px rgba(0,0,0,0.3); }
-.inicio-logo p  { color:rgba(255,255,255,0.8); font-size:14px; margin-top:6px; }
-.inicio-btns { display:flex; flex-direction:column; gap:14px; width:100%; max-width:340px; }
-.btn-primary { background:#fff; color:#1565c0; border:none; border-radius:14px;
-  padding:16px; font-size:17px; font-weight:700; cursor:pointer;
-  box-shadow:0 4px 16px rgba(0,0,0,0.2); transition:transform .15s; }
-.btn-primary:active { transform:scale(0.97); }
-.btn-secondary { background:rgba(255,255,255,0.15); color:#fff; border:2px solid rgba(255,255,255,0.5);
-  border-radius:14px; padding:16px; font-size:17px; font-weight:600;
-  cursor:pointer; backdrop-filter:blur(4px); transition:transform .15s; }
-.btn-secondary:active { transform:scale(0.97); }
-
-/* ── HEADER GENERAL ───────────────────────────────────────── */
-.app-header { background:linear-gradient(135deg,#1565c0,#1976d2);
-  color:#fff; padding:16px 20px 14px; display:flex;
-  align-items:center; gap:12px; box-shadow:0 2px 8px rgba(0,0,0,0.15); }
+/* Header */
+.app-header { background:linear-gradient(135deg,#1565c0,#1976d2); color:#fff;
+  padding:16px 20px 14px; display:flex; align-items:center; gap:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.15); }
 .app-header .back { background:none; border:none; color:#fff; font-size:22px;
-  cursor:pointer; padding:4px; line-height:1; }
-.app-header .header-title { flex:1; }
+  cursor:pointer; padding:4px; }
 .app-header .header-title h1 { font-size:17px; font-weight:700; }
 .app-header .header-title p  { font-size:12px; opacity:.85; margin-top:2px; }
 
-/* ── CONTENIDO ────────────────────────────────────────────── */
-.content { flex:1; padding:16px; max-width:480px; width:100%; margin:0 auto; }
+.content { flex:1; padding:16px; max-width:480px; width:100%; margin:0 auto; overflow-y:auto; }
 
-/* ── FORMS ─────────────────────────────────────────────────── */
+/* Cards */
 .card { background:#fff; border-radius:16px; padding:20px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.08); margin-bottom:16px; }
+  box-shadow:0 2px 10px rgba(0,0,0,.08); margin-bottom:16px; }
 .card-title { font-size:16px; font-weight:700; color:#1565c0; margin-bottom:16px; }
+
+/* Forms */
 .fg { margin-bottom:14px; }
 .fg label { display:block; font-size:13px; color:#666; margin-bottom:6px; font-weight:500; }
-.fg input, .fg select {
-  width:100%; padding:13px 14px; border:1.5px solid #ddd; border-radius:10px;
-  font-size:15px; background:#fff; transition:border-color .2s; outline:none; }
+.fg input, .fg select { width:100%; padding:13px 14px; border:1.5px solid #ddd;
+  border-radius:10px; font-size:15px; background:#fff; outline:none;
+  transition:border-color .2s; }
 .fg input:focus, .fg select:focus { border-color:#1976d2; }
-.fg input.error { border-color:#e53935; }
-.err-msg { color:#e53935; font-size:12px; margin-top:5px; display:none; }
-.err-msg.show { display:block; }
-.hint { color:#888; font-size:12px; margin-top:5px; }
 
-/* Selector de género con emojis */
-.gender-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.gender-opt { border:2px solid #ddd; border-radius:12px; padding:16px 12px;
-  text-align:center; cursor:pointer; transition:all .2s; background:#fff; }
-.gender-opt.selected { border-color:#1976d2; background:#e3f0ff; }
-.gender-opt .g-emoji { font-size:32px; display:block; margin-bottom:6px; }
-.gender-opt .g-label { font-size:13px; font-weight:600; color:#333; }
-.gender-opt.selected .g-label { color:#1565c0; }
-
-/* Selector de rol */
-.rol-grid { display:flex; flex-direction:column; gap:8px; }
-.rol-opt { border:2px solid #ddd; border-radius:10px; padding:13px 16px;
-  cursor:pointer; display:flex; align-items:center; gap:12px;
-  transition:all .2s; background:#fff; }
-.rol-opt.selected { border-color:#1976d2; background:#e3f0ff; }
-.rol-opt .rol-emoji { font-size:24px; }
-.rol-opt .rol-info h4 { font-size:14px; font-weight:600; color:#333; }
-.rol-opt .rol-info p  { font-size:12px; color:#888; margin-top:2px; }
-.rol-opt.selected .rol-info h4 { color:#1565c0; }
-
-/* Aviso propietario */
-.aviso-verificacion { background:#fff8e1; border:1.5px solid #f9a825;
-  border-radius:10px; padding:12px 14px; margin-top:10px; display:none; }
-.aviso-verificacion.show { display:block; }
-.aviso-verificacion p { font-size:13px; color:#e65100; }
-
-/* Botón submit */
+/* Botones */
 .btn-submit { background:linear-gradient(135deg,#1565c0,#1976d2); color:#fff;
   border:none; border-radius:12px; padding:15px; width:100%; font-size:16px;
-  font-weight:700; cursor:pointer; box-shadow:0 3px 10px rgba(21,101,192,.3);
-  transition:transform .15s, opacity .15s; margin-top:4px; }
-.btn-submit:active { transform:scale(0.98); }
+  font-weight:700; cursor:pointer; margin-top:4px; transition:transform .15s; }
+.btn-submit:active { transform:scale(.98); }
 .btn-submit:disabled { opacity:.6; cursor:not-allowed; }
-.btn-link { background:none; border:none; color:#1976d2; font-size:14px;
-  cursor:pointer; text-decoration:underline; padding:8px 0; }
 
-/* ── MENSAJES ──────────────────────────────────────────────── */
+/* Mensajes */
 .msg { border-radius:10px; padding:12px 14px; margin-bottom:14px;
   font-size:14px; display:none; }
 .msg.show { display:block; }
@@ -108,726 +49,230 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 .msg.error { background:#ffebee; color:#c62828; }
 .msg.info  { background:#e3f2fd; color:#1565c0; }
 
-/* ── REGLAMENTO ───────────────────────────────────────────── */
-.reglamento-scroll { max-height:50vh; overflow-y:auto; background:#f9f9f9;
-  border-radius:10px; padding:14px; margin-bottom:16px; font-size:13px;
-  line-height:1.7; border:1.5px solid #eee; }
-.check-item { display:flex; align-items:flex-start; gap:10px;
-  margin-bottom:12px; cursor:pointer; }
-.check-item input[type=checkbox] { width:20px; height:20px; flex-shrink:0;
-  accent-color:#1976d2; margin-top:2px; cursor:pointer; }
-.check-item span { font-size:14px; line-height:1.5; color:#333; }
-.firma-text { font-weight:600; color:#1565c0; font-style:italic;
-  font-size:14px; margin:12px 0 16px; text-align:center; }
-
-/* ── MENÚ PRINCIPAL ───────────────────────────────────────── */
+/* ── Menú de prueba ─────────────────────────────── */
 #s-menu { flex-direction:column; }
-#s-menu .content { padding-bottom:24px; }
+.menu-info { background:linear-gradient(135deg,#1565c0,#1976d2);
+  border-radius:16px; padding:16px 20px; color:#fff; margin-bottom:16px; }
+.menu-info p { font-size:13px; opacity:.85; }
+.menu-info h2 { font-size:17px; font-weight:700; margin-top:4px; }
 
-/* Tarjeta de bienvenida */
-.bienvenida-card { background:linear-gradient(135deg,#1565c0,#1976d2);
-  border-radius:16px; padding:20px; color:#fff; margin-bottom:16px;
-  box-shadow:0 4px 14px rgba(21,101,192,.3); }
-.bienvenida-card .depto { font-size:12px; opacity:.8; margin-bottom:4px; }
-.bienvenida-card .nombre { font-size:19px; font-weight:700; }
-.bienvenida-card .cargo-badge {
-  display:inline-flex; align-items:center; gap:6px;
-  background:rgba(255,215,0,.2); border:1px solid rgba(255,215,0,.6);
-  border-radius:20px; padding:4px 12px; margin-top:8px; font-size:12px;
-  color:#ffd700; font-weight:600; }
-.bienvenida-card .verificado-badge {
-  display:inline-flex; align-items:center; gap:6px;
-  background:rgba(255,215,0,.15); border:1px solid rgba(255,215,0,.5);
-  border-radius:20px; padding:3px 10px; margin-top:6px; font-size:11px;
-  color:#ffe082; }
-
-/* Tarjeta de finanzas en home */
-.finanzas-home { background:#fff; border-radius:14px; padding:16px;
-  margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,.08);
-  cursor:pointer; display:flex; align-items:center; justify-content:space-between;
-  transition:background .15s; }
-.finanzas-home:active { background:#f0f7ff; }
-.finanzas-home .fh-label { font-size:13px; color:#666; margin-bottom:4px; }
-.finanzas-home .fh-estatus { font-size:18px; font-weight:700; }
-.finanzas-home .fh-estatus.ok      { color:#2e7d32; }
-.finanzas-home .fh-estatus.adeudo  { color:#c62828; }
-.finanzas-home .fh-estatus.convenio{ color:#e65100; }
-.finanzas-home .fh-chevron { font-size:22px; color:#bbb; }
-
-/* Banner junta */
-.banner-junta { background:linear-gradient(135deg,#0d47a1,#1565c0);
-  border-radius:14px; padding:16px; color:#fff; margin-bottom:16px;
-  box-shadow:0 3px 10px rgba(13,71,161,.3); }
-.banner-junta h3 { font-size:14px; font-weight:700; margin-bottom:6px; }
-.banner-junta p  { font-size:13px; opacity:.9; margin-bottom:3px; }
-
-/* Grid de módulos */
-.modulos-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.modulo-btn { background:#fff; border:none; border-radius:14px; padding:18px 12px;
+.mod-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.mod-btn { background:#fff; border:none; border-radius:14px; padding:20px 12px;
   text-align:center; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.08);
   transition:transform .15s; }
-.modulo-btn:active { transform:scale(0.96); }
-.modulo-btn .m-icon  { font-size:30px; display:block; margin-bottom:8px; }
-.modulo-btn .m-title { font-size:13px; font-weight:700; color:#333;
-  display:block; margin-bottom:3px; }
-.modulo-btn .m-desc  { font-size:11px; color:#888; }
-.modulo-btn.full-width { grid-column:span 2; }
+.mod-btn:active { transform:scale(.96); }
+.mod-btn .m-icon  { font-size:32px; display:block; margin-bottom:8px; }
+.mod-btn .m-title { font-size:13px; font-weight:700; color:#333; display:block; }
+.mod-btn .m-desc  { font-size:11px; color:#888; margin-top:3px; }
 
-/* ── PANTALLA FINANZAS ────────────────────────────────────── */
-.fin-resumen { display:grid; grid-template-columns:1fr 1fr; gap:10px;
-  margin-bottom:16px; }
-.fin-box { background:#fff; border-radius:12px; padding:14px;
-  text-align:center; box-shadow:0 2px 8px rgba(0,0,0,.07); }
-.fin-box .fb-label { font-size:11px; color:#888; margin-bottom:5px; }
-.fin-box .fb-valor { font-size:20px; font-weight:700; }
-.fin-box.adeudo .fb-valor  { color:#c62828; }
-.fin-box.abonado .fb-valor { color:#2e7d32; }
+/* ── VISITAS ─────────────────────────────────────── */
+.visita-card { background:#f8f9fa; border-radius:10px; padding:12px 14px;
+  margin-bottom:8px; border-left:3px solid #1976d2; }
+.visita-card .vc-nombre { font-size:14px; font-weight:600; color:#333; }
+.visita-card .vc-meta   { font-size:12px; color:#888; margin-top:3px; }
+.visita-card .vc-hora   { font-size:13px; color:#1976d2; font-weight:600; margin-top:4px; }
 
-.fin-desglose-title { font-size:13px; font-weight:700; color:#666;
-  margin:4px 0 10px; text-transform:uppercase; letter-spacing:.5px; }
-.fin-item { background:#fff; border-radius:10px; padding:13px 16px;
-  margin-bottom:8px; display:flex; justify-content:space-between;
-  align-items:center; box-shadow:0 1px 4px rgba(0,0,0,.06); }
-.fin-item .fi-nombre { font-size:14px; color:#333; }
-.fin-item .fi-monto  { font-size:15px; font-weight:700; color:#2e7d32; }
-.fin-item .fi-semaforo { margin-left:6px; font-size:14px; }
+/* ── AMENIDADES ──────────────────────────────────── */
+.amenidad-card { background:#fff; border-radius:14px; padding:16px;
+  margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,.08);
+  border:2px solid transparent; transition:border-color .2s; }
+.amenidad-card.libre   { border-color:#43a047; }
+.amenidad-card.ocupada { border-color:#e53935; }
+.amenidad-card.palapa  { border-color:#fb8c00; }
 
-/* Semáforo cuota */
-.cuota-rojo    { color:#c62828; }
-.cuota-amarillo{ color:#e65100; }
-.cuota-verde   { color:#2e7d32; }
+.am-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.am-nombre { font-size:15px; font-weight:700; color:#333; }
+.am-badge { font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; }
+.am-badge.libre   { background:#e8f5e9; color:#2e7d32; }
+.am-badge.ocupada { background:#ffebee; color:#c62828; }
+.am-badge.palapa  { background:#fff3e0; color:#e65100; }
 
-/* ── LOADING ───────────────────────────────────────────────── */
+.am-info { font-size:12px; color:#888; margin-bottom:12px; min-height:16px; }
+.am-info strong { color:#555; }
+
+/* Barra de aforo */
+.aforo-bar-wrap { margin-bottom:12px; }
+.aforo-label { display:flex; justify-content:space-between; font-size:12px;
+  color:#666; margin-bottom:5px; }
+.aforo-bar { background:#eee; border-radius:6px; height:8px; overflow:hidden; }
+.aforo-fill { height:100%; border-radius:6px; transition:width .4s;
+  background:linear-gradient(90deg,#43a047,#66bb6a); }
+.aforo-fill.lleno { background:linear-gradient(90deg,#e53935,#ef5350); }
+.aforo-fill.casi  { background:linear-gradient(90deg,#fb8c00,#ffa726); }
+
+/* Switch ocupar/liberar */
+.am-actions { display:flex; gap:8px; }
+.btn-ocupar  { flex:1; background:#1976d2; color:#fff; border:none;
+  border-radius:10px; padding:12px; font-size:14px; font-weight:700;
+  cursor:pointer; transition:transform .15s; }
+.btn-ocupar:active  { transform:scale(.97); }
+.btn-liberar { flex:1; background:#e53935; color:#fff; border:none;
+  border-radius:10px; padding:12px; font-size:14px; font-weight:700;
+  cursor:pointer; transition:transform .15s; }
+.btn-liberar:active { transform:scale(.97); }
+.btn-disabled { flex:1; background:#ccc; color:#fff; border:none;
+  border-radius:10px; padding:12px; font-size:14px; font-weight:700;
+  cursor:not-allowed; }
+.btn-palapa-prox { flex:1; background:#fb8c00; color:#fff; border:none;
+  border-radius:10px; padding:12px; font-size:13px; font-weight:700;
+  cursor:default; }
+
+/* Modal aforo piscina */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5);
+  display:flex; align-items:flex-end; justify-content:center;
+  z-index:100; display:none; }
+.modal-overlay.show { display:flex; }
+.modal-box { background:#fff; border-radius:20px 20px 0 0; padding:24px 20px;
+  width:100%; max-width:480px; }
+.modal-title { font-size:17px; font-weight:700; margin-bottom:16px; color:#1565c0; }
+
+/* Loader */
 .loader { text-align:center; padding:32px; color:#888; font-size:14px; }
-.loader::before { content:'⏳'; display:block; font-size:32px; margin-bottom:8px; }
 
-/* ── CERRAR SESION ─────────────────────────────────────────── */
-.btn-cerrar { background:none; border:none; color:#999; font-size:13px;
-  cursor:pointer; padding:16px; width:100%; text-align:center;
-  border-top:1px solid #eee; margin-top:8px; }
+/* Historial */
+.hist-titulo { font-size:13px; font-weight:700; color:#666; margin:8px 0 10px;
+  text-transform:uppercase; letter-spacing:.5px; }
+.hist-item { display:flex; justify-content:space-between; align-items:center;
+  padding:10px 0; border-bottom:1px solid #f0f0f0; font-size:13px; }
+.hist-item:last-child { border-bottom:none; }
+.hist-item .hi-nombre { color:#333; font-weight:500; }
+.hist-item .hi-hora   { color:#1976d2; font-size:12px; }
+.hist-item .hi-casa   { color:#888; font-size:11px; }
 </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════════════
-     PANTALLA 1 — INICIO
-═══════════════════════════════════════════════════════════ -->
-<div id="s-inicio" class="screen active">
-  <div class="inicio-logo">
-    <span class="emoji">🏘️</span>
-    <h1>Privada Paamul</h1>
-    <p>Residencial privada · Solidaridad, Q. Roo</p>
-  </div>
-  <div class="inicio-btns">
-    <button class="btn-primary" onclick="ir('s-login')">Entrar</button>
-    <button class="btn-secondary" onclick="ir('s-registro')">Registrarse</button>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════
-     PANTALLA 2 — REGISTRO
-═══════════════════════════════════════════════════════════ -->
-<div id="s-registro" class="screen">
+<!-- ══════════ MENÚ DE PRUEBA ══════════ -->
+<div id="s-menu" class="screen active">
   <div class="app-header">
-    <button class="back" onclick="ir('s-inicio')">←</button>
     <div class="header-title">
       <h1>Privada Paamul</h1>
-      <p>Crear cuenta</p>
-    </div>
-  </div>
-  <div class="content" style="overflow-y:auto">
-
-    <div class="msg" id="reg-msg"></div>
-
-    <div class="card">
-      <p class="card-title">👤 Selecciona tu género</p>
-      <div class="gender-grid">
-        <div class="gender-opt" id="g-hombre" onclick="selGender('Hombre')">
-          <span class="g-emoji">🧔</span>
-          <span class="g-label">Hombre</span>
-        </div>
-        <div class="gender-opt" id="g-mujer" onclick="selGender('Mujer')">
-          <span class="g-emoji">👩</span>
-          <span class="g-label">Mujer</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <p class="card-title">🏠 ¿Cuál es tu rol?</p>
-      <div class="rol-grid">
-        <div class="rol-opt" id="r-propietario" onclick="selRol('Propietario')">
-          <span class="rol-emoji">🔑</span>
-          <div class="rol-info">
-            <h4>Propietario</h4>
-            <p>Dueño del departamento</p>
-          </div>
-        </div>
-        <div class="rol-opt" id="r-residente" onclick="selRol('Residente')">
-          <span class="rol-emoji">🏠</span>
-          <div class="rol-info">
-            <h4>Residente</h4>
-            <p>Inquilino o familiar</p>
-          </div>
-        </div>
-        <div class="rol-opt" id="r-administrador" onclick="selRol('Administrador')">
-          <span class="rol-emoji">📋</span>
-          <div class="rol-info">
-            <h4>Administrador</h4>
-            <p>Encargado del depto</p>
-          </div>
-        </div>
-      </div>
-      <div class="aviso-verificacion" id="aviso-prop">
-        <p>⏳ <strong>Verificación requerida.</strong> Tu registro será revisado
-        y aprobado por el Comité de la privada antes de poder acceder.</p>
-      </div>
-    </div>
-
-    <div class="card">
-      <p class="card-title">📝 Tus datos</p>
-      <div class="fg">
-        <label>Número de departamento</label>
-        <input type="text" id="reg-casa" placeholder="Ej: 4A" style="text-transform:uppercase">
-        <span class="err-msg" id="err-casa">Ingresa tu número de depto</span>
-      </div>
-      <div class="fg">
-        <label>Nombre completo</label>
-        <input type="text" id="reg-nombre" placeholder="Nombre y apellido">
-        <span class="err-msg" id="err-nombre">Ingresa tu nombre completo</span>
-      </div>
-      <div class="fg">
-        <label>Teléfono</label>
-        <input type="tel" id="reg-telefono" placeholder="10 dígitos" maxlength="10">
-        <span class="err-msg" id="err-tel">Ingresa tu número de teléfono</span>
-      </div>
-      <div class="fg">
-        <label>Clave de acceso</label>
-        <input type="text" id="reg-clave" placeholder="Ej: 123A" maxlength="4"
-          style="text-transform:uppercase; letter-spacing:4px; font-size:20px;
-                 font-weight:700; text-align:center;">
-        <span class="hint">3 números y 1 letra, en cualquier orden. Ej: 742B, A391</span>
-        <span class="err-msg" id="err-clave">La clave debe tener 3 números y 1 letra</span>
-      </div>
-    </div>
-
-    <button class="btn-submit" id="btn-registrar" onclick="registrar()">
-      Crear mi cuenta
-    </button>
-    <div style="text-align:center; margin-top:8px">
-      <button class="btn-link" onclick="ir('s-login')">Ya tengo cuenta — Entrar</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════
-     PANTALLA 3 — LOGIN
-═══════════════════════════════════════════════════════════ -->
-<div id="s-login" class="screen">
-  <div class="app-header">
-    <button class="back" onclick="ir('s-inicio')">←</button>
-    <div class="header-title">
-      <h1>Privada Paamul</h1>
-      <p>Ingresa a tu cuenta</p>
+      <p>Módulo de prueba</p>
     </div>
   </div>
   <div class="content">
-    <div class="msg" id="login-msg"></div>
-    <div class="card">
-      <p class="card-title">🔐 Acceso</p>
-      <div class="fg">
-        <label>Número de departamento</label>
-        <input type="text" id="login-casa" placeholder="Ej: 4A" style="text-transform:uppercase">
-      </div>
-      <div class="fg">
-        <label>Tu clave de acceso</label>
-        <input type="text" id="login-clave" placeholder="Ej: 123A" maxlength="4"
-          style="text-transform:uppercase; letter-spacing:4px; font-size:20px;
-                 font-weight:700; text-align:center;">
-      </div>
-      <button class="btn-submit" onclick="login()">Entrar</button>
+    <div class="menu-info">
+      <p>Probando como</p>
+      <h2>🏠 Depto 4A — Sr. Daniel Salazar</h2>
     </div>
-    <div style="text-align:center">
-      <button class="btn-link" onclick="ir('s-registro')">¿Primera vez? Regístrate</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════
-     PANTALLA 4 — REGLAMENTO
-═══════════════════════════════════════════════════════════ -->
-<div id="s-reglamento" class="screen">
-  <div class="app-header">
-    <div class="header-title">
-      <h1>Privada Paamul</h1>
-      <p>Aceptación de reglamento</p>
-    </div>
-  </div>
-  <div class="content" style="overflow-y:auto">
-    <div class="card">
-      <p class="card-title">📜 Reglamento Interno</p>
-      <div class="reglamento-scroll" id="reg-texto">
-        <div class="loader">Cargando reglamento...</div>
-      </div>
-      <p class="firma-text" id="firma-texto"></p>
-      <label class="check-item">
-        <input type="checkbox" id="chk-leido" onchange="validarChecks()">
-        <span id="chk-leido-label">He leído el reglamento interno de Privada Paamul.</span>
-      </label>
-      <label class="check-item">
-        <input type="checkbox" id="chk-acepto" onchange="validarChecks()">
-        <span id="chk-acepto-label">Acepto y me comprometo a cumplir las normas y sanciones estipuladas.</span>
-      </label>
-      <button class="btn-submit" id="btn-acepto" onclick="aceptarReglamento()" disabled>
-        Continuar
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════
-     PANTALLA 5 — MENÚ PRINCIPAL
-═══════════════════════════════════════════════════════════ -->
-<div id="s-menu" class="screen">
-  <div class="app-header">
-    <div class="header-title">
-      <h1>Privada Paamul</h1>
-      <p id="menu-depto">Departamento —</p>
-    </div>
-  </div>
-  <div class="content" style="overflow-y:auto">
-
-    <!-- Bienvenida -->
-    <div class="bienvenida-card">
-      <div class="depto" id="menu-depto2">Departamento —</div>
-      <div class="nombre" id="menu-nombre">—</div>
-      <div id="menu-badges"></div>
-    </div>
-
-    <!-- Banner junta (se oculta si no hay) -->
-    <div class="banner-junta hidden" id="banner-junta">
-      <h3 id="bj-tipo">🏛️ Próxima Junta</h3>
-      <p id="bj-fecha"></p>
-      <p id="bj-orden"></p>
-    </div>
-
-    <!-- Finanzas en home -->
-    <div class="finanzas-home" onclick="ir('s-finanzas'); cargarFinanzas()">
-      <div>
-        <div class="fh-label">💳 Consultar estado de cuenta</div>
-        <div class="fh-estatus" id="home-estatus">Cargando...</div>
-      </div>
-      <span class="fh-chevron">›</span>
-    </div>
-
-    <!-- Grid de módulos (Fase 1: solo los disponibles) -->
-    <div class="modulos-grid">
-      <button class="modulo-btn" onclick="proximamente()">
+    <div class="mod-grid">
+      <button class="mod-btn" onclick="ir('s-visitas'); cargarVisitas()">
         <span class="m-icon">🚗</span>
         <span class="m-title">Visitas</span>
-        <span class="m-desc">Registra accesos</span>
+        <span class="m-desc">Registrar acceso</span>
       </button>
-      <button class="modulo-btn" onclick="proximamente()">
+      <button class="mod-btn" onclick="ir('s-amenidades'); cargarAmenidades()">
         <span class="m-icon">🏊</span>
         <span class="m-title">Amenidades</span>
-        <span class="m-desc">Piscina, palapa y más</span>
-      </button>
-      <button class="modulo-btn" onclick="proximamente()">
-        <span class="m-icon">📝</span>
-        <span class="m-title">Reportes</span>
-        <span class="m-desc">Quejas y sugerencias</span>
-      </button>
-      <button class="modulo-btn" onclick="proximamente()">
-        <span class="m-icon">📦</span>
-        <span class="m-title">Mudanzas</span>
-        <span class="m-desc">Control de acceso</span>
-      </button>
-      <button class="modulo-btn" onclick="proximamente()">
-        <span class="m-icon">🏛️</span>
-        <span class="m-title">Juntas</span>
-        <span class="m-desc">Asambleas y minutas</span>
-      </button>
-      <button class="modulo-btn" onclick="proximamente()">
-        <span class="m-icon">📞</span>
-        <span class="m-title">Directorio</span>
-        <span class="m-desc">Emergencias</span>
+        <span class="m-desc">Piscina, palapa y mesas</span>
       </button>
     </div>
-
-    <button class="btn-cerrar" onclick="cerrarSesion()">Cerrar sesión</button>
+    <div id="msg-menu" class="msg"></div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════
-     PANTALLA 6 — FINANZAS
-═══════════════════════════════════════════════════════════ -->
-<div id="s-finanzas" class="screen">
+<!-- ══════════ VISITAS ══════════ -->
+<div id="s-visitas" class="screen">
   <div class="app-header">
     <button class="back" onclick="ir('s-menu')">←</button>
     <div class="header-title">
       <h1>Privada Paamul</h1>
-      <p id="fin-depto">Mis Finanzas</p>
+      <p>Registrar visita</p>
     </div>
   </div>
-  <div class="content" style="overflow-y:auto">
-    <div id="fin-contenido"><div class="loader">Cargando...</div></div>
+  <div class="content">
+    <div id="msg-visita" class="msg"></div>
+    <div class="card">
+      <p class="card-title">🚗 Nueva visita</p>
+      <div class="fg">
+        <label>Nombre del visitante</label>
+        <input type="text" id="vis-nombre" placeholder="Nombre completo">
+      </div>
+      <div class="fg">
+        <label>Hora estimada de llegada</label>
+        <select id="vis-hora"></select>
+      </div>
+      <button class="btn-submit" onclick="registrarVisita()">Registrar Visita</button>
+    </div>
+
+    <!-- Historial de visitas del día -->
+    <div class="card">
+      <p class="card-title">📋 Visitas de hoy</p>
+      <div id="visitas-lista"><div class="loader">Cargando...</div></div>
+    </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════
-     JAVASCRIPT
-═══════════════════════════════════════════════════════════ -->
+<!-- ══════════ AMENIDADES ══════════ -->
+<div id="s-amenidades" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>Amenidades</p>
+    </div>
+  </div>
+  <div class="content">
+    <div id="msg-amenidad" class="msg"></div>
+    <p style="font-size:13px; color:#666; margin-bottom:12px">
+      Estado en tiempo real · Toca para ocupar o liberar
+    </p>
+    <div id="amenidades-lista"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL AFORO PISCINA ══════════ -->
+<div class="modal-overlay" id="modal-aforo">
+  <div class="modal-box">
+    <p class="modal-title">🏊 Ocupar Piscina</p>
+    <div class="fg">
+      <label>¿Cuántas personas van a la piscina? (máx. 15 en total)</label>
+      <select id="aforo-personas">
+        <option value="">Selecciona...</option>
+        <option value="1">1 persona</option>
+        <option value="2">2 personas</option>
+        <option value="3">3 personas</option>
+        <option value="4">4 personas</option>
+        <option value="5">5 personas</option>
+        <option value="6">6 personas</option>
+        <option value="7">7 personas (máx. por depto)</option>
+      </select>
+    </div>
+    <p id="aforo-disponible" style="font-size:13px; color:#666; margin-bottom:14px"></p>
+    <button class="btn-submit" id="btn-confirmar-aforo" onclick="confirmarOcuparPiscina()">
+      Confirmar entrada
+    </button>
+    <button onclick="cerrarModalAforo()" style="background:none; border:none;
+      color:#888; font-size:14px; cursor:pointer; padding:12px; width:100%; margin-top:4px;">
+      Cancelar
+    </button>
+  </div>
+</div>
+
 <script>
-const API = "https://script.google.com/macros/s/AKfycbzvTdnoad-4bbZlF2VBft5myU3Z0C71YKeJp_SsIxy7Pu-ZDl825t8p5-CqrxGIeVJuBQ/exec";
+// ── Config ────────────────────────────────────────────────────
+const API = 'https://script.google.com/macros/s/AKfycbz2oM-fbr0xehpVv6ir1-nizYSwumNTpFY1mcetMBRjJH_a4E6kPHnogDRMp22HqzqMxA/exec'; // <-- misma URL de tu Apps Script
 
-// ── Estado global ──────────────────────────────────────────
-let sesion = null;
+// Sesión simulada para pruebas (en producción viene del login real)
+const sesion = {
+  casa: '4A',
+  nombre: 'Sr. Daniel Salazar',
+  genero: 'Hombre',
+  rol: 'Propietario'
+};
 
-// ── Navegación ─────────────────────────────────────────────
+// ── Navegación ────────────────────────────────────────────────
 function ir(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0, 0);
 }
 
-// ── Persistencia de dispositivo ────────────────────────────
-function getDispositivoId() {
-  let id = localStorage.getItem('paamul_disp');
-  if (!id) {
-    id = 'D' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
-    localStorage.setItem('paamul_disp', id);
-  }
-  return id;
-}
-
-// ── Arranque: verificar dispositivo guardado ────────────────
-window.onload = async () => {
-  const dispId = getDispositivoId();
-  // Intentar entrar automáticamente si el dispositivo ya está registrado
-  try {
-    const res  = await fetch(`${API}?accion=buscarDispositivo&id=${encodeURIComponent(dispId)}`);
-    const data = await res.json();
-    if (data && data.ok) {
-      sesion = data;
-      if (!sesion.acepto) {
-        await cargarReglamento();
-        ir('s-reglamento');
-      } else {
-        await cargarMenuPrincipal();
-        ir('s-menu');
-      }
-      return;
-    }
-  } catch(e) {}
-  // Sin sesión guardada → pantalla de inicio
-  ir('s-inicio');
-};
-
-// ── REGISTRO ───────────────────────────────────────────────
-let generoSeleccionado = null;
-let rolSeleccionado    = null;
-
-function selGender(g) {
-  generoSeleccionado = g;
-  document.getElementById('g-hombre').classList.toggle('selected', g === 'Hombre');
-  document.getElementById('g-mujer').classList.toggle('selected',  g === 'Mujer');
-}
-
-function selRol(r) {
-  rolSeleccionado = r;
-  ['propietario','residente','administrador'].forEach(x =>
-    document.getElementById('r-' + x).classList.remove('selected')
-  );
-  document.getElementById('r-' + r.toLowerCase()).classList.add('selected');
-  document.getElementById('aviso-prop').classList.toggle('show', r === 'Propietario');
-}
-
-async function registrar() {
-  const msg      = document.getElementById('reg-msg');
-  const casa     = document.getElementById('reg-casa').value.trim().toUpperCase();
-  const nombre   = document.getElementById('reg-nombre').value.trim();
-  const telefono = document.getElementById('reg-telefono').value.trim();
-  const clave    = document.getElementById('reg-clave').value.trim().toUpperCase();
-
-  // Validaciones
-  let ok = true;
-  const mostrar = (id, show) => {
-    document.getElementById(id).classList.toggle('show', show);
-    if (show) ok = false;
-  };
-  mostrar('err-casa',  !casa);
-  mostrar('err-nombre',!nombre);
-  mostrar('err-tel',   !telefono || telefono.length < 10);
-  const claveValida = /^(?=.*\d.*\d.*\d)(?=.*[a-zA-Z])[0-9a-zA-Z]{4}$/.test(clave);
-  mostrar('err-clave', !claveValida);
-
-  if (!generoSeleccionado) { showMsg(msg, 'error', 'Selecciona tu género'); return; }
-  if (!rolSeleccionado)    { showMsg(msg, 'error', 'Selecciona tu rol'); return; }
-  if (!ok) return;
-
-  const btn = document.getElementById('btn-registrar');
-  btn.disabled = true; btn.textContent = 'Registrando...';
-
-  try {
-    const res  = await post({ accion:'registrar', casa, nombre, genero:generoSeleccionado,
-      rol:rolSeleccionado, telefono, clave, dispositivo_id: getDispositivoId() });
-    if (res.ok) {
-      if (res.estatus === 'Pendiente') {
-        showMsg(msg, 'info',
-          '⏳ Registro enviado. El Comité verificará tu cuenta. Te avisaremos pronto.');
-      } else {
-        showMsg(msg, 'ok', '✅ ¡Cuenta creada! Ya puedes ingresar.');
-        setTimeout(() => ir('s-login'), 1800);
-      }
-    } else {
-      showMsg(msg, 'error', res.error || 'Error al registrar');
-    }
-  } catch(e) {
-    showMsg(msg, 'error', 'Error de conexión, intenta de nuevo');
-  }
-  btn.disabled = false; btn.textContent = 'Crear mi cuenta';
-}
-
-// ── LOGIN ───────────────────────────────────────────────────
-async function login() {
-  const msg   = document.getElementById('login-msg');
-  const casa  = document.getElementById('login-casa').value.trim().toUpperCase();
-  const clave = document.getElementById('login-clave').value.trim().toUpperCase();
-  if (!casa || !clave) { showMsg(msg, 'error', 'Ingresa tu depto y clave'); return; }
-
-  showMsg(msg, 'info', 'Verificando...');
-  try {
-    const res = await post({ accion:'login', casa, clave, dispositivo_id: getDispositivoId() });
-    if (res.ok) {
-      sesion = res;
-      if (!sesion.acepto) {
-        await cargarReglamento();
-        ir('s-reglamento');
-      } else {
-        await cargarMenuPrincipal();
-        ir('s-menu');
-      }
-    } else if (res.pendiente) {
-      showMsg(msg, 'info',
-        '⏳ Tu registro está pendiente de verificación por el Comité.');
-    } else {
-      showMsg(msg, 'error', res.error || 'Casa o clave incorrecta');
-    }
-  } catch(e) {
-    showMsg(msg, 'error', 'Error de conexión, intenta de nuevo');
-  }
-}
-
-// ── REGLAMENTO ──────────────────────────────────────────────
-async function cargarReglamento() {
-  try {
-    const res   = await fetch(`${API}?accion=getReglas`);
-    const reglas = await res.json();
-    // Usar la regla con Amenidad = "Reglamento" o la primera disponible
-    const reg = Array.isArray(reglas)
-      ? (reglas.find(r => r.Amenidad === 'Reglamento') || reglas[0])
-      : null;
-    document.getElementById('reg-texto').innerHTML =
-      reg ? (reg.Texto_Reglamento || reg.Regla || 'Reglamento no disponible')
-          : 'Reglamento no disponible';
-  } catch(e) {
-    document.getElementById('reg-texto').textContent = 'No se pudo cargar el reglamento.';
-  }
-
-  // Personalizar checkboxes con los datos de la sesión
-  if (sesion) {
-    const art = sesion.genero === 'Mujer' ? 'Yo, ' : 'Yo, ';
-    const rolTxt = rolGenero(sesion.rol, sesion.genero);
-    const firma = `${art}${rolTxt} del Departamento ${sesion.casa}, ${sesion.nombre}`;
-    document.getElementById('firma-texto').textContent = firma;
-    document.getElementById('chk-leido-label').textContent =
-      `He leído el reglamento interno de Privada Paamul.`;
-    document.getElementById('chk-acepto-label').textContent =
-      `Acepto y me comprometo a cumplir las normas y sanciones estipuladas.`;
-  }
-
-  // Resetear checks
-  document.getElementById('chk-leido').checked  = false;
-  document.getElementById('chk-acepto').checked = false;
-  validarChecks();
-}
-
-function validarChecks() {
-  const ok = document.getElementById('chk-leido').checked &&
-             document.getElementById('chk-acepto').checked;
-  const btn = document.getElementById('btn-acepto');
-  btn.disabled = !ok;
-  btn.style.opacity = ok ? '1' : '0.5';
-}
-
-async function aceptarReglamento() {
-  if (!sesion) return;
-  try {
-    const res = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ accion:'aceptarReglamento', casa:sesion.casa, nombre:sesion.nombre })
-    });
-    const data = await res.json();
-    if (data.ok) {
-      sesion.acepto = true;
-      await cargarMenuPrincipal();
-      ir('s-menu');
-    }
-  } catch(e) {
-    alert('Error al guardar. Intenta de nuevo.');
-  }
-}
-
-// ── MENÚ PRINCIPAL ──────────────────────────────────────────
-async function cargarMenuPrincipal() {
-  if (!sesion) return;
-
-  document.getElementById('menu-depto').textContent  = `Departamento ${sesion.casa}`;
-  document.getElementById('menu-depto2').textContent = `Departamento ${sesion.casa}`;
-
-  // Saludo personalizado por género y rol
-  const esFem  = sesion.genero === 'Mujer';
-  const saludo = esFem ? 'Bienvenida' : 'Bienvenido';
-  const rolTxt = rolGenero(sesion.rol, sesion.genero);
-  const cargoTxt = sesion.cargo ? sesion.cargo + ', ' : '';
-  document.getElementById('menu-nombre').textContent =
-    `${saludo} ${cargoTxt}${rolTxt}, ${sesion.nombre}`;
-
-  // Badges: cargo comité (dorado) y verificado
-  const badges = document.getElementById('menu-badges');
-  badges.innerHTML = '';
-  if (sesion.cargo) {
-    badges.innerHTML += `<span class="cargo-badge">⭐ ${sesion.cargo}</span>`;
-  }
-  if (sesion.rol === 'Propietario' && sesion.verificado) {
-    badges.innerHTML += `<span class="verificado-badge">✔ Propietario verificado</span>`;
-  }
-
-  // Cargar estatus de finanzas
-  cargarEstatusHome();
-}
-
-async function cargarEstatusHome() {
-  const el = document.getElementById('home-estatus');
-  try {
-    const res  = await fetch(`${API}?accion=getFinanzas&casa=${encodeURIComponent(sesion.casa)}`);
-    const data = await res.json();
-    if (!data) { el.textContent = 'Sin información'; return; }
-
-    const estatus = String(data.Estatus || '').toUpperCase().trim();
-    const config = {
-      'OK':       { txt:'✅ Al corriente',  cls:'ok'       },
-      'ADEUDO':   { txt:'⚠️ Adeudo pendiente', cls:'adeudo' },
-      'CONVENIO': { txt:'🤝 Convenio activo',  cls:'convenio'},
-      'F. LUZ':   { txt:'⚠️ Falla en Luz',     cls:'adeudo' },
-      'F. MANTO': { txt:'⚠️ Falla Mantenimiento', cls:'adeudo'},
-    };
-    const cfg = config[estatus] || { txt: estatus || 'Sin datos', cls:'ok' };
-    el.textContent  = cfg.txt;
-    el.className    = 'fh-estatus ' + cfg.cls;
-  } catch(e) {
-    el.textContent = 'No disponible';
-  }
-}
-
-// ── FINANZAS DETALLE ────────────────────────────────────────
-async function cargarFinanzas() {
-  if (!sesion) return;
-  document.getElementById('fin-depto').textContent = `Departamento ${sesion.casa}`;
-  const contenido = document.getElementById('fin-contenido');
-  contenido.innerHTML = '<div class="loader">Cargando...</div>';
-  try {
-    const res  = await fetch(`${API}?accion=getFinanzas&casa=${encodeURIComponent(sesion.casa)}`);
-    const d    = await res.json();
-    if (!d) { contenido.innerHTML = '<p style="color:#888;text-align:center;padding:32px">Sin información financiera</p>'; return; }
-
-    const estatus  = String(d.Estatus || '').toUpperCase().trim();
-    const colores  = { 'OK':'#2e7d32','ADEUDO':'#c62828','CONVENIO':'#e65100' };
-    const iconos   = { 'OK':'✅','ADEUDO':'⚠️','CONVENIO':'🤝' };
-    const colorEst = colores[estatus] || '#555';
-    const iconoEst = iconos[estatus]  || '•';
-
-    const adeudo  = d.Adeudo_Total    || 0;
-    const abonado = d.Abonado         || 0;
-    const cuota   = d.Cuota_2026      || 0;
-    const manto   = d.Mantenimiento   || 0;
-    const luz     = d.Luz             || 0;
-    const multas  = d.Multas          || 0;
-
-    // Semáforo cuota
-    let cuotaClase = 'cuota-verde', cuotaIcon = '🟢';
-    if (cuota < 500)       { cuotaClase = 'cuota-rojo';    cuotaIcon = '🔴'; }
-    else if (cuota < 1000) { cuotaClase = 'cuota-amarillo'; cuotaIcon = '🟡'; }
-
-    const fmt = n => '$' + Number(n).toLocaleString('es-MX', {minimumFractionDigits:0});
-
-    // Solo mostrar conceptos con saldo > 0
-    const conceptos = [
-      { nombre:'Cuota 2026', valor:cuota, claseExtra:cuotaClase, icono:cuotaIcon },
-      { nombre:'Mantenimiento', valor:manto },
-      { nombre:'Luz', valor:luz },
-      { nombre:'Multas', valor:multas },
-    ].filter(c => c.valor > 0);
-
-    contenido.innerHTML = `
-      <div style="background:#fff; border-radius:12px; padding:14px 16px; margin-bottom:14px;
-                  display:flex; align-items:center; gap:12px;
-                  box-shadow:0 2px 8px rgba(0,0,0,.07)">
-        <span style="font-size:28px">${iconoEst}</span>
-        <div>
-          <div style="font-size:12px;color:#888">Estatus de cuenta</div>
-          <div style="font-size:17px;font-weight:700;color:${colorEst}">${d.Estatus || '—'}</div>
-        </div>
-      </div>
-      <div class="fin-resumen">
-        <div class="fin-box adeudo">
-          <div class="fb-label">Adeudo total</div>
-          <div class="fb-valor">${fmt(adeudo)}</div>
-        </div>
-        <div class="fin-box abonado">
-          <div class="fb-label">Abonado</div>
-          <div class="fb-valor">${fmt(abonado)}</div>
-        </div>
-      </div>
-      ${conceptos.length > 0 ? `
-        <p class="fin-desglose-title">Desglose por concepto</p>
-        ${conceptos.map(c => `
-          <div class="fin-item">
-            <span class="fi-nombre ${c.claseExtra || ''}">${c.nombre}
-              ${c.icono ? `<span class="fi-semaforo">${c.icono}</span>` : ''}
-            </span>
-            <span class="fi-monto">${fmt(c.valor)}</span>
-          </div>`).join('')}
-      ` : '<p style="color:#888;text-align:center;padding:16px">Sin conceptos pendientes ✅</p>'}
-    `;
-  } catch(e) {
-    contenido.innerHTML = '<p style="color:#c62828;text-align:center;padding:32px">Error al cargar finanzas</p>';
-  }
-}
-
-// ── CERRAR SESIÓN ───────────────────────────────────────────
-function cerrarSesion() {
-  sesion = null;
-  localStorage.removeItem('paamul_disp');
-  ir('s-inicio');
-}
-
-// ── UTILIDADES ──────────────────────────────────────────────
-function rolGenero(rol, genero) {
-  const f = genero === 'Mujer';
-  return { Propietario: f ? 'Propietaria' : 'Propietario',
-           Residente:   'Residente',
-           Administrador: f ? 'Administradora' : 'Administrador' }[rol] || rol;
-}
-
+// ── Utilidades ────────────────────────────────────────────────
 function showMsg(el, tipo, txt) {
   el.className = `msg ${tipo} show`;
   el.textContent = txt;
-}
-
-function proximamente() {
-  alert('📦 Módulo en construcción — próximamente disponible');
+  if (tipo === 'ok') setTimeout(() => el.classList.remove('show'), 3000);
 }
 
 async function post(datos) {
@@ -837,6 +282,298 @@ async function post(datos) {
     body: JSON.stringify(datos)
   });
   return res.json();
+}
+
+function hoyISO() {
+  return new Date().toISOString().split('T')[0];
+}
+
+// ── VISITAS ───────────────────────────────────────────────────
+
+// Poblar selector de horas con fracciones de 15 min
+window.onload = () => {
+  const sel = document.getElementById('vis-hora');
+  for (let h = 6; h <= 23; h++) {
+    [0, 15, 30, 45].forEach(m => {
+      const periodo = h < 12 ? 'AM' : 'PM';
+      const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      const mStr = String(m).padStart(2, '0');
+      const valor = `${String(h).padStart(2,'0')}:${mStr}`;
+      const label = `${h12}:${mStr} ${periodo}`;
+      const opt = document.createElement('option');
+      opt.value = valor; opt.textContent = label;
+      sel.appendChild(opt);
+    });
+  }
+  // Medianoche
+  const opt = document.createElement('option');
+  opt.value = '00:00'; opt.textContent = '12:00 AM';
+  sel.appendChild(opt);
+
+  // Pre-seleccionar la hora más cercana
+  const ahora = new Date();
+  const hAct  = ahora.getHours();
+  const mAct  = Math.ceil(ahora.getMinutes() / 15) * 15;
+  const mFin  = mAct >= 60 ? 0 : mAct;
+  const hFin  = mAct >= 60 ? hAct + 1 : hAct;
+  sel.value = `${String(hFin).padStart(2,'0')}:${String(mFin).padStart(2,'0')}`;
+};
+
+async function registrarVisita() {
+  const msg    = document.getElementById('msg-visita');
+  const nombre = document.getElementById('vis-nombre').value.trim();
+  const hora   = document.getElementById('vis-hora').value;
+  if (!nombre) { showMsg(msg, 'error', 'Escribe el nombre del visitante'); return; }
+
+  const btn = document.querySelector('#s-visitas .btn-submit');
+  btn.disabled = true; btn.textContent = 'Registrando...';
+  try {
+    const res = await post({
+      accion: 'registrarVisita',
+      nombre_visitante: nombre,
+      hora_estimada: hora,
+      casa: sesion.casa,
+      registrado_por: sesion.nombre
+    });
+    if (res.ok) {
+      showMsg(msg, 'ok', `✅ Visita registrada (${res.id})`);
+      document.getElementById('vis-nombre').value = '';
+      cargarVisitas();
+    } else {
+      showMsg(msg, 'error', res.error || 'Error al registrar');
+    }
+  } catch(e) {
+    showMsg(msg, 'error', 'Error de conexión');
+  }
+  btn.disabled = false; btn.textContent = 'Registrar Visita';
+}
+
+async function cargarVisitas() {
+  const lista = document.getElementById('visitas-lista');
+  lista.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res  = await fetch(`${API}?accion=getVisitas&casa=${encodeURIComponent(sesion.casa)}`);
+    const data = await res.json();
+    const hoy  = hoyISO();
+    const deHoy = Array.isArray(data)
+      ? data.filter(v => String(v.Fecha || '').startsWith(hoy)).reverse()
+      : [];
+
+    if (deHoy.length === 0) {
+      lista.innerHTML = '<p style="color:#888; text-align:center; padding:16px">Sin visitas registradas hoy</p>';
+      return;
+    }
+
+    // Convertir hora 24h a 12h para mostrar
+    const fmt12 = h24 => {
+      if (!h24) return '';
+      const [h, m] = h24.split(':').map(Number);
+      const p = h < 12 ? 'AM' : 'PM';
+      const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      return `${h12}:${String(m).padStart(2,'0')} ${p}`;
+    };
+
+    lista.innerHTML = deHoy.map(v => `
+      <div class="visita-card">
+        <div class="vc-nombre">👤 ${v.Nombre_Visitante}</div>
+        <div class="vc-hora">🕐 Llegada estimada: ${fmt12(v.Hora_Estimada)}</div>
+        <div class="vc-meta">Registrado por ${v.Registrado_Por} · ${v.Estatus}</div>
+      </div>`).join('');
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c62828; text-align:center; padding:16px">Error al cargar</p>';
+  }
+}
+
+// ── AMENIDADES ────────────────────────────────────────────────
+
+let amenidadesData = [];
+let aforoPiscinaActual = 0;
+
+async function cargarAmenidades() {
+  const lista = document.getElementById('amenidades-lista');
+  lista.innerHTML = '<div class="loader">Cargando estado...</div>';
+  try {
+    const res  = await fetch(`${API}?accion=getAmenidades`);
+    amenidadesData = await res.json();
+    if (!Array.isArray(amenidadesData)) throw new Error('Respuesta inválida');
+    renderAmenidades();
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c62828; text-align:center; padding:16px">Error al cargar amenidades</p>';
+  }
+}
+
+function renderAmenidades() {
+  const lista = document.getElementById('amenidades-lista');
+  const iconos = {
+    'Piscina': '🏊', 'Palapa': '🌴',
+    'Mesa 1': '🪑', 'Mesa 2': '🪑', 'Mesa 3': '🪑'
+  };
+
+  lista.innerHTML = amenidadesData.map(a => {
+    const icono     = iconos[a.Amenidad] || '📍';
+    const esPiscina = a.Amenidad === 'Piscina';
+    const esPalapa  = a.Amenidad === 'Palapa';
+    const libre     = a.Estatus !== 'Ocupada';
+    const esMia     = String(a.Ocupado_Por_Casa || '').toUpperCase().trim() ===
+                      String(sesion.casa).toUpperCase().trim();
+    const claseCard = esPalapa ? 'palapa' : libre ? 'libre' : 'ocupada';
+    const claseBadge = esPalapa ? 'palapa' : libre ? 'libre' : 'ocupada';
+    const badgeTxt  = esPalapa ? '🚧 Próximamente' : libre ? '✅ Libre' : '🔴 Ocupada';
+
+    // Info de quién la tiene
+    let infoTxt = '';
+    if (!libre && a.Ocupado_Por_Casa) {
+      infoTxt = `<strong>Depto ${a.Ocupado_Por_Casa}</strong>` +
+        (a.Hora_Inicio ? ` · desde ${fmt12(a.Hora_Inicio)}` : '');
+    }
+
+    // Barra de aforo para piscina
+    let aforoHtml = '';
+    if (esPiscina) {
+      const actual  = parseInt(a.aforo_actual) || 0;
+      const max     = parseInt(a.aforo_max)    || 15;
+      aforoPiscinaActual = actual;
+      const pct     = Math.min((actual / max) * 100, 100);
+      const claseFill = pct >= 100 ? 'lleno' : pct >= 80 ? 'casi' : '';
+      aforoHtml = `
+        <div class="aforo-bar-wrap">
+          <div class="aforo-label">
+            <span>Aforo actual</span>
+            <span><strong>${actual}</strong> / ${max} personas</span>
+          </div>
+          <div class="aforo-bar">
+            <div class="aforo-fill ${claseFill}" style="width:${pct}%"></div>
+          </div>
+        </div>`;
+    }
+
+    // Botones de acción
+    let accionHtml = '';
+    if (esPalapa) {
+      accionHtml = `<div class="am-actions">
+        <button class="btn-palapa-prox">🚧 Reservas próximamente</button>
+      </div>`;
+    } else if (libre) {
+      accionHtml = `<div class="am-actions">
+        <button class="btn-ocupar" onclick="ocupar('${a.Amenidad}')">
+          ${esPiscina ? '🏊 Entrar a la piscina' : '🪑 Ocupar'}
+        </button>
+      </div>`;
+    } else if (esMia) {
+      accionHtml = `<div class="am-actions">
+        <button class="btn-liberar" onclick="liberar('${a.Amenidad}')">
+          ${esPiscina ? '🚪 Salir de la piscina' : '🔓 Liberar mesa'}
+        </button>
+      </div>`;
+    } else {
+      accionHtml = `<div class="am-actions">
+        <button class="btn-disabled">No disponible</button>
+      </div>`;
+    }
+
+    return `
+    <div class="amenidad-card ${claseCard}">
+      <div class="am-header">
+        <span class="am-nombre">${icono} ${a.Amenidad}</span>
+        <span class="am-badge ${claseBadge}">${badgeTxt}</span>
+      </div>
+      <div class="am-info">${infoTxt}</div>
+      ${aforoHtml}
+      ${accionHtml}
+    </div>`;
+  }).join('');
+}
+
+function fmt12(h24) {
+  if (!h24) return '';
+  const parts = String(h24).split(':');
+  const h = parseInt(parts[0]);
+  const m = parts[1] || '00';
+  const p = h < 12 ? 'AM' : 'PM';
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${h12}:${m} ${p}`;
+}
+
+// Ocupar amenidad (piscina abre modal, resto directo)
+function ocupar(amenidad) {
+  if (amenidad === 'Piscina') {
+    const disponible = 15 - aforoPiscinaActual;
+    if (disponible <= 0) {
+      showMsg(document.getElementById('msg-amenidad'), 'error',
+        'La piscina está llena (15/15 personas)');
+      return;
+    }
+    document.getElementById('aforo-disponible').textContent =
+      `Lugares disponibles: ${disponible} de 15`;
+    // Limitar selector al disponible y al máx 7 por depto
+    const maxSel = Math.min(disponible, 7);
+    const sel = document.getElementById('aforo-personas');
+    sel.innerHTML = '<option value="">Selecciona...</option>';
+    for (let i = 1; i <= maxSel; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = i + (i === 7 ? ' personas (máx. por depto)' : i === 1 ? ' persona' : ' personas');
+      sel.appendChild(opt);
+    }
+    document.getElementById('modal-aforo').classList.add('show');
+    return;
+  }
+  // Mesas: ocupar directo
+  ocuparDirecto(amenidad, null);
+}
+
+async function confirmarOcuparPiscina() {
+  const personas = parseInt(document.getElementById('aforo-personas').value);
+  if (!personas) {
+    alert('Selecciona el número de personas');
+    return;
+  }
+  cerrarModalAforo();
+  await ocuparDirecto('Piscina', personas);
+}
+
+function cerrarModalAforo() {
+  document.getElementById('modal-aforo').classList.remove('show');
+}
+
+async function ocuparDirecto(amenidad, numPersonas) {
+  const msg = document.getElementById('msg-amenidad');
+  showMsg(msg, 'info', 'Registrando...');
+  try {
+    const res = await post({
+      accion: 'ocuparAmenidad',
+      amenidad, casa: sesion.casa,
+      nombre: sesion.nombre,
+      num_personas: numPersonas || ''
+    });
+    if (res.ok) {
+      showMsg(msg, 'ok', `✅ ${amenidad} ocupada`);
+      await cargarAmenidades();
+    } else {
+      showMsg(msg, 'error', res.error || 'No se pudo ocupar');
+    }
+  } catch(e) {
+    showMsg(msg, 'error', 'Error de conexión');
+  }
+}
+
+async function liberar(amenidad) {
+  const msg = document.getElementById('msg-amenidad');
+  showMsg(msg, 'info', 'Liberando...');
+  try {
+    const res = await post({
+      accion: 'liberarAmenidad',
+      amenidad, casa: sesion.casa
+    });
+    if (res.ok) {
+      showMsg(msg, 'ok', `✅ ${amenidad} liberada`);
+      await cargarAmenidades();
+    } else {
+      showMsg(msg, 'error', res.error || 'No se pudo liberar');
+    }
+  } catch(e) {
+    showMsg(msg, 'error', 'Error de conexión');
+  }
 }
 </script>
 </body>
