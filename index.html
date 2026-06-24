@@ -387,19 +387,39 @@ async function cargarVisitas() {
 // ── AMENIDADES ────────────────────────────────────────────────
 
 let amenidadesData = [];
+let reglasData     = [];
 let aforoPiscinaActual = 0;
 
 async function cargarAmenidades() {
   const lista = document.getElementById('amenidades-lista');
   lista.innerHTML = '<div class="loader">Cargando estado...</div>';
   try {
-    const res  = await fetch(`${API}?accion=getAmenidades`);
-    amenidadesData = await res.json();
+    const [resA, resR] = await Promise.all([
+      fetch(`${API}?accion=getAmenidades`),
+      fetch(`${API}?accion=getReglas`)
+    ]);
+    amenidadesData = await resA.json();
+    reglasData     = await resR.json();
     if (!Array.isArray(amenidadesData)) throw new Error('Respuesta inválida');
+    if (!Array.isArray(reglasData)) reglasData = [];
     renderAmenidades();
   } catch(e) {
     lista.innerHTML = '<p style="color:#c62828; text-align:center; padding:16px">Error al cargar amenidades</p>';
   }
+}
+
+// Mapeo entre nombre de amenidad en Estado_Amenidades y nombre en pestaña Reglas
+function obtenerRegla(amenidad) {
+  const mapa = {
+    'Mesa 1': 'Juego de Mesa, Sillas y Sombrilla',
+    'Mesa 2': 'Juego de Mesa, Sillas y Sombrilla',
+    'Mesa 3': 'Juego de Mesa, Sillas y Sombrilla',
+  };
+  const clave = mapa[amenidad] || amenidad;
+  const regla = reglasData.find(r =>
+    String(r.Amenidad || '').trim().toLowerCase() === clave.toLowerCase()
+  );
+  return regla ? String(regla.Texto_Reglamento || regla.Regla || '') : '';
 }
 
 function renderAmenidades() {
@@ -471,6 +491,15 @@ function renderAmenidades() {
       </div>`;
     }
 
+    // Bloque de regla (se muestra siempre si existe)
+    const textoRegla = obtenerRegla(a.Amenidad);
+    const reglaHtml = textoRegla ? `
+      <div style="background:#f8f9fa; border-radius:8px; padding:10px 12px;
+                  margin-bottom:12px; font-size:12px; color:#555; line-height:1.6;
+                  border-left:3px solid #1976d2;">
+        📋 ${textoRegla}
+      </div>` : '';
+
     return `
     <div class="amenidad-card ${claseCard}">
       <div class="am-header">
@@ -479,6 +508,7 @@ function renderAmenidades() {
       </div>
       <div class="am-info">${infoTxt}</div>
       ${aforoHtml}
+      ${reglaHtml}
       ${accionHtml}
     </div>`;
   }).join('');
