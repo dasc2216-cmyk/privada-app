@@ -2395,7 +2395,7 @@ async function cargarBannerJunta() {
     document.getElementById('bj-tipo').textContent =
       `🏛️ ${proxima.Tipo || 'Próxima Junta'}`;
     document.getElementById('bj-fecha').textContent =
-      `📅 ${formatearFecha(proxima.Fecha_Junta)}${proxima.Hora ? ' — ' + fmt12(proxima.Hora) + ' hrs' : ''}`;
+      `📅 ${formatearFecha(proxima.Fecha_Junta)}${proxima.Hora ? ' — ' + fmt12(proxima.Hora) : ''}`;
     const orden = proxima.Orden_del_Dia;
     document.getElementById('bj-orden').textContent =
       orden && isNaN(Number(orden)) ? `📋 ${orden}` : '';
@@ -2466,7 +2466,7 @@ async function cargarJuntas() {
         return `
         <div class="junta-card">
           <div class="junta-tipo">${j.Tipo || 'Junta'}</div>
-          <div class="junta-fecha">📅 ${formatearFecha(j.Fecha_Junta)}${j.Hora ? ' — ' + fmt12(j.Hora) + ' hrs' : ''}</div>
+          <div class="junta-fecha">📅 ${formatearFecha(j.Fecha_Junta)}${j.Hora ? ' — ' + fmt12(j.Hora) : ''}</div>
           ${j.Orden_del_Dia ? `<div class="junta-orden">📋 ${j.Orden_del_Dia}</div>` : ''}
           <div class="junta-acciones">
             ${j.Link_Videollamada
