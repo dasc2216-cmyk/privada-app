@@ -1989,24 +1989,16 @@ async function entregarPkgSeg(id) {
 }
 
 async function actualizarAgua() {
+  const estadoEl = document.getElementById('agua-estado');
+  const iconoEl  = document.getElementById('agua-icono');
+  const txtEl    = document.getElementById('agua-txt');
+  const btn      = document.getElementById('agua-btn');
+  const histEl   = document.getElementById('agua-historial');
   try {
-    const res  = await fetch(`${API}?accion=getAmenidades`);
+    const res  = await fetch(`${API}?accion=getLlaveAgua`);
     const data = await res.json();
-    const llave = Array.isArray(data)
-      ? data.find(a => String(a.Amenidad).trim() === 'Llave de Agua')
-      : null;
+    const abierta = String(data.estatus || 'Cerrada').trim() === 'Abierta';
 
-    const estadoEl = document.getElementById('agua-estado');
-    const iconoEl  = document.getElementById('agua-icono');
-    const txtEl    = document.getElementById('agua-txt');
-    const btn      = document.getElementById('agua-btn');
-
-    if (!llave) {
-      if (txtEl) txtEl.textContent = 'Sin configurar en Sheet';
-      return;
-    }
-
-    const abierta = String(llave.Estatus || '').trim() === 'Abierta';
     if (estadoEl) estadoEl.style.background = abierta ? '#e8f5e9' : '#ffebee';
     if (iconoEl)  iconoEl.textContent  = abierta ? '🚰' : '🔴';
     if (txtEl)    txtEl.textContent    = abierta ? '💧 Agua ABIERTA' : '🔴 Agua CERRADA';
@@ -2014,53 +2006,35 @@ async function actualizarAgua() {
       btn.textContent      = abierta ? '🔴 Cerrar llave' : '💧 Abrir llave';
       btn.style.background = abierta ? '#e53935' : '#43a047';
     }
-
-    // Historial de hoy desde bitácora
-    try {
-      const resB = await fetch(`${API}?accion=getBitacora`);
-      const bit  = await resB.json();
-      const hoyStr = new Date().toISOString().split('T')[0];
-      const regs = Array.isArray(bit)
-        ? bit.filter(r => r.Tipo_Actividad === 'Control Agua' && limpiarFecha(r.Fecha) === hoyStr)
-        : [];
-      const histEl = document.getElementById('agua-historial');
-      if (histEl) {
-        histEl.innerHTML = regs.length === 0
-          ? '<p style="font-size:12px;color:#999">Sin registros hoy</p>'
-          : regs.slice().reverse().map(r =>
-              `<div style="font-size:12px;padding:4px 0;border-bottom:1px solid #eee">
-                ${r.Hora_Entrada} — <strong>${r.Zona_Area}</strong>
-              </div>`).join('');
-      }
-    } catch(e) {}
-  } catch(e) {}
+    if (histEl && data.hora) {
+      histEl.innerHTML = `<div style="font-size:12px;padding:4px 0">
+        Último cambio: <strong>${data.estatus}</strong> a las ${data.hora}
+        ${data.registrado ? ' · ' + data.registrado : ''}
+      </div>`;
+    }
+  } catch(e) {
+    if (txtEl) txtEl.textContent = 'Error al verificar';
+  }
 }
 
 async function toggleAgua() {
-  const txtEl  = document.getElementById('agua-txt');
+  const txtEl = document.getElementById('agua-txt');
   const abierta = txtEl?.textContent.includes('ABIERTA');
   const nuevoEstatus = abierta ? 'Cerrada' : 'Abierta';
-  const accionBit    = abierta ? 'Cierre'  : 'Apertura';
-  const ahora = new Date();
-  const hora  = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0');
-  const msg   = document.getElementById('msg-seg');
-
+  const msg = document.getElementById('msg-seg');
   try {
-    // 1. Actualizar Estado_Amenidades
-    await fetch(API, {
+    const res = await fetch(API, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ accion: 'ocuparAmenidad', amenidad: 'Llave de Agua',
-        casa: 'CASETA', nombre: sesion.nombre, estatus_directo: nuevoEstatus })
+      body: JSON.stringify({ accion: 'setLlaveAgua', estatus: nuevoEstatus, registrado_por: sesion.nombre })
     });
-
-    // 2. Registrar en bitácora
-    await post({ accion: 'registrarBitacora', tipo_actividad: 'Control Agua',
-      zona_area: accionBit, trabajador: sesion.nombre,
-      registrado_por: sesion.nombre, hora_entrada: hora, notas: accionBit + ' de llave' });
-
-    showMsg(msg, 'ok', `✅ Llave ${nuevoEstatus.toLowerCase()} a las ${hora}`);
-    setTimeout(() => actualizarAgua(), 800);
+    const data = await res.json();
+    if (data.ok) {
+      showMsg(msg, 'ok', `✅ Llave ${nuevoEstatus.toLowerCase()} a las ${data.hora}`);
+      setTimeout(() => actualizarAgua(), 500);
+    } else {
+      showMsg(msg, 'error', data.error || 'Error al actualizar');
+    }
   } catch(e) { showMsg(msg, 'error', 'Error de conexión'); }
 }
 
@@ -2334,14 +2308,21 @@ async function cargarReglamentoVer() {
   const el = document.getElementById('reglamento-ver-texto');
   el.innerHTML = '<div class="loader">Cargando...</div>';
   try {
-    const res   = await fetch(`${API}?accion=getReglas`);
-    const data  = await res.json();
-    const reg   = Array.isArray(data)
-      ? data.find(r => String(r.Amenidad || '').trim() === 'Reglamento')
-      : null;
-    el.innerHTML = reg
-      ? (reg.Texto_Reglamento || reg.Regla || 'Sin contenido')
-      : '<p style="color:#888;text-align:center;padding:24px">Reglamento no disponible</p>';
+    const res  = await fetch(`${API}?accion=getReglas`);
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) {
+      el.innerHTML = '<p style="color:#888;text-align:center;padding:24px">Reglamento no disponible</p>';
+      return;
+    }
+    // Buscar por Amenidad = Reglamento (case insensitive)
+    const reg = data.find(r => String(r.Amenidad || '').trim().toLowerCase() === 'reglamento');
+    // El texto puede estar en Texto_Reglamento o Regla
+    const texto = reg ? (reg.Texto_Reglamento || reg.Regla || '') : '';
+    if (!texto) {
+      el.innerHTML = '<p style="color:#888;text-align:center;padding:24px">Reglamento no disponible</p>';
+      return;
+    }
+    el.innerHTML = texto;
   } catch(e) {
     el.innerHTML = '<p style="color:#c62828;text-align:center;padding:24px">Error al cargar</p>';
   }
