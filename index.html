@@ -2676,11 +2676,13 @@ async function cargarHistorialAmenidades() {
     const data = await res.json();
     const lista = Array.isArray(data) ? data : [];
 
-    // Residente ve solo sus registros, Principal ve todos
-    const filtrado = sesion.verHistorialCompleto
+    // Propietario y Administrador ven todo, Residente solo su depto
+    const esPrincipal = sesion.rol === 'Propietario' || sesion.rol === 'Administrador';
+    const filtrado = esPrincipal
       ? lista.slice().reverse().slice(0, 20)
       : lista.filter(r =>
-          String(r.Casa || '').toUpperCase().trim() === sesion.casa.toUpperCase().trim()
+          String(r.Casa || '').toUpperCase().trim() === sesion.casa.toUpperCase().trim() &&
+          String(r.Rol || '').trim().toLowerCase() === 'residente'
         ).slice().reverse().slice(0, 20);
 
     if (filtrado.length === 0) {
@@ -2845,6 +2847,7 @@ async function ocuparDirecto(amenidad, numPersonas) {
     const res = await post({
       accion: 'ocuparAmenidad', amenidad,
       casa: sesion.casa, nombre: sesion.nombre,
+      rol: sesion.rol || '',
       num_personas: numPersonas || ''
     });
     if (res.ok) {
