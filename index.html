@@ -222,6 +222,36 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 .seccion-titulo { font-size:12px; font-weight:700; color:#888; text-transform:uppercase;
   letter-spacing:.6px; margin:16px 0 10px; }
 
+/* ── REPORTES Y MUDANZAS ───────────────────────────────────── */
+.historial-card { background:#fff; border-radius:12px; padding:14px 16px;
+  margin-bottom:10px; box-shadow:0 2px 6px rgba(0,0,0,.07);
+  border-left:4px solid #ddd; }
+.historial-card.abierto    { border-left-color:#1976d2; }
+.historial-card.en-proceso { border-left-color:#fb8c00; }
+.historial-card.resuelto   { border-left-color:#43a047; }
+.historial-card.pendiente  { border-left-color:#fb8c00; }
+.historial-card.aprobada   { border-left-color:#43a047; }
+.historial-card.rechazada  { border-left-color:#e53935; }
+.hc-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
+.hc-titulo { font-size:14px; font-weight:700; color:#333; }
+.hc-badge  { font-size:11px; font-weight:700; padding:3px 9px; border-radius:12px; white-space:nowrap; }
+.hc-badge.abierto    { background:#e3f0ff; color:#1565c0; }
+.hc-badge.en-proceso { background:#fff3e0; color:#e65100; }
+.hc-badge.resuelto   { background:#e8f5e9; color:#2e7d32; }
+.hc-badge.pendiente  { background:#fff3e0; color:#e65100; }
+.hc-badge.aprobada   { background:#e8f5e9; color:#2e7d32; }
+.hc-badge.rechazada  { background:#ffebee; color:#c62828; }
+.hc-desc  { font-size:13px; color:#555; line-height:1.5; margin-bottom:4px; }
+.hc-meta  { font-size:11px; color:#aaa; }
+.hc-respuesta { background:#f8f9fa; border-radius:8px; padding:8px 10px;
+  margin-top:8px; font-size:12px; color:#555; border-left:3px solid #43a047; }
+
+/* Selector de tipo con chips */
+.tipo-grid { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:4px; }
+.tipo-chip { border:1.5px solid #ddd; border-radius:20px; padding:7px 14px;
+  font-size:13px; cursor:pointer; background:#fff; transition:all .15s; }
+.tipo-chip.selected { border-color:#1976d2; background:#e3f0ff; color:#1565c0; font-weight:600; }
+
 /* ── DIRECTORIO ────────────────────────────────────────────── */
 .dir-card { background:#fff; border-radius:12px; padding:14px 16px;
   margin-bottom:10px; display:flex; align-items:center; gap:14px;
@@ -520,12 +550,12 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
         <span class="m-title">Amenidades</span>
         <span class="m-desc">Piscina, palapa y más</span>
       </button>
-      <button class="modulo-btn" onclick="proximamente()">
+      <button class="modulo-btn" onclick="ir('s-reportes'); cargarReportes()">
         <span class="m-icon">📝</span>
         <span class="m-title">Reportes</span>
         <span class="m-desc">Quejas y sugerencias</span>
       </button>
-      <button class="modulo-btn" onclick="proximamente()">
+      <button class="modulo-btn" onclick="ir('s-mudanzas'); cargarMudanzas()">
         <span class="m-icon">📦</span>
         <span class="m-title">Mudanzas</span>
         <span class="m-desc">Control de acceso</span>
@@ -636,6 +666,84 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
+     PANTALLA — REPORTES E INCONFORMIDADES
+═══════════════════════════════════════════════════════════ -->
+<div id="s-reportes" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>Reportes e Inconformidades</p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="msg-reporte" class="msg"></div>
+    <div class="card">
+      <p class="card-title">📝 Nuevo reporte</p>
+      <div class="fg">
+        <label>Tipo</label>
+        <div class="tipo-grid">
+          <span class="tipo-chip" onclick="selTipo(this,'reporte')">🗣️ Queja</span>
+          <span class="tipo-chip" onclick="selTipo(this,'reporte')">🔧 Falla de mantenimiento</span>
+          <span class="tipo-chip" onclick="selTipo(this,'reporte')">💡 Sugerencia</span>
+          <span class="tipo-chip" onclick="selTipo(this,'reporte')">📌 Otro</span>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Descripción</label>
+        <textarea id="rep-descripcion" placeholder="Describe detalladamente el problema o sugerencia..."
+          style="width:100%;padding:12px;border:1.5px solid #ddd;border-radius:10px;
+                 font-size:14px;resize:vertical;min-height:100px;outline:none;
+                 font-family:inherit"></textarea>
+      </div>
+      <button class="btn-submit" onclick="registrarReporte()">Enviar Reporte</button>
+    </div>
+    <div class="card">
+      <p class="card-title">📋 Mis reportes</p>
+      <div id="reportes-lista"><div class="loader">Cargando...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — MUDANZAS
+═══════════════════════════════════════════════════════════ -->
+<div id="s-mudanzas" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>Mudanzas</p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="msg-mudanza" class="msg"></div>
+    <div class="card">
+      <p class="card-title">📦 Solicitar mudanza</p>
+      <p style="font-size:13px;color:#666;margin-bottom:14px">
+        Registra tu mudanza con anticipación para que el comité pueda coordinar el acceso.
+      </p>
+      <div class="fg">
+        <label>Tipo de movimiento</label>
+        <div class="tipo-grid">
+          <span class="tipo-chip" onclick="selTipo(this,'mudanza')">📥 Entrada</span>
+          <span class="tipo-chip" onclick="selTipo(this,'mudanza')">📤 Salida</span>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Fecha de la mudanza</label>
+        <input type="date" id="mud-fecha">
+      </div>
+      <button class="btn-submit" onclick="registrarMudanza()">Solicitar Mudanza</button>
+    </div>
+    <div class="card">
+      <p class="card-title">📋 Mis solicitudes</p>
+      <div id="mudanzas-lista"><div class="loader">Cargando...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
      PANTALLA — DIRECTORIO
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-directorio" class="screen">
@@ -669,7 +777,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbyRQWtWlqngIlP8ffwbI9vhs1coezSIry6Opiy1K2vHUQ2povE_ojVF_SKOg4bHSwRe1A/exec'; // <-- reemplaza con tu URL del Apps Script
+const API = 'https://script.google.com/macros/s/AKfycbxABEJ04Z2toiLAouKzfj56P5mFKwTw72qiVKR9WjXCKTG-QTTkQjSrjAiexODy6Ea3VA/exec'; // <-- reemplaza con tu URL del Apps Script
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -992,6 +1100,136 @@ async function cargarFinanzas() {
     `;
   } catch(e) {
     contenido.innerHTML = '<p style="color:#c62828;text-align:center;padding:32px">Error al cargar finanzas</p>';
+  }
+}
+
+// ── REPORTES ─────────────────────────────────────────────────
+
+let tipoReporteSeleccionado = null;
+let tipoMudanzaSeleccionado = null;
+
+function selTipo(el, modulo) {
+  const grid = el.parentElement;
+  grid.querySelectorAll('.tipo-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  // Extraer solo el texto sin emoji
+  const texto = el.textContent.replace(/^[\u{1F300}-\u{1FFFF}]|^[^\w\s]/u, '').trim();
+  if (modulo === 'reporte') tipoReporteSeleccionado = texto;
+  if (modulo === 'mudanza') tipoMudanzaSeleccionado = texto;
+}
+
+async function registrarReporte() {
+  const msg  = document.getElementById('msg-reporte');
+  const desc = document.getElementById('rep-descripcion').value.trim();
+  if (!tipoReporteSeleccionado) { showMsg(msg, 'error', 'Selecciona el tipo de reporte'); return; }
+  if (!desc) { showMsg(msg, 'error', 'Escribe una descripción'); return; }
+  const btn = document.querySelector('#s-reportes .btn-submit');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  try {
+    const res = await post({
+      accion: 'registrarReporte', casa: sesion.casa,
+      nombre: sesion.nombre, tipo: tipoReporteSeleccionado, descripcion: desc
+    });
+    if (res.ok) {
+      showMsg(msg, 'ok', `✅ Reporte enviado (${res.id})`);
+      document.getElementById('rep-descripcion').value = '';
+      tipoReporteSeleccionado = null;
+      document.querySelectorAll('#s-reportes .tipo-chip').forEach(c => c.classList.remove('selected'));
+      cargarReportes();
+    } else {
+      showMsg(msg, 'error', res.error || 'Error al enviar');
+    }
+  } catch(e) { showMsg(msg, 'error', 'Error de conexión'); }
+  btn.disabled = false; btn.textContent = 'Enviar Reporte';
+}
+
+async function cargarReportes() {
+  const lista = document.getElementById('reportes-lista');
+  lista.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res  = await fetch(`${API}?accion=getReportes&casa=${encodeURIComponent(sesion.casa)}`);
+    const data = await res.json();
+    const items = Array.isArray(data) ? data.slice().reverse() : [];
+    if (items.length === 0) {
+      lista.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin reportes registrados</p>';
+      return;
+    }
+    const iconos = { 'Queja':'🗣️', 'Falla de mantenimiento':'🔧', 'Sugerencia':'💡', 'Otro':'📌' };
+    lista.innerHTML = items.map(r => {
+      const est     = String(r.Estatus || 'Abierto').toLowerCase().replace(' ', '-');
+      const estTxt  = r.Estatus || 'Abierto';
+      const icono   = iconos[r.Tipo] || '📝';
+      return `
+      <div class="historial-card ${est}">
+        <div class="hc-header">
+          <span class="hc-titulo">${icono} ${r.Tipo}</span>
+          <span class="hc-badge ${est}">${estTxt}</span>
+        </div>
+        <div class="hc-desc">${r.Descripcion}</div>
+        <div class="hc-meta">${formatearFecha(r.Fecha)} · ${r.ID}</div>
+        ${r.Respuesta ? `<div class="hc-respuesta">💬 ${r.Respuesta}</div>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
+  }
+}
+
+// ── MUDANZAS ──────────────────────────────────────────────────
+
+async function registrarMudanza() {
+  const msg   = document.getElementById('msg-mudanza');
+  const fecha = document.getElementById('mud-fecha').value;
+  if (!tipoMudanzaSeleccionado) { showMsg(msg, 'error', 'Selecciona el tipo: Entrada o Salida'); return; }
+  if (!fecha) { showMsg(msg, 'error', 'Selecciona la fecha de la mudanza'); return; }
+  const hoy = new Date().toISOString().split('T')[0];
+  if (fecha < hoy) { showMsg(msg, 'error', 'La fecha no puede ser en el pasado'); return; }
+  const btn = document.querySelector('#s-mudanzas .btn-submit');
+  btn.disabled = true; btn.textContent = 'Solicitando...';
+  try {
+    const res = await post({
+      accion: 'registrarMudanza', casa: sesion.casa,
+      nombre: sesion.nombre, tipo_movimiento: tipoMudanzaSeleccionado, fecha_mudanza: fecha
+    });
+    if (res.ok) {
+      showMsg(msg, 'ok', `✅ Solicitud enviada (${res.id}) — El comité la revisará`);
+      document.getElementById('mud-fecha').value = '';
+      tipoMudanzaSeleccionado = null;
+      document.querySelectorAll('#s-mudanzas .tipo-chip').forEach(c => c.classList.remove('selected'));
+      cargarMudanzas();
+    } else {
+      showMsg(msg, 'error', res.error || 'Error al solicitar');
+    }
+  } catch(e) { showMsg(msg, 'error', 'Error de conexión'); }
+  btn.disabled = false; btn.textContent = 'Solicitar Mudanza';
+}
+
+async function cargarMudanzas() {
+  const lista = document.getElementById('mudanzas-lista');
+  lista.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res  = await fetch(`${API}?accion=getMudanzas&casa=${encodeURIComponent(sesion.casa)}`);
+    const data = await res.json();
+    const items = Array.isArray(data) ? data.slice().reverse() : [];
+    if (items.length === 0) {
+      lista.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin solicitudes registradas</p>';
+      return;
+    }
+    lista.innerHTML = items.map(m => {
+      const est    = String(m.Estatus || 'Pendiente').toLowerCase();
+      const icono  = m.Tipo_Movimiento === 'Entrada' ? '📥' : '📤';
+      return `
+      <div class="historial-card ${est}">
+        <div class="hc-header">
+          <span class="hc-titulo">${icono} Mudanza — ${m.Tipo_Movimiento}</span>
+          <span class="hc-badge ${est}">${m.Estatus}</span>
+        </div>
+        <div class="hc-desc">Fecha solicitada: <strong>${formatearFecha(m.Fecha_Mudanza)}</strong></div>
+        <div class="hc-meta">Solicitud: ${formatearFecha(m.Fecha_Solicitud)} · ${m.ID}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
   }
 }
 
