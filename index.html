@@ -646,6 +646,11 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
         <span class="m-title">Contactos</span>
         <span class="m-desc">Directorio Paamul</span>
       </button>
+      <button class="modulo-btn" onclick="ir('s-reglamento-ver'); cargarReglamentoVer()">
+        <span class="m-icon">📜</span>
+        <span class="m-title">Reglamento</span>
+        <span class="m-desc">Consultar normativa</span>
+      </button>
     </div>
 
     <!-- Botones especiales: solo visibles según rol -->
@@ -885,6 +890,26 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
     <div class="card">
       <p class="card-title">📋 Mis solicitudes</p>
       <div id="mudanzas-lista"><div class="loader">Cargando...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — REGLAMENTO (consulta)
+═══════════════════════════════════════════════════════════ -->
+<div id="s-reglamento-ver" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>Reglamento Interno</p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div class="card">
+      <div id="reglamento-ver-texto" style="font-size:14px;line-height:1.8;color:#333">
+        <div class="loader">Cargando...</div>
+      </div>
     </div>
   </div>
 </div>
@@ -2303,6 +2328,25 @@ async function cargarMudanzas() {
   }
 }
 
+// ── REGLAMENTO (consulta desde menú) ─────────────────────────
+
+async function cargarReglamentoVer() {
+  const el = document.getElementById('reglamento-ver-texto');
+  el.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res   = await fetch(`${API}?accion=getReglas`);
+    const data  = await res.json();
+    const reg   = Array.isArray(data)
+      ? data.find(r => String(r.Amenidad || '').trim() === 'Reglamento')
+      : null;
+    el.innerHTML = reg
+      ? (reg.Texto_Reglamento || reg.Regla || 'Sin contenido')
+      : '<p style="color:#888;text-align:center;padding:24px">Reglamento no disponible</p>';
+  } catch(e) {
+    el.innerHTML = '<p style="color:#c62828;text-align:center;padding:24px">Error al cargar</p>';
+  }
+}
+
 // ── DIRECTORIO ────────────────────────────────────────────────
 
 async function cargarDirectorio() {
@@ -2653,7 +2697,9 @@ function renderAmenidades() {
   const lista  = document.getElementById('amenidades-lista');
   const iconos = { 'Piscina':'🏊', 'Palapa':'🌴', 'Mesa 1':'🪑', 'Mesa 2':'🪑', 'Mesa 3':'🪑' };
 
-  lista.innerHTML = amenidadesData.map(a => {
+  lista.innerHTML = amenidadesData
+    .filter(a => String(a.Amenidad).trim() !== 'Llave de Agua')
+    .map(a => {
     const icono     = iconos[a.Amenidad] || '📍';
     const esPiscina = a.Amenidad === 'Piscina';
     const esPalapa  = a.Amenidad === 'Palapa';
