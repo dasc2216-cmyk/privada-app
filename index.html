@@ -529,6 +529,22 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
       <p id="bj-orden"></p>
     </div>
 
+    <!-- Banner paquete pendiente -->
+    <div class="hidden" id="banner-paquete"
+      style="background:linear-gradient(135deg,#e65100,#fb8c00);border-radius:14px;
+             padding:14px 16px;color:#fff;margin-bottom:16px;cursor:pointer;
+             box-shadow:0 3px 10px rgba(230,81,0,.3);"
+      onclick="ir('s-paqueteria'); cargarPaquetes()">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:28px">📦</span>
+        <div>
+          <div style="font-weight:700;font-size:15px">¡Tienes paquetes en caseta!</div>
+          <div id="banner-paq-texto" style="font-size:13px;opacity:.9;margin-top:2px"></div>
+        </div>
+        <span style="margin-left:auto;font-size:20px;opacity:.8">›</span>
+      </div>
+    </div>
+
     <!-- Finanzas en home -->
     <div class="finanzas-home" onclick="ir('s-finanzas'); cargarFinanzas()">
       <div>
@@ -564,6 +580,16 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
         <span class="m-icon">🏛️</span>
         <span class="m-title">Juntas</span>
         <span class="m-desc">Asambleas y minutas</span>
+      </button>
+      <button class="modulo-btn" onclick="ir('s-servicios'); cargarServicios()">
+        <span class="m-icon">🔑</span>
+        <span class="m-title">Servicios</span>
+        <span class="m-desc">Llave azotea y escalera</span>
+      </button>
+      <button class="modulo-btn" onclick="ir('s-paqueteria'); cargarPaquetes()" id="btn-paqueteria">
+        <span class="m-icon">📦</span>
+        <span class="m-title">Paquetería</span>
+        <span class="m-desc">Paquetes en caseta</span>
       </button>
       <button class="modulo-btn" onclick="ir('s-directorio'); cargarDirectorio()">
         <span class="m-icon">📞</span>
@@ -662,6 +688,66 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
     <p id="aforo-disponible" style="font-size:13px; color:#666; margin-bottom:14px"></p>
     <button class="btn-submit" onclick="confirmarOcuparPiscina()">Confirmar entrada</button>
     <button class="btn-modal-cancel" onclick="cerrarModalAforo()">Cancelar</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — SERVICIOS ADICIONALES
+═══════════════════════════════════════════════════════════ -->
+<div id="s-servicios" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>Servicios Adicionales</p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="msg-servicio" class="msg"></div>
+    <div class="card">
+      <p class="card-title">🔑 Solicitar préstamo</p>
+      <p style="font-size:13px;color:#666;margin-bottom:14px">
+        Recuerda devolver el artículo el mismo día de la solicitud.
+      </p>
+      <div class="fg">
+        <label>Artículo</label>
+        <div class="tipo-grid">
+          <span class="tipo-chip" onclick="selTipo(this,'servicio')">🔑 Llave de Azotea</span>
+          <span class="tipo-chip" onclick="selTipo(this,'servicio')">🪜 Escalera Comunitaria</span>
+        </div>
+      </div>
+      <button class="btn-submit" onclick="registrarServicio()">Solicitar Préstamo</button>
+    </div>
+    <div class="card">
+      <p class="card-title">📋 Mis préstamos</p>
+      <div id="servicios-lista"><div class="loader">Cargando...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — PAQUETERÍA
+═══════════════════════════════════════════════════════════ -->
+<div id="s-paqueteria" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>Paquetería</p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="msg-paquete" class="msg"></div>
+    <div id="paquetes-pendientes-box" class="hidden">
+      <div class="card" style="border:2px solid #fb8c00">
+        <p class="card-title" style="color:#e65100">📦 Paquetes esperándote</p>
+        <div id="paquetes-pendientes-lista"></div>
+      </div>
+    </div>
+    <div class="card">
+      <p class="card-title">📋 Historial de paquetes</p>
+      <div id="paquetes-lista"><div class="loader">Cargando...</div></div>
+    </div>
   </div>
 </div>
 
@@ -1001,8 +1087,9 @@ async function cargarMenuPrincipal() {
     badges.innerHTML += `<span class="verificado-badge">✔ Propietario verificado</span>`;
   }
 
-  // Cargar estatus de finanzas
+  // Cargar estatus de finanzas y banners
   cargarEstatusHome();
+  cargarBannerPaquete();
 }
 
 async function cargarEstatusHome() {
@@ -1103,6 +1190,124 @@ async function cargarFinanzas() {
   }
 }
 
+// ── SERVICIOS ADICIONALES ─────────────────────────────────────
+
+let tipoServicioSeleccionado = null;
+
+async function registrarServicio() {
+  const msg = document.getElementById('msg-servicio');
+  if (!tipoServicioSeleccionado) {
+    showMsg(msg, 'error', 'Selecciona el artículo a solicitar'); return;
+  }
+  const btn = document.querySelector('#s-servicios .btn-submit');
+  btn.disabled = true; btn.textContent = 'Solicitando...';
+  try {
+    const res = await post({
+      accion: 'registrarServicio', casa: sesion.casa,
+      nombre: sesion.nombre, articulo: tipoServicioSeleccionado
+    });
+    if (res.ok) {
+      showMsg(msg, 'ok', `✅ Préstamo registrado (${res.id}). Recuerda devolverlo hoy.`);
+      tipoServicioSeleccionado = null;
+      document.querySelectorAll('#s-servicios .tipo-chip').forEach(c => c.classList.remove('selected'));
+      cargarServicios();
+    } else {
+      showMsg(msg, 'error', res.error || 'Error al solicitar');
+    }
+  } catch(e) { showMsg(msg, 'error', 'Error de conexión'); }
+  btn.disabled = false; btn.textContent = 'Solicitar Préstamo';
+}
+
+async function cargarServicios() {
+  const lista = document.getElementById('servicios-lista');
+  lista.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res  = await fetch(`${API}?accion=getServicios&casa=${encodeURIComponent(sesion.casa)}`);
+    const data = await res.json();
+    const items = Array.isArray(data) ? data.slice().reverse() : [];
+    if (items.length === 0) {
+      lista.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin préstamos registrados</p>';
+      return;
+    }
+    lista.innerHTML = items.map(s => {
+      const est   = String(s.Estatus || '').toLowerCase();
+      const icono = s.Articulo?.includes('Escalera') ? '🪜' : '🔑';
+      return `
+      <div class="historial-card ${est === 'prestado' ? 'abierto' : 'resuelto'}">
+        <div class="hc-header">
+          <span class="hc-titulo">${icono} ${s.Articulo}</span>
+          <span class="hc-badge ${est === 'prestado' ? 'abierto' : 'resuelto'}">${s.Estatus}</span>
+        </div>
+        <div class="hc-meta">${formatearFecha(s.Fecha)} · ${s.ID}</div>
+        ${s.Fecha_Devolucion ? `<div style="font-size:12px;color:#2e7d32;margin-top:4px">✅ Devuelto: ${formatearFecha(s.Fecha_Devolucion)}</div>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
+  }
+}
+
+// ── PAQUETERÍA ────────────────────────────────────────────────
+
+async function cargarBannerPaquete() {
+  try {
+    const res  = await fetch(`${API}?accion=getPaquetes&casa=${encodeURIComponent(sesion.casa)}`);
+    const data = await res.json();
+    const pendientes = Array.isArray(data) ? data.filter(p => p.Estatus === 'En Caseta') : [];
+    const banner = document.getElementById('banner-paquete');
+    if (pendientes.length === 0) { banner.classList.add('hidden'); return; }
+    const txt = pendientes.length === 1
+      ? `1 paquete de ${pendientes[0].Compania} te espera en caseta`
+      : `${pendientes.length} paquetes te esperan en caseta`;
+    document.getElementById('banner-paq-texto').textContent = txt;
+    banner.classList.remove('hidden');
+  } catch(e) {}
+}
+
+async function cargarPaquetes() {
+  const lista    = document.getElementById('paquetes-lista');
+  const pending  = document.getElementById('paquetes-pendientes-lista');
+  const pendBox  = document.getElementById('paquetes-pendientes-box');
+  lista.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res  = await fetch(`${API}?accion=getPaquetes&casa=${encodeURIComponent(sesion.casa)}`);
+    const data = await res.json();
+    const items = Array.isArray(data) ? data : [];
+    const pendientes = items.filter(p => p.Estatus === 'En Caseta');
+    const historial  = items.filter(p => p.Estatus !== 'En Caseta').reverse();
+
+    // Pendientes
+    if (pendientes.length > 0) {
+      pendBox.classList.remove('hidden');
+      pending.innerHTML = pendientes.map(p => `
+        <div style="border-bottom:1px solid #ffe0b2;padding:10px 0">
+          <div style="font-weight:600;font-size:14px">📦 ${p.Compania}</div>
+          <div style="font-size:13px;color:#555;margin-top:2px">Para: ${p.Destinatario}</div>
+          <div style="font-size:12px;color:#888;margin-top:2px">${formatearFecha(p.Fecha_Ingreso)} ${p.Hora_Ingreso || ''}</div>
+        </div>`).join('');
+    } else {
+      pendBox.classList.add('hidden');
+    }
+
+    // Historial
+    if (historial.length === 0) {
+      lista.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin paquetes anteriores</p>';
+    } else {
+      lista.innerHTML = historial.map(p => `
+        <div class="historial-card resuelto">
+          <div class="hc-header">
+            <span class="hc-titulo">📦 ${p.Compania}</span>
+            <span class="hc-badge resuelto">✅ Entregado</span>
+          </div>
+          <div class="hc-desc">Para: ${p.Destinatario}</div>
+          <div class="hc-meta">${formatearFecha(p.Fecha_Ingreso)} → ${formatearFecha(p.Fecha_Entrega)}</div>
+        </div>`).join('');
+    }
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
+  }
+}
+
 // ── REPORTES ─────────────────────────────────────────────────
 
 let tipoReporteSeleccionado = null;
@@ -1114,8 +1319,9 @@ function selTipo(el, modulo) {
   el.classList.add('selected');
   // Extraer solo el texto sin emoji
   const texto = el.textContent.replace(/^[\u{1F300}-\u{1FFFF}]|^[^\w\s]/u, '').trim();
-  if (modulo === 'reporte') tipoReporteSeleccionado = texto;
-  if (modulo === 'mudanza') tipoMudanzaSeleccionado = texto;
+  if (modulo === 'reporte')  tipoReporteSeleccionado  = texto;
+  if (modulo === 'mudanza')  tipoMudanzaSeleccionado  = texto;
+  if (modulo === 'servicio') tipoServicioSeleccionado = texto;
 }
 
 async function registrarReporte() {
@@ -1295,10 +1501,11 @@ async function cargarBannerJunta() {
       `🏛️ ${proxima.Tipo || 'Próxima Junta'}`;
     document.getElementById('bj-fecha').textContent =
       `📅 ${formatearFecha(proxima.Fecha_Junta)}${proxima.Hora ? ' — ' + fmt12(proxima.Hora) + ' hrs' : ''}`;
+    const orden = proxima.Orden_del_Dia;
     document.getElementById('bj-orden').textContent =
-      proxima.Orden_del_Dia ? `📋 ${proxima.Orden_del_Dia}` : '';
+      orden && isNaN(Number(orden)) ? `📋 ${orden}` : '';
 
-    // Botón Unirse solo si hay link válido
+    // Botón Unirse solo si hay link válido (debe empezar con http)
     const btnExistente = document.getElementById('bj-link');
     if (btnExistente) btnExistente.remove();
     const link = String(proxima.Link_Videollamada || '').trim();
