@@ -265,6 +265,51 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
   padding:8px 12px; color:#1565c0; font-size:13px; font-weight:600;
   cursor:pointer; flex-shrink:0; }
 
+/* ── PANEL COMITÉ ──────────────────────────────────────────── */
+.tabs-comite { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+.tab-btn { padding:8px 14px; border:1.5px solid #ddd; border-radius:20px;
+  background:#fff; font-size:13px; cursor:pointer; font-weight:500; }
+.tab-btn.activo { background:#1565c0; color:#fff; border-color:#1565c0; }
+.panel-seccion { display:none; }
+.panel-seccion.activa { display:block; }
+.item-comite { background:#fff; border-radius:12px; padding:14px 16px;
+  margin-bottom:10px; box-shadow:0 2px 6px rgba(0,0,0,.07); }
+.ic-header { display:flex; justify-content:space-between; align-items:flex-start;
+  margin-bottom:8px; gap:8px; }
+.ic-titulo { font-size:14px; font-weight:700; color:#333; }
+.ic-meta   { font-size:12px; color:#888; margin-bottom:8px; }
+.ic-desc   { font-size:13px; color:#555; margin-bottom:8px; }
+.ic-acciones { display:flex; gap:6px; flex-wrap:wrap; }
+.btn-aprobar  { background:#1976d2; color:#fff; border:none; border-radius:8px;
+  padding:8px 12px; font-size:12px; font-weight:600; cursor:pointer; }
+.btn-rechazar { background:#e53935; color:#fff; border:none; border-radius:8px;
+  padding:8px 12px; font-size:12px; font-weight:600; cursor:pointer; }
+.btn-resolver { background:#43a047; color:#fff; border:none; border-radius:8px;
+  padding:8px 12px; font-size:12px; font-weight:600; cursor:pointer; }
+.btn-proceso  { background:#fb8c00; color:#fff; border:none; border-radius:8px;
+  padding:8px 12px; font-size:12px; font-weight:600; cursor:pointer; }
+.respuesta-input { width:100%; padding:8px 10px; border:1.5px solid #ddd;
+  border-radius:8px; font-size:13px; margin-bottom:6px; outline:none; }
+
+/* ── PANEL SEGURIDAD ───────────────────────────────────────── */
+.seg-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+.seg-btn  { background:#fff; border:none; border-radius:16px; padding:20px 12px;
+  text-align:center; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,.1); }
+.seg-btn:active { transform:scale(.97); }
+.seg-btn .sb-icon  { font-size:36px; display:block; margin-bottom:8px; }
+.seg-btn .sb-label { font-size:13px; font-weight:700; color:#333; }
+.seg-panel { display:none; background:#fff; border-radius:14px; padding:16px;
+  margin-top:4px; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+.seg-panel.activo { display:block; }
+.seg-sub { display:flex; gap:8px; margin-bottom:14px; }
+.seg-sub button { flex:1; padding:11px; border:2px solid #1976d2; border-radius:10px;
+  background:#fff; color:#1976d2; font-size:14px; font-weight:700; cursor:pointer; }
+.seg-sub button.activo { background:#1976d2; color:#fff; }
+.bit-activa { background:#e8f5e9; border-radius:10px; padding:12px 14px;
+  margin-bottom:8px; border-left:3px solid #43a047; }
+.bit-activa .ba-nombre { font-size:14px; font-weight:700; color:#333; }
+.bit-activa .ba-info   { font-size:12px; color:#666; margin-top:3px; }
+
 /* ── CERRAR SESION ─────────────────────────────────────────── */
 .btn-cerrar { background:none; border:none; color:#999; font-size:13px;
   cursor:pointer; padding:16px; width:100%; text-align:center;
@@ -598,6 +643,16 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
       </button>
     </div>
 
+    <!-- Botones especiales: solo visibles según rol -->
+    <div id="btn-comite-wrap" style="display:none; margin-top:8px">
+      <button class="modulo-btn" style="width:100%; background:#fff8e1; border:2px solid #ffd600"
+        onclick="ir('s-comite'); cargarComite()">
+        <span class="m-icon">⭐</span>
+        <span class="m-title" style="color:#e65100">Panel del Comité</span>
+        <span class="m-desc">Gestión y administración</span>
+      </button>
+    </div>
+
     <button class="btn-cerrar" onclick="cerrarSesion()">Cerrar sesión</button>
   </div>
 </div>
@@ -862,6 +917,149 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — PANEL DEL COMITÉ
+═══════════════════════════════════════════════════════════ -->
+<div id="s-comite" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>⭐ Panel del Comité</p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="msg-comite" class="msg"></div>
+    <div class="tabs-comite">
+      <button class="tab-btn activo" onclick="tabComite('reportes',this)">📝 Reportes</button>
+      <button class="tab-btn" onclick="tabComite('mudanzas',this)">📦 Mudanzas</button>
+      <button class="tab-btn" onclick="tabComite('multas',this)">⚠️ Multas</button>
+      <button class="tab-btn" onclick="tabComite('prestamos',this)">🔑 Préstamos</button>
+      <button class="tab-btn" onclick="tabComite('propietarios',this)">👤 Verificar</button>
+    </div>
+    <div id="cp-reportes"    class="panel-seccion activa"><div class="loader">Cargando...</div></div>
+    <div id="cp-mudanzas"    class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-multas"      class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-prestamos"   class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-propietarios" class="panel-seccion"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — PANEL DE SEGURIDAD
+═══════════════════════════════════════════════════════════ -->
+<div id="s-seguridad" class="screen">
+  <div class="app-header">
+    <div class="header-title">
+      <h1>🛡️ Paamul — Caseta</h1>
+      <p id="seg-nombre"></p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="msg-seg" class="msg"></div>
+    <div class="seg-grid">
+      <button class="seg-btn" onclick="toggleSeg('paqueteria')">
+        <span class="sb-icon">📦</span><span class="sb-label">Paquetería</span>
+      </button>
+      <button class="seg-btn" onclick="toggleSeg('agua')">
+        <span class="sb-icon">🚰</span><span class="sb-label">Llave de Agua</span>
+      </button>
+      <button class="seg-btn" onclick="toggleSeg('servicios')">
+        <span class="sb-icon">🛠️</span><span class="sb-label">Servicios</span>
+      </button>
+      <button class="seg-btn" onclick="toggleSeg('incidencia')">
+        <span class="sb-icon">⚠️</span><span class="sb-label">Incidencia</span>
+      </button>
+    </div>
+
+    <!-- Paquetería -->
+    <div id="seg-panel-paqueteria" class="seg-panel">
+      <h3 style="font-size:15px;margin-bottom:12px">📦 Paquetería</h3>
+      <div class="seg-sub">
+        <button id="seg-pkg-r" class="activo" onclick="subPkg('recibir')">📥 Recibir</button>
+        <button id="seg-pkg-e" onclick="subPkg('entregar')">📤 Entregar</button>
+      </div>
+      <div id="seg-pkg-recibir">
+        <div class="fg"><label>Compañía</label>
+          <select id="seg-compania">
+            <option>Mercado Libre</option><option>Amazon</option>
+            <option>J&T Express</option><option>Estafeta</option>
+            <option>DHL</option><option>FedEx</option><option>Otro</option>
+          </select></div>
+        <div class="fg"><label>Departamento</label>
+          <input type="text" id="seg-pkg-depto" placeholder="Ej: 4A" style="text-transform:uppercase"></div>
+        <div class="fg"><label>Nombre del destinatario</label>
+          <input type="text" id="seg-pkg-dest" placeholder="Nombre completo"></div>
+        <button class="btn-submit" onclick="recibirPaqueteSeg()">Registrar Recepción</button>
+      </div>
+      <div id="seg-pkg-entregar" style="display:none">
+        <div id="seg-pkg-pendientes-lista"><div class="loader">Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- Llave de Agua -->
+    <div id="seg-panel-agua" class="seg-panel">
+      <h3 style="font-size:15px;margin-bottom:12px">🚰 Control de Agua</h3>
+      <div id="agua-estado" style="border-radius:12px;padding:16px;text-align:center;margin-bottom:12px">
+        <div style="font-size:32px" id="agua-icono">🚰</div>
+        <div style="font-size:16px;font-weight:700;margin:6px 0" id="agua-txt">Verificando...</div>
+        <div style="font-size:12px;color:#666">Horario regular: 11:00 — 19:00 hrs</div>
+      </div>
+      <button class="btn-submit" id="agua-btn" onclick="toggleAgua()">Cargando...</button>
+      <p style="font-size:13px;color:#666;margin:12px 0 6px">Registros de hoy:</p>
+      <div id="agua-historial"><p style="font-size:12px;color:#999">Sin registros</p></div>
+    </div>
+
+    <!-- Servicios -->
+    <div id="seg-panel-servicios" class="seg-panel">
+      <h3 style="font-size:15px;margin-bottom:12px">🛠️ Servicios y Mantenimiento</h3>
+      <div class="fg"><label>Tipo de actividad</label>
+        <select id="seg-tipo">
+          <option>Limpieza Áreas Comunes</option>
+          <option>Mantenimiento Alberca</option>
+          <option>Riego Jardines</option>
+          <option>Poda</option>
+          <option>Proveedor Externo</option>
+        </select></div>
+      <div class="fg"><label>Zona / Área</label>
+        <select id="seg-zona">
+          <option>Área General</option><option>Alberca / Deck</option>
+          <option>Jardines</option><option>Acceso / Caseta</option>
+          <option>Edificio (ver notas)</option>
+        </select></div>
+      <div class="fg"><label>Nombre del trabajador</label>
+        <input type="text" id="seg-trabajador" placeholder="Nombre completo"></div>
+      <div class="fg"><label>Notas</label>
+        <input type="text" id="seg-notas" placeholder="Detalles adicionales..."></div>
+      <button class="btn-submit" onclick="registrarEntradaSeg()">Registrar Entrada</button>
+      <p style="font-size:13px;color:#666;margin:12px 0 6px">En curso:</p>
+      <div id="seg-activos"><p style="font-size:12px;color:#999">Sin actividades activas</p></div>
+    </div>
+
+    <!-- Incidencia / Multa -->
+    <div id="seg-panel-incidencia" class="seg-panel">
+      <h3 style="font-size:15px;margin-bottom:12px">⚠️ Registrar Incidencia</h3>
+      <div class="fg"><label>Departamento</label>
+        <input type="text" id="seg-inc-casa" placeholder="Ej: 4A" style="text-transform:uppercase"></div>
+      <div class="fg"><label>Tipo</label>
+        <select id="seg-inc-tipo">
+          <option value="Llamada de Atención">Llamada de Atención (sin costo)</option>
+          <option value="Multa">Multa</option>
+        </select></div>
+      <div class="fg"><label>Concepto</label>
+        <select id="seg-inc-concepto"><option value="">Cargando...</option></select></div>
+      <div id="seg-inc-monto-wrap" style="display:none">
+        <div class="fg"><label>Monto</label>
+          <input type="number" id="seg-inc-monto" readonly style="background:#f5f5f5"></div>
+      </div>
+      <button class="btn-submit" onclick="registrarIncidenciaSeg()">Enviar al Comité</button>
+    </div>
+
+    <button style="background:none;border:none;color:#999;font-size:13px;cursor:pointer;
+      padding:16px;width:100%;margin-top:8px" onclick="cerrarSesion()">Cerrar sesión</button>
+  </div>
+</div>
+
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbxABEJ04Z2toiLAouKzfj56P5mFKwTw72qiVKR9WjXCKTG-QTTkQjSrjAiexODy6Ea3VA/exec'; // <-- reemplaza con tu URL del Apps Script
 
@@ -895,12 +1093,13 @@ window.onload = async () => {
     const data = await res.json();
     if (data && data.ok) {
       sesion = data;
+      if (sesion.rol === 'Seguridad') {
+        ir('s-seguridad'); mostrarPantallaSeguridad(); return;
+      }
       if (!sesion.acepto) {
-        await cargarReglamento();
-        ir('s-reglamento');
+        await cargarReglamento(); ir('s-reglamento');
       } else {
-        await cargarMenuPrincipal();
-        ir('s-menu');
+        await cargarMenuPrincipal(); ir('s-menu');
       }
       return;
     }
@@ -986,6 +1185,9 @@ async function login() {
     const res = await post({ accion:'login', casa, clave, dispositivo_id: getDispositivoId() });
     if (res.ok) {
       sesion = res;
+      if (sesion.rol === 'Seguridad') {
+        ir('s-seguridad'); mostrarPantallaSeguridad(); return;
+      }
       if (!sesion.acepto) {
         await cargarReglamento();
         ir('s-reglamento');
@@ -1090,6 +1292,10 @@ async function cargarMenuPrincipal() {
   // Cargar estatus de finanzas y banners
   cargarEstatusHome();
   cargarBannerPaquete();
+
+  // Mostrar panel del comité si aplica
+  const btnComite = document.getElementById('btn-comite-wrap');
+  if (btnComite) btnComite.style.display = sesion.cargo ? 'block' : 'none';
 }
 
 async function cargarEstatusHome() {
@@ -1308,7 +1514,495 @@ async function cargarPaquetes() {
   }
 }
 
-// ── REPORTES ─────────────────────────────────────────────────
+// ── PANEL COMITÉ ──────────────────────────────────────────────
+
+let tabComiteActual = 'reportes';
+let catalogoMultas  = [];
+
+async function cargarComite() {
+  // Cargar catálogo de multas para el panel
+  try {
+    const res = await fetch(`${API}?accion=getCatalogo`);
+    catalogoMultas = await res.json();
+    if (!Array.isArray(catalogoMultas)) catalogoMultas = [];
+  } catch(e) { catalogoMultas = []; }
+  renderTabComite(tabComiteActual);
+}
+
+function tabComite(tab, btn) {
+  tabComiteActual = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+  btn.classList.add('activo');
+  document.querySelectorAll('.panel-seccion').forEach(p => p.classList.remove('activa'));
+  document.getElementById('cp-' + tab).classList.add('activa');
+  renderTabComite(tab);
+}
+
+async function renderTabComite(tab) {
+  const el = document.getElementById('cp-' + tab);
+  el.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    if (tab === 'reportes')     await renderReportesComite(el);
+    if (tab === 'mudanzas')     await renderMudanzasComite(el);
+    if (tab === 'multas')       await renderMultasComite(el);
+    if (tab === 'prestamos')    await renderPrestamosComite(el);
+    if (tab === 'propietarios') await renderPropietariosComite(el);
+  } catch(e) { el.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>'; }
+}
+
+async function renderReportesComite(el) {
+  const res  = await fetch(`${API}?accion=getTodosReportes`);
+  const data = await res.json();
+  const items = Array.isArray(data) ? data.slice().reverse() : [];
+  if (items.length === 0) { el.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin reportes</p>'; return; }
+  el.innerHTML = items.map(r => {
+    const est = String(r.Estatus || '').toLowerCase().replace(' ', '-');
+    return `
+    <div class="item-comite">
+      <div class="ic-header">
+        <span class="ic-titulo">📝 ${r.Tipo} — Depto ${r.Casa}</span>
+        <span class="hc-badge ${est}">${r.Estatus}</span>
+      </div>
+      <div class="ic-desc">${r.Descripcion}</div>
+      <div class="ic-meta">${r.Nombre} · ${formatearFecha(r.Fecha)}</div>
+      ${r.Respuesta ? `<div class="hc-respuesta">💬 ${r.Respuesta}</div>` : ''}
+      <div style="margin-top:8px">
+        <input class="respuesta-input" type="text" placeholder="Escribir respuesta..."
+          id="resp-${r.ID}" value="${r.Respuesta || ''}">
+        <div class="ic-acciones">
+          <button class="btn-proceso" onclick="accionReporte('${r.ID}','En proceso')">En proceso</button>
+          <button class="btn-resolver" onclick="accionReporte('${r.ID}','Resuelto')">Resuelto</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function accionReporte(id, estatus) {
+  const resp = document.getElementById('resp-' + id)?.value || '';
+  const msg  = document.getElementById('msg-comite');
+  try {
+    const res = await post({ accion:'actualizarReporte', id, estatus, respuesta:resp });
+    if (res.ok) { showMsg(msg,'ok','✅ Reporte actualizado'); renderTabComite('reportes'); }
+    else showMsg(msg,'error', res.error || 'Error');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
+async function renderMudanzasComite(el) {
+  const res  = await fetch(`${API}?accion=getTodasMudanzas`);
+  const data = await res.json();
+  const items = Array.isArray(data) ? data.slice().reverse() : [];
+  if (items.length === 0) { el.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin solicitudes</p>'; return; }
+  el.innerHTML = items.map(m => {
+    const est = String(m.Estatus || '').toLowerCase();
+    const icono = m.Tipo_Movimiento === 'Entrada' ? '📥' : '📤';
+    return `
+    <div class="item-comite">
+      <div class="ic-header">
+        <span class="ic-titulo">${icono} ${m.Tipo_Movimiento} — Depto ${m.Casa}</span>
+        <span class="hc-badge ${est}">${m.Estatus}</span>
+      </div>
+      <div class="ic-desc">Fecha solicitada: <strong>${formatearFecha(m.Fecha_Mudanza)}</strong></div>
+      <div class="ic-meta">${m.Nombre} · Solicitud: ${formatearFecha(m.Fecha_Solicitud)}</div>
+      ${m.Estatus === 'Pendiente' ? `
+      <div class="ic-acciones" style="margin-top:8px">
+        <button class="btn-aprobar" onclick="accionMudanza('${m.ID}','Aprobada')">✅ Aprobar</button>
+        <button class="btn-rechazar" onclick="accionMudanza('${m.ID}','Rechazada')">❌ Rechazar</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function accionMudanza(id, estatus) {
+  const msg = document.getElementById('msg-comite');
+  try {
+    const res = await post({ accion:'actualizarMudanza', id, estatus });
+    if (res.ok) { showMsg(msg,'ok','✅ Mudanza actualizada'); renderTabComite('mudanzas'); }
+    else showMsg(msg,'error', res.error || 'Error');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
+async function renderMultasComite(el) {
+  const res  = await fetch(`${API}?accion=getMultas`);
+  const data = await res.json();
+  const items = Array.isArray(data) ? data.slice().reverse() : [];
+  const fmt   = n => '$' + Number(n).toLocaleString('es-MX');
+
+  // Formulario nueva multa
+  const opsCatalogo = catalogoMultas.map(c =>
+    `<option value="${c.ID_Concepto}" data-monto="${c.Costo_Base}">${c.ID_Concepto} — ${c.Nombre_Corto}</option>`
+  ).join('');
+
+  let html = `
+  <div class="item-comite" style="border:1.5px solid #1976d2">
+    <p style="font-size:14px;font-weight:700;color:#1565c0;margin-bottom:12px">➕ Nueva incidencia</p>
+    <div class="fg"><label>Departamento</label>
+      <input type="text" id="cp-multa-casa" placeholder="Ej: 4A" style="text-transform:uppercase"></div>
+    <div class="fg"><label>Tipo</label>
+      <select id="cp-multa-tipo" onchange="onTipoMultaChange()">
+        <option value="Llamada de Atención">Llamada de Atención (sin costo)</option>
+        <option value="Multa">Multa</option>
+      </select></div>
+    <div class="fg"><label>Concepto</label>
+      <select id="cp-multa-concepto" onchange="onConceptoChange()">${opsCatalogo}</select></div>
+    <div class="fg"><label>Monto</label>
+      <input type="number" id="cp-multa-monto" style="background:#f5f5f5" readonly></div>
+    <button class="btn-submit" style="margin-top:4px" onclick="generarMultaComite()">Registrar → Pendiente aprobación</button>
+  </div>`;
+
+  if (items.length === 0) {
+    html += '<p style="color:#888;text-align:center;padding:16px">Sin incidencias registradas</p>';
+  } else {
+    html += items.map(m => {
+      const est  = String(m.Estatus || '').toLowerCase().replace('_','-');
+      const monto = parseFloat(m.Monto_Penalizacion) || 0;
+      return `
+      <div class="item-comite">
+        <div class="ic-header">
+          <span class="ic-titulo">⚠️ ${m.Tipo_Incidencia} — Depto ${m.Casa}</span>
+          <span class="hc-badge ${monto === 0 ? 'resuelto' : 'abierto'}">${m.Estatus}</span>
+        </div>
+        <div class="ic-desc">${m.ID_Concepto} · <strong>${fmt(monto)}</strong></div>
+        <div class="ic-meta">${formatearFecha(m.Fecha)} · ${m.Folio}</div>
+        ${m.Estatus === 'Pendiente_Aprobacion' ? `
+        <div class="ic-acciones" style="margin-top:8px">
+          <button class="btn-aprobar" onclick="accionMulta('${m.Folio}','Activa')">✅ Aprobar</button>
+          <button class="btn-rechazar" onclick="accionMulta('${m.Folio}','Cancelada')">❌ Cancelar</button>
+        </div>` : m.Estatus === 'Activa' ? `
+        <div class="ic-acciones" style="margin-top:8px">
+          <button class="btn-resolver" onclick="accionMulta('${m.Folio}','Pagada')">💰 Marcar pagada</button>
+        </div>` : ''}
+      </div>`;
+    }).join('');
+  }
+  el.innerHTML = html;
+  onConceptoChange();
+}
+
+function onTipoMultaChange() {
+  onConceptoChange();
+}
+
+function onConceptoChange() {
+  const tipo    = document.getElementById('cp-multa-tipo')?.value;
+  const sel     = document.getElementById('cp-multa-concepto');
+  const montoEl = document.getElementById('cp-multa-monto');
+  if (!sel || !montoEl) return;
+  const opt   = sel.options[sel.selectedIndex];
+  const base  = parseFloat(opt?.dataset?.monto || 0) || 0;
+  montoEl.value = tipo === 'Llamada de Atención' ? 0 : base;
+}
+
+async function generarMultaComite() {
+  const msg   = document.getElementById('msg-comite');
+  const casa  = document.getElementById('cp-multa-casa')?.value.trim().toUpperCase();
+  const tipo  = document.getElementById('cp-multa-tipo')?.value;
+  const conc  = document.getElementById('cp-multa-concepto')?.value;
+  const monto = parseFloat(document.getElementById('cp-multa-monto')?.value) || 0;
+  if (!casa || !conc) { showMsg(msg,'error','Completa depto y concepto'); return; }
+  try {
+    const res = await post({ accion:'generarMulta', casa, tipo, id_concepto:conc, monto });
+    if (res.ok) { showMsg(msg,'ok',`✅ Incidencia registrada (${res.folio}) — pendiente de aprobación`); renderTabComite('multas'); }
+    else showMsg(msg,'error', res.error || 'Error');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
+async function accionMulta(folio, estatus) {
+  const msg = document.getElementById('msg-comite');
+  try {
+    const res = await post({ accion:'actualizarMulta', folio, estatus });
+    if (res.ok) { showMsg(msg,'ok','✅ Actualizado'); renderTabComite('multas'); }
+    else showMsg(msg,'error', res.error || 'Error');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
+async function renderPrestamosComite(el) {
+  const res  = await fetch(`${API}?accion=getTodosPrestamos`);
+  const data = await res.json();
+  const items = Array.isArray(data) ? data.slice().reverse() : [];
+  if (items.length === 0) { el.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin préstamos</p>'; return; }
+  const msg = document.getElementById('msg-comite');
+  el.innerHTML = items.map(s => {
+    const est   = String(s.Estatus || '').toLowerCase();
+    const icono = s.Articulo?.includes('Escalera') ? '🪜' : '🔑';
+    return `
+    <div class="item-comite">
+      <div class="ic-header">
+        <span class="ic-titulo">${icono} ${s.Articulo} — Depto ${s.Casa}</span>
+        <span class="hc-badge ${est === 'prestado' ? 'abierto' : 'resuelto'}">${s.Estatus}</span>
+      </div>
+      <div class="ic-meta">${s.Nombre} · ${formatearFecha(s.Fecha)}</div>
+      ${s.Estatus === 'Prestado' ? `
+      <div class="ic-acciones" style="margin-top:8px">
+        <button class="btn-resolver" onclick="devolverComite('${s.ID}')">✅ Marcar devuelto</button>
+      </div>` : `<div style="font-size:12px;color:#2e7d32;margin-top:4px">✅ Devuelto: ${formatearFecha(s.Fecha_Devolucion)}</div>`}
+    </div>`;
+  }).join('');
+}
+
+async function devolverComite(id) {
+  const msg = document.getElementById('msg-comite');
+  try {
+    const res = await post({ accion:'devolverArticulo', id });
+    if (res.ok) { showMsg(msg,'ok','✅ Marcado como devuelto'); renderTabComite('prestamos'); }
+    else showMsg(msg,'error', res.error || 'Error');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
+async function renderPropietariosComite(el) {
+  const res  = await fetch(`${API}?accion=getPropietariosPend`);
+  const data = await res.json();
+  const items = Array.isArray(data) ? data : [];
+  if (items.length === 0) { el.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin propietarios pendientes ✅</p>'; return; }
+  const msg = document.getElementById('msg-comite');
+  el.innerHTML = items.map(u => `
+    <div class="item-comite">
+      <div class="ic-header">
+        <span class="ic-titulo">👤 ${u.Nombre}</span>
+        <span class="hc-badge abierto">Pendiente</span>
+      </div>
+      <div class="ic-meta">Depto ${u.Casa} · ${u.Telefono}</div>
+      <div class="fg" style="margin-top:8px">
+        <input class="respuesta-input" type="text" id="cargo-${u.Casa}-${u.Nombre.split(' ')[0]}"
+          placeholder="Cargo en comité (opcional, ej: Vocal)">
+      </div>
+      <div class="ic-acciones">
+        <button class="btn-resolver" onclick="verificarComite('${u.Casa}','${u.Nombre}','cargo-${u.Casa}-${u.Nombre.split(' ')[0]}')">✅ Verificar</button>
+        <button class="btn-rechazar" onclick="rechazarPropietario('${u.Casa}','${u.Nombre}')">❌ Rechazar</button>
+      </div>
+    </div>`).join('');
+}
+
+async function verificarComite(casa, nombre, cargoId) {
+  const cargo = document.getElementById(cargoId)?.value || '';
+  const msg   = document.getElementById('msg-comite');
+  try {
+    const res = await post({ accion:'verificarPropietario', casa, nombre, cargo });
+    if (res.ok) { showMsg(msg,'ok',`✅ ${nombre} verificado`); renderTabComite('propietarios'); }
+    else showMsg(msg,'error', res.error || 'Error');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
+async function rechazarPropietario(casa, nombre) {
+  // Por ahora solo elimina visualmente — en el Sheet el comité lo borrará manualmente
+  const msg = document.getElementById('msg-comite');
+  showMsg(msg, 'info', `Para rechazar a ${nombre} del depto ${casa}, borra su fila del Sheet manualmente.`);
+}
+
+// ── PANEL SEGURIDAD ───────────────────────────────────────────
+
+let segPanelActivo = null;
+
+function mostrarPantallaSeguridad() {
+  document.getElementById('s-seguridad').classList.add('active');
+  document.getElementById('seg-nombre').textContent = sesion.nombre;
+  cargarCatalogoSeg();
+  cargarActivosSeg();
+}
+
+function toggleSeg(panel) {
+  ['paqueteria','agua','servicios','incidencia'].forEach(p => {
+    document.getElementById('seg-panel-' + p).classList.remove('activo');
+  });
+  if (segPanelActivo === panel) { segPanelActivo = null; return; }
+  segPanelActivo = panel;
+  document.getElementById('seg-panel-' + panel).classList.add('activo');
+  if (panel === 'agua')       actualizarAgua();
+  if (panel === 'servicios')  cargarActivosSeg();
+  if (panel === 'paqueteria') cargarPkgPendientesSeg();
+}
+
+function subPkg(sub) {
+  document.getElementById('seg-pkg-recibir').style.display  = sub === 'recibir'  ? 'block' : 'none';
+  document.getElementById('seg-pkg-entregar').style.display = sub === 'entregar' ? 'block' : 'none';
+  document.getElementById('seg-pkg-r').className = sub === 'recibir'  ? 'activo' : '';
+  document.getElementById('seg-pkg-e').className = sub === 'entregar' ? 'activo' : '';
+  if (sub === 'entregar') cargarPkgPendientesSeg();
+}
+
+async function recibirPaqueteSeg() {
+  const msg   = document.getElementById('msg-seg');
+  const depto = document.getElementById('seg-pkg-depto').value.trim().toUpperCase();
+  const dest  = document.getElementById('seg-pkg-dest').value.trim();
+  const comp  = document.getElementById('seg-compania').value;
+  if (!depto || !dest) { showMsg(msg,'error','Completa depto y destinatario'); return; }
+  const btn = document.querySelector('#seg-panel-paqueteria .btn-submit');
+  btn.disabled = true; btn.textContent = 'Registrando...';
+  try {
+    const res = await post({ accion:'registrarPaquete', departamento:depto,
+      destinatario:dest, compania:comp, recibido_por:sesion.nombre });
+    if (res.ok) {
+      showMsg(msg,'ok','✅ Paquete registrado — el residente será notificado');
+      document.getElementById('seg-pkg-depto').value = '';
+      document.getElementById('seg-pkg-dest').value  = '';
+    } else showMsg(msg,'error', res.error || 'Error');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+  btn.disabled = false; btn.textContent = 'Registrar Recepción';
+}
+
+async function cargarPkgPendientesSeg() {
+  const lista = document.getElementById('seg-pkg-pendientes-lista');
+  lista.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res  = await fetch(`${API}?accion=getPaquetes`);
+    const data = await res.json();
+    const pend = Array.isArray(data) ? data.filter(p => p.Estatus === 'En Caseta') : [];
+    if (pend.length === 0) { lista.innerHTML = '<p style="color:#888;font-size:13px">Sin paquetes pendientes</p>'; return; }
+    lista.innerHTML = pend.map(p => `
+      <div class="bit-activa">
+        <div class="ba-nombre">📦 Depto ${p.Departamento} — ${p.Compania}</div>
+        <div class="ba-info">Para: ${p.Destinatario} · ${formatearFecha(p.Fecha_Ingreso)}</div>
+        <button onclick="entregarPkgSeg('${p.ID}')" style="background:#43a047;color:#fff;border:none;
+          border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;margin-top:6px">
+          Marcar entregado
+        </button>
+      </div>`).join('');
+  } catch(e) { lista.innerHTML = '<p style="color:#c62828;font-size:13px">Error al cargar</p>'; }
+}
+
+async function entregarPkgSeg(id) {
+  const msg = document.getElementById('msg-seg');
+  const entregadoA = prompt('¿Nombre de quien retira el paquete?');
+  if (!entregadoA) return;
+  try {
+    const res = await post({ accion:'entregarPaquete', id, entregado_a:entregadoA });
+    if (res.ok) { showMsg(msg,'ok','✅ Entrega registrada'); cargarPkgPendientesSeg(); }
+    else showMsg(msg,'error', res.error || 'Error');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
+async function actualizarAgua() {
+  try {
+    const res  = await fetch(`${API}?accion=getBitacora`);
+    const data = await res.json();
+    const hoyStr = new Date().toISOString().split('T')[0];
+    const registros = Array.isArray(data)
+      ? data.filter(r => r.Tipo_Actividad === 'Control Agua' && limpiarFecha(r.Fecha) === hoyStr)
+      : [];
+    const ultimo  = registros.length > 0 ? registros[registros.length - 1] : null;
+    const abierta = !ultimo || ultimo.Zona_Area === 'Apertura';
+    const estadoEl = document.getElementById('agua-estado');
+    estadoEl.style.background = abierta ? '#e8f5e9' : '#ffebee';
+    document.getElementById('agua-icono').textContent = abierta ? '🚰' : '🔴';
+    document.getElementById('agua-txt').textContent   = abierta ? '💧 Agua ABIERTA' : '🔴 Agua CERRADA';
+    const btn = document.getElementById('agua-btn');
+    btn.textContent       = abierta ? '🔴 Cerrar llave' : '💧 Abrir llave';
+    btn.style.background  = abierta ? '#e53935' : '#43a047';
+    document.getElementById('agua-historial').innerHTML = registros.length === 0
+      ? '<p style="font-size:12px;color:#999">Sin registros hoy</p>'
+      : registros.map(r => `<div style="font-size:12px;padding:4px 0;border-bottom:1px solid #eee">${r.Hora_Entrada} — ${r.Zona_Area}</div>`).join('');
+  } catch(e) {}
+}
+
+async function toggleAgua() {
+  const txt    = document.getElementById('agua-txt')?.textContent || '';
+  const accion = txt.includes('ABIERTA') ? 'Cierre' : 'Apertura';
+  const ahora  = new Date();
+  const hora   = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0');
+  try {
+    await post({ accion:'registrarBitacora', tipo_actividad:'Control Agua',
+      zona_area:accion, trabajador:sesion.nombre, registrado_por:sesion.nombre,
+      hora_entrada:hora, notas:accion + ' de llave' });
+    showMsg(document.getElementById('msg-seg'),'ok',`✅ ${accion} registrada a las ${hora}`);
+    setTimeout(() => actualizarAgua(), 1000);
+  } catch(e) { showMsg(document.getElementById('msg-seg'),'error','Error de conexión'); }
+}
+
+async function registrarEntradaSeg() {
+  const msg       = document.getElementById('msg-seg');
+  const trabajador = document.getElementById('seg-trabajador').value.trim();
+  if (!trabajador) { showMsg(msg,'error','Escribe el nombre del trabajador'); return; }
+  const tipo  = document.getElementById('seg-tipo').value;
+  const zona  = document.getElementById('seg-zona').value;
+  const notas = document.getElementById('seg-notas').value.trim();
+  const ahora = new Date();
+  const hora  = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0');
+  const btn   = document.querySelector('#seg-panel-servicios .btn-submit');
+  btn.disabled = true; btn.textContent = 'Registrando...';
+  try {
+    const res = await post({ accion:'registrarBitacora', tipo_actividad:tipo, zona_area:zona,
+      trabajador, registrado_por:sesion.nombre, hora_entrada:hora, notas });
+    if (res.ok) {
+      showMsg(msg,'ok',`✅ Entrada registrada (${res.id})`);
+      document.getElementById('seg-trabajador').value = '';
+      document.getElementById('seg-notas').value      = '';
+      cargarActivosSeg();
+    } else showMsg(msg,'error', res.error || 'Error');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+  btn.disabled = false; btn.textContent = 'Registrar Entrada';
+}
+
+async function cargarActivosSeg() {
+  const el = document.getElementById('seg-activos');
+  if (!el) return;
+  try {
+    const res  = await fetch(`${API}?accion=getBitacora`);
+    const data = await res.json();
+    const activos = Array.isArray(data)
+      ? data.filter(r => r.Estatus === 'En curso' && r.Tipo_Actividad !== 'Control Agua')
+      : [];
+    el.innerHTML = activos.length === 0
+      ? '<p style="font-size:12px;color:#999">Sin actividades activas</p>'
+      : activos.map(r => `
+        <div class="bit-activa">
+          <div class="ba-nombre">🛠️ ${r.Tipo_Actividad} — ${r.Trabajador}</div>
+          <div class="ba-info">🕐 ${r.Hora_Entrada} · ${r.Zona_Area}</div>
+          <button onclick="cerrarEntradaSeg('${r.ID}')" style="background:#e53935;color:#fff;border:none;
+            border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;margin-top:6px">
+            Registrar Salida
+          </button>
+        </div>`).join('');
+  } catch(e) {}
+}
+
+async function cerrarEntradaSeg(id) {
+  try {
+    const res = await post({ accion:'cerrarBitacora', id });
+    if (res.ok) cargarActivosSeg();
+  } catch(e) {}
+}
+
+async function cargarCatalogoSeg() {
+  try {
+    const res = await fetch(`${API}?accion=getCatalogo`);
+    const data = await res.json();
+    const sel  = document.getElementById('seg-inc-concepto');
+    if (!sel || !Array.isArray(data)) return;
+    sel.innerHTML = data.map(c =>
+      `<option value="${c.ID_Concepto}" data-monto="${c.Costo_Base}">${c.ID_Concepto} — ${c.Nombre_Corto}</option>`
+    ).join('');
+    onConceptoSeg();
+  } catch(e) {}
+}
+
+function onConceptoSeg() {
+  const tipo  = document.getElementById('seg-inc-tipo')?.value;
+  const sel   = document.getElementById('seg-inc-concepto');
+  const wrap  = document.getElementById('seg-inc-monto-wrap');
+  const mEl   = document.getElementById('seg-inc-monto');
+  if (!sel || !mEl) return;
+  const base = parseFloat(sel.options[sel.selectedIndex]?.dataset?.monto || 0) || 0;
+  mEl.value  = tipo === 'Llamada de Atención' ? 0 : base;
+  if (wrap) wrap.style.display = tipo === 'Multa' ? 'block' : 'none';
+}
+
+async function registrarIncidenciaSeg() {
+  const msg   = document.getElementById('msg-seg');
+  const casa  = document.getElementById('seg-inc-casa')?.value.trim().toUpperCase();
+  const tipo  = document.getElementById('seg-inc-tipo')?.value;
+  const conc  = document.getElementById('seg-inc-concepto')?.value;
+  const monto = parseFloat(document.getElementById('seg-inc-monto')?.value) || 0;
+  if (!casa || !conc) { showMsg(msg,'error','Completa depto y concepto'); return; }
+  try {
+    const res = await post({ accion:'generarMulta', casa, tipo, id_concepto:conc, monto });
+    if (res.ok) {
+      showMsg(msg,'ok',`✅ Enviado al Comité para aprobación (${res.folio})`);
+      document.getElementById('seg-inc-casa').value = '';
+    } else showMsg(msg,'error', res.error || 'Error');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
+
 
 let tipoReporteSeleccionado = null;
 let tipoMudanzaSeleccionado = null;
