@@ -222,6 +222,19 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 .seccion-titulo { font-size:12px; font-weight:700; color:#888; text-transform:uppercase;
   letter-spacing:.6px; margin:16px 0 10px; }
 
+/* ── DIRECTORIO ────────────────────────────────────────────── */
+.dir-card { background:#fff; border-radius:12px; padding:14px 16px;
+  margin-bottom:10px; display:flex; align-items:center; gap:14px;
+  box-shadow:0 2px 6px rgba(0,0,0,.07); }
+.dir-icon { font-size:28px; flex-shrink:0; }
+.dir-info { flex:1; }
+.dir-nombre { font-size:14px; font-weight:700; color:#333; }
+.dir-tipo   { font-size:11px; color:#888; margin-top:2px; }
+.dir-tel    { font-size:15px; font-weight:700; color:#1565c0; margin-top:4px; }
+.dir-btn    { background:#e3f0ff; border:none; border-radius:8px;
+  padding:8px 12px; color:#1565c0; font-size:13px; font-weight:600;
+  cursor:pointer; flex-shrink:0; }
+
 /* ── CERRAR SESION ─────────────────────────────────────────── */
 .btn-cerrar { background:none; border:none; color:#999; font-size:13px;
   cursor:pointer; padding:16px; width:100%; text-align:center;
@@ -522,7 +535,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
         <span class="m-title">Juntas</span>
         <span class="m-desc">Asambleas y minutas</span>
       </button>
-      <button class="modulo-btn" onclick="proximamente()">
+      <button class="modulo-btn" onclick="ir('s-directorio'); cargarDirectorio()">
         <span class="m-icon">📞</span>
         <span class="m-title">Directorio</span>
         <span class="m-desc">Emergencias</span>
@@ -623,6 +636,22 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
+     PANTALLA — DIRECTORIO
+═══════════════════════════════════════════════════════════ -->
+<div id="s-directorio" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>Directorio de Emergencias</p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="directorio-lista"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
      PANTALLA — JUNTAS Y ASAMBLEAS
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-juntas" class="screen">
@@ -640,7 +669,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbztl1BqYoIVadr6_mhpx8ycPWOX7Wd9ad8O7o8a7PyVkNXn5sZBl1G3OcH0cHSSlpDbog/exec'; // <-- reemplaza con tu URL del Apps Script
+const API = 'https://script.google.com/macros/s/AKfycbyRQWtWlqngIlP8ffwbI9vhs1coezSIry6Opiy1K2vHUQ2povE_ojVF_SKOg4bHSwRe1A/exec'; // <-- reemplaza con tu URL del Apps Script
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -966,6 +995,47 @@ async function cargarFinanzas() {
   }
 }
 
+// ── DIRECTORIO ────────────────────────────────────────────────
+
+async function cargarDirectorio() {
+  const lista = document.getElementById('directorio-lista');
+  lista.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res  = await fetch(`${API}?accion=getDirectorio`);
+    const data = await res.json();
+    const items = Array.isArray(data) ? data : [];
+    if (items.length === 0) {
+      lista.innerHTML = '<p style="color:#888;text-align:center;padding:24px">Sin contactos registrados</p>';
+      return;
+    }
+    // Iconos por tipo de servicio
+    const iconos = {
+      'emergencia': '🚨', 'seguridad': '🛡️', 'medico': '🏥',
+      'bomberos': '🚒', 'policia': '👮', 'administracion': '🏢',
+      'mantenimiento': '🔧', 'electricidad': '⚡', 'agua': '🚰',
+      'comite': '⭐', 'default': '📞'
+    };
+    const getIcono = tipo => {
+      const t = String(tipo || '').toLowerCase();
+      return Object.keys(iconos).find(k => t.includes(k))
+        ? iconos[Object.keys(iconos).find(k => t.includes(k))]
+        : iconos.default;
+    };
+    lista.innerHTML = items.map(c => `
+      <div class="dir-card">
+        <span class="dir-icon">${getIcono(c.Tipo)}</span>
+        <div class="dir-info">
+          <div class="dir-nombre">${c.Nombre_Servicio}</div>
+          <div class="dir-tipo">${c.Tipo || ''}</div>
+          <div class="dir-tel">${c.Telefono || ''}</div>
+        </div>
+        ${c.Telefono ? `<button class="dir-btn" onclick="window.location='tel:${c.Telefono}'">📲 Llamar</button>` : ''}
+      </div>`).join('');
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c62828;text-align:center;padding:24px">Error al cargar</p>';
+  }
+}
+
 // ── JUNTAS Y ASAMBLEAS ───────────────────────────────────────
 
 async function cargarBannerJunta() {
@@ -976,38 +1046,42 @@ async function cargarBannerJunta() {
     const lista = Array.isArray(data) ? data : [];
     if (lista.length === 0) { banner.classList.add('hidden'); return; }
 
-    const hoy = new Date().toISOString().split('T')[0];
-
-    // Buscar junta Programada, o si no hay estatus, por fecha futura
-    const proxima = lista.find(j => {
-      const est   = String(j.Estatus || '').trim().toLowerCase();
-      const fecha = String(j.Fecha_Junta || '').split('T')[0];
-      return est === 'programada' || (est === '' && fecha >= hoy);
-    });
+    // Solo mostrar juntas con Estatus = Programada (case-insensitive)
+    const proxima = lista.find(j =>
+      String(j.Estatus || '').trim().toLowerCase() === 'programada'
+    );
 
     if (!proxima) { banner.classList.add('hidden'); return; }
 
-    document.getElementById('bj-tipo').textContent  = `🏛️ ${proxima.Tipo || 'Próxima Junta'}`;
+    document.getElementById('bj-tipo').textContent =
+      `🏛️ ${proxima.Tipo || 'Próxima Junta'}`;
     document.getElementById('bj-fecha').textContent =
       `📅 ${formatearFecha(proxima.Fecha_Junta)}${proxima.Hora ? ' — ' + fmt12(proxima.Hora) + ' hrs' : ''}`;
     document.getElementById('bj-orden').textContent =
       proxima.Orden_del_Dia ? `📋 ${proxima.Orden_del_Dia}` : '';
 
-    // Botón Unirse solo si hay link
+    // Botón Unirse solo si hay link válido
     const btnExistente = document.getElementById('bj-link');
     if (btnExistente) btnExistente.remove();
-    if (proxima.Link_Videollamada && String(proxima.Link_Videollamada).startsWith('http')) {
+    const link = String(proxima.Link_Videollamada || '').trim();
+    if (link.startsWith('http')) {
       const btn = document.createElement('button');
       btn.id = 'bj-link';
       btn.textContent = '🎥 Unirse a la reunión';
       btn.style.cssText = 'background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;width:100%;';
-      btn.onclick = () => window.open(proxima.Link_Videollamada, '_blank');
+      btn.onclick = () => window.open(link, '_blank');
       banner.appendChild(btn);
     }
     banner.classList.remove('hidden');
   } catch(e) {
     banner.classList.add('hidden');
   }
+}
+
+// Limpia fechas en cualquier formato: "2026-07-25 00:00", "2026-07-25T00:00:00Z", "2026-07-25"
+function limpiarFecha(v) {
+  if (!v) return '';
+  return String(v).split('T')[0].split(' ')[0].trim();
 }
 
 async function cargarJuntas() {
@@ -1028,13 +1102,10 @@ async function cargarJuntas() {
       return;
     }
 
-    const hoyStr     = new Date().toISOString().split('T')[0];
-    const programadas = listaJ.filter(j => {
-      const est   = String(j.Estatus || '').trim().toLowerCase();
-      const fecha = String(j.Fecha_Junta || '').split('T')[0];
-      return est === 'programada' || (est === '' && fecha >= hoyStr);
-    });
-    const realizadas  = listaJ.filter(j => {
+    const programadas = listaJ.filter(j =>
+      String(j.Estatus || '').trim().toLowerCase() === 'programada'
+    );
+    const realizadas = listaJ.filter(j => {
       const est = String(j.Estatus || '').trim().toLowerCase();
       return est === 'realizada' || est === 'cancelada';
     }).reverse();
@@ -1146,7 +1217,7 @@ async function marcarEnterado(idJunta) {
 
 function formatearFecha(valor) {
   if (!valor) return '';
-  const s = String(valor).split('T')[0];
+  const s = limpiarFecha(valor);
   const partes = s.split('-');
   if (partes.length !== 3) return s;
   const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
