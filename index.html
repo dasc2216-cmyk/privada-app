@@ -1780,10 +1780,8 @@ function onConceptoChange() {
   const sel     = document.getElementById('cp-multa-concepto');
   const montoEl = document.getElementById('cp-multa-monto');
   if (!sel || !montoEl) return;
-  const idConcepto = sel.value;
-  // Buscar el monto directo del catálogo en memoria (más confiable que data-monto del DOM)
-  const concepto = catalogoMultas.find(c => c.ID_Concepto === idConcepto);
-  const base = parseFloat(String(concepto?.Costo_Base || '0').replace(/[$,\s]/g,'')) || 0;
+  const concepto = catalogoMultas.find(c => c.ID_Concepto === sel.value);
+  const base = Number(concepto?.Costo_Base || 0);
   montoEl.value = tipo === 'Llamada de Atención' ? 0 : base;
 }
 
@@ -1967,59 +1965,78 @@ async function entregarPkgSeg(id) {
 
 async function actualizarAgua() {
   try {
-    const res  = await fetch(`${API}?accion=getBitacora`);
+    const res  = await fetch(`${API}?accion=getAmenidades`);
     const data = await res.json();
-    const hoyStr = new Date().toISOString().split('T')[0];
-    const registros = Array.isArray(data)
-      ? data.filter(r => r.Tipo_Actividad === 'Control Agua' && limpiarFecha(r.Fecha) === hoyStr)
-      : [];
-    // El último registro determina el estado actual
-    const ultimo  = registros.length > 0 ? registros[registros.length - 1] : null;
-    // Si el último fue "Cierre" está cerrada, si fue "Apertura" está abierta
-    // Si no hay registros hoy, asumimos estado según horario (11-19 = abierta)
-    let abierta;
-    if (ultimo) {
-      abierta = String(ultimo.Zona_Area || '').trim() === 'Apertura';
-    } else {
-      const hora = new Date().getHours();
-      abierta = hora >= 11 && hora < 19;
-    }
+    const llave = Array.isArray(data)
+      ? data.find(a => String(a.Amenidad).trim() === 'Llave de Agua')
+      : null;
+
     const estadoEl = document.getElementById('agua-estado');
+    const iconoEl  = document.getElementById('agua-icono');
+    const txtEl    = document.getElementById('agua-txt');
+    const btn      = document.getElementById('agua-btn');
+
+    if (!llave) {
+      if (txtEl) txtEl.textContent = 'Sin configurar en Sheet';
+      return;
+    }
+
+    const abierta = String(llave.Estatus || '').trim() === 'Abierta';
     if (estadoEl) estadoEl.style.background = abierta ? '#e8f5e9' : '#ffebee';
-    const iconoEl = document.getElementById('agua-icono');
-    const txtEl   = document.getElementById('agua-txt');
-    const btn     = document.getElementById('agua-btn');
-    if (iconoEl) iconoEl.textContent = abierta ? '🚰' : '🔴';
-    if (txtEl)   txtEl.textContent   = abierta ? '💧 Agua ABIERTA' : '🔴 Agua CERRADA';
+    if (iconoEl)  iconoEl.textContent  = abierta ? '🚰' : '🔴';
+    if (txtEl)    txtEl.textContent    = abierta ? '💧 Agua ABIERTA' : '🔴 Agua CERRADA';
     if (btn) {
       btn.textContent      = abierta ? '🔴 Cerrar llave' : '💧 Abrir llave';
       btn.style.background = abierta ? '#e53935' : '#43a047';
     }
-    const histEl = document.getElementById('agua-historial');
-    if (histEl) {
-      histEl.innerHTML = registros.length === 0
-        ? '<p style="font-size:12px;color:#999">Sin registros hoy</p>'
-        : registros.slice().reverse().map(r =>
-            `<div style="font-size:12px;padding:4px 0;border-bottom:1px solid #eee">
-              ${r.Hora_Entrada} — <strong>${r.Zona_Area}</strong>
-            </div>`
-          ).join('');
-    }
+
+    // Historial de hoy desde bitácora
+    try {
+      const resB = await fetch(`${API}?accion=getBitacora`);
+      const bit  = await resB.json();
+      const hoyStr = new Date().toISOString().split('T')[0];
+      const regs = Array.isArray(bit)
+        ? bit.filter(r => r.Tipo_Actividad === 'Control Agua' && limpiarFecha(r.Fecha) === hoyStr)
+        : [];
+      const histEl = document.getElementById('agua-historial');
+      if (histEl) {
+        histEl.innerHTML = regs.length === 0
+          ? '<p style="font-size:12px;color:#999">Sin registros hoy</p>'
+          : regs.slice().reverse().map(r =>
+              `<div style="font-size:12px;padding:4px 0;border-bottom:1px solid #eee">
+                ${r.Hora_Entrada} — <strong>${r.Zona_Area}</strong>
+              </div>`).join('');
+      }
+    } catch(e) {}
   } catch(e) {}
 }
 
 async function toggleAgua() {
-  const txt    = document.getElementById('agua-txt')?.textContent || '';
-  const accion = txt.includes('ABIERTA') ? 'Cierre' : 'Apertura';
-  const ahora  = new Date();
-  const hora   = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0');
+  const txtEl  = document.getElementById('agua-txt');
+  const abierta = txtEl?.textContent.includes('ABIERTA');
+  const nuevoEstatus = abierta ? 'Cerrada' : 'Abierta';
+  const accionBit    = abierta ? 'Cierre'  : 'Apertura';
+  const ahora = new Date();
+  const hora  = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0');
+  const msg   = document.getElementById('msg-seg');
+
   try {
-    await post({ accion:'registrarBitacora', tipo_actividad:'Control Agua',
-      zona_area:accion, trabajador:sesion.nombre, registrado_por:sesion.nombre,
-      hora_entrada:hora, notas:accion + ' de llave' });
-    showMsg(document.getElementById('msg-seg'),'ok',`✅ ${accion} registrada a las ${hora}`);
-    setTimeout(() => actualizarAgua(), 1000);
-  } catch(e) { showMsg(document.getElementById('msg-seg'),'error','Error de conexión'); }
+    // 1. Actualizar Estado_Amenidades
+    await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ accion: 'ocuparAmenidad', amenidad: 'Llave de Agua',
+        casa: 'CASETA', nombre: sesion.nombre, estatus_directo: nuevoEstatus })
+    });
+
+    // 2. Registrar en bitácora
+    await post({ accion: 'registrarBitacora', tipo_actividad: 'Control Agua',
+      zona_area: accionBit, trabajador: sesion.nombre,
+      registrado_por: sesion.nombre, hora_entrada: hora, notas: accionBit + ' de llave' });
+
+    showMsg(msg, 'ok', `✅ Llave ${nuevoEstatus.toLowerCase()} a las ${hora}`);
+    setTimeout(() => actualizarAgua(), 800);
+  } catch(e) { showMsg(msg, 'error', 'Error de conexión'); }
 }
 
 async function registrarEntradaSeg() {
@@ -2116,10 +2133,11 @@ async function cargarCatalogoSeg() {
   try {
     const res = await fetch(`${API}?accion=getCatalogo`);
     const data = await res.json();
+    window.catalogoSeg = Array.isArray(data) ? data : [];
     const sel  = document.getElementById('seg-inc-concepto');
-    if (!sel || !Array.isArray(data)) return;
-    sel.innerHTML = data.map(c =>
-      `<option value="${c.ID_Concepto}" data-monto="${c.Costo_Base}">${c.ID_Concepto} — ${c.Nombre_Corto}</option>`
+    if (!sel) return;
+    sel.innerHTML = window.catalogoSeg.map(c =>
+      `<option value="${c.ID_Concepto}">${c.ID_Concepto} — ${c.Nombre_Corto}</option>`
     ).join('');
     onConceptoSeg();
   } catch(e) {}
@@ -2131,7 +2149,9 @@ function onConceptoSeg() {
   const wrap  = document.getElementById('seg-inc-monto-wrap');
   const mEl   = document.getElementById('seg-inc-monto');
   if (!sel || !mEl) return;
-  const base = parseFloat(sel.options[sel.selectedIndex]?.dataset?.monto || 0) || 0;
+  // Buscar en el catálogo global cargado
+  const concepto = (window.catalogoSeg || []).find(c => c.ID_Concepto === sel.value);
+  const base = Number(concepto?.Costo_Base || 0);
   mEl.value  = tipo === 'Llamada de Atención' ? 0 : base;
   if (wrap) wrap.style.display = tipo === 'Multa' ? 'block' : 'none';
 }
