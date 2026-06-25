@@ -1732,8 +1732,8 @@ async function renderMultasComite(el) {
       <input type="text" id="cp-multa-casa" placeholder="Ej: 4A" style="text-transform:uppercase"></div>
     <div class="fg"><label>Tipo</label>
       <select id="cp-multa-tipo" onchange="onTipoMultaChange()">
-        <option value="Llamada de Atención">Llamada de Atención (sin costo)</option>
         <option value="Multa">Multa</option>
+        <option value="Llamada de Atención">Llamada de Atención (sin costo)</option>
       </select></div>
     <div class="fg"><label>Concepto</label>
       <select id="cp-multa-concepto" onchange="onConceptoChange()">${opsCatalogo}</select></div>
@@ -1768,7 +1768,8 @@ async function renderMultasComite(el) {
     }).join('');
   }
   el.innerHTML = html;
-  onConceptoChange();
+  // Esperar al siguiente ciclo del event loop para que el DOM esté listo
+  setTimeout(() => onConceptoChange(), 50);
 }
 
 function onTipoMultaChange() {
