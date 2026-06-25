@@ -21,8 +21,8 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
   align-items:center; justify-content:center; gap:0; padding:32px 24px;
 }
 .inicio-logo { text-align:center; margin-bottom:48px; }
-.inicio-logo .emoji { font-size:72px; display:block; margin-bottom:12px;
-  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.3)); }
+.inicio-logo .emoji { font-size:60px; display:block; margin-bottom:12px;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.3)); letter-spacing:4px; }
 .inicio-logo h1 { color:#fff; font-size:28px; font-weight:700;
   letter-spacing:0.5px; text-shadow:0 2px 8px rgba(0,0,0,0.3); }
 .inicio-logo p  { color:rgba(255,255,255,0.8); font-size:14px; margin-top:6px; }
@@ -377,9 +377,9 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-inicio" class="screen active">
   <div class="inicio-logo">
-    <span class="emoji">🏘️</span>
+    <span class="emoji">🏘️🌴</span>
     <h1>Privada Paamul</h1>
-    <p>Residencial privada · Solidaridad, Q. Roo</p>
+    <p>Residencial Paseos de Xcacel</p>
   </div>
   <div class="inicio-btns">
     <button class="btn-primary" onclick="ir('s-login')">Entrar</button>
@@ -643,8 +643,8 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
       </button>
       <button class="modulo-btn" onclick="ir('s-directorio'); cargarDirectorio()">
         <span class="m-icon">📞</span>
-        <span class="m-title">Directorio</span>
-        <span class="m-desc">Emergencias</span>
+        <span class="m-title">Contactos</span>
+        <span class="m-desc">Directorio Paamul</span>
       </button>
     </div>
 
@@ -1091,7 +1091,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbxABEJ04Z2toiLAouKzfj56P5mFKwTw72qiVKR9WjXCKTG-QTTkQjSrjAiexODy6Ea3VA/exec'; // <-- reemplaza con tu URL del Apps Script
+const API = 'https://script.google.com/macros/s/AKfycbxav2GLJMbGKKCWNi52wcH0x469JJv64S3WVBL_9c9OJTSoFaVF3zWrnrCVTqLbgGe_UQ/exec'; // <-- reemplaza con tu URL del Apps Script
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -1555,9 +1555,7 @@ async function cargarBitacoraResidente() {
   try {
     const res  = await fetch(`${API}?accion=getBitacora`);
     const data = await res.json();
-    bitacoraCache = Array.isArray(data)
-      ? data.filter(r => r.Tipo_Actividad !== 'Control Agua').reverse()
-      : [];
+    bitacoraCache = Array.isArray(data) ? data.slice().reverse() : [];
     renderBitacora();
   } catch(e) {
     document.getElementById('bitacora-lista').innerHTML =
@@ -1576,7 +1574,8 @@ function renderBitacora() {
   const lista  = document.getElementById('bitacora-lista');
   const iconos = {
     'Limpieza Áreas Comunes':'🧹', 'Mantenimiento Alberca':'🏊',
-    'Riego Jardines':'🌿', 'Poda':'✂️', 'Proveedor Externo':'🔧'
+    'Riego Jardines':'🌿', 'Poda':'✂️', 'Proveedor Externo':'🔧',
+    'Control Agua':'🚰'
   };
   const items = filtroActualBit === 'todos'
     ? bitacoraCache
