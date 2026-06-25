@@ -636,6 +636,11 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
         <span class="m-title">Paquetería</span>
         <span class="m-desc">Paquetes en caseta</span>
       </button>
+      <button class="modulo-btn" onclick="ir('s-bitacora'); cargarBitacoraResidente()">
+        <span class="m-icon">📋</span>
+        <span class="m-title">Bitácora</span>
+        <span class="m-desc">Mantenimiento de áreas</span>
+      </button>
       <button class="modulo-btn" onclick="ir('s-directorio'); cargarDirectorio()">
         <span class="m-icon">📞</span>
         <span class="m-title">Directorio</span>
@@ -918,6 +923,29 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
+     PANTALLA — BITÁCORA DE MANTENIMIENTO
+═══════════════════════════════════════════════════════════ -->
+<div id="s-bitacora" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>Bitácora de Mantenimiento</p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <button class="tipo-chip selected" onclick="filtrarBitacora('todos',this)">Todos</button>
+      <button class="tipo-chip" onclick="filtrarBitacora('Limpieza Áreas Comunes',this)">🧹 Limpieza</button>
+      <button class="tipo-chip" onclick="filtrarBitacora('Mantenimiento Alberca',this)">🏊 Alberca</button>
+      <button class="tipo-chip" onclick="filtrarBitacora('Riego Jardines',this)">🌿 Riego</button>
+      <button class="tipo-chip" onclick="filtrarBitacora('Poda',this)">✂️ Poda</button>
+    </div>
+    <div id="bitacora-lista"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
      PANTALLA — PANEL DEL COMITÉ
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-comite" class="screen">
@@ -1034,6 +1062,8 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
       <button class="btn-submit" onclick="registrarEntradaSeg()">Registrar Entrada</button>
       <p style="font-size:13px;color:#666;margin:12px 0 6px">En curso:</p>
       <div id="seg-activos"><p style="font-size:12px;color:#999">Sin actividades activas</p></div>
+      <p style="font-size:13px;color:#666;margin:12px 0 6px;border-top:1px solid #eee;padding-top:12px">🔑 Préstamos activos:</p>
+      <div id="seg-prestamos-activos"><p style="font-size:12px;color:#999">Cargando...</p></div>
     </div>
 
     <!-- Incidencia / Multa -->
@@ -1514,6 +1544,68 @@ async function cargarPaquetes() {
   }
 }
 
+// ── BITÁCORA (vista residentes) ───────────────────────────────
+
+let bitacoraCache = [];
+let filtroActualBit = 'todos';
+
+async function cargarBitacoraResidente() {
+  const lista = document.getElementById('bitacora-lista');
+  lista.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res  = await fetch(`${API}?accion=getBitacora`);
+    const data = await res.json();
+    bitacoraCache = Array.isArray(data)
+      ? data.filter(r => r.Tipo_Actividad !== 'Control Agua').reverse()
+      : [];
+    renderBitacora();
+  } catch(e) {
+    document.getElementById('bitacora-lista').innerHTML =
+      '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
+  }
+}
+
+function filtrarBitacora(tipo, btn) {
+  filtroActualBit = tipo;
+  document.querySelectorAll('#s-bitacora .tipo-chip').forEach(c => c.classList.remove('selected'));
+  if (btn) btn.classList.add('selected');
+  renderBitacora();
+}
+
+function renderBitacora() {
+  const lista  = document.getElementById('bitacora-lista');
+  const iconos = {
+    'Limpieza Áreas Comunes':'🧹', 'Mantenimiento Alberca':'🏊',
+    'Riego Jardines':'🌿', 'Poda':'✂️', 'Proveedor Externo':'🔧'
+  };
+  const items = filtroActualBit === 'todos'
+    ? bitacoraCache
+    : bitacoraCache.filter(r => r.Tipo_Actividad === filtroActualBit);
+
+  if (items.length === 0) {
+    lista.innerHTML = '<p style="color:#888;text-align:center;padding:24px">Sin registros en esta categoría</p>';
+    return;
+  }
+  const colores = { 'En curso':'#1976d2', 'Completado':'#43a047', 'default':'#999' };
+  lista.innerHTML = items.slice(0, 30).map(r => {
+    const icono = iconos[r.Tipo_Actividad] || '📋';
+    const color = colores[r.Estatus] || colores.default;
+    const horario = r.Hora_Entrada
+      ? `${r.Hora_Entrada}${r.Hora_Salida ? ' → ' + r.Hora_Salida : ' (en curso)'}`
+      : '';
+    return `
+    <div class="historial-card" style="border-left-color:${color}">
+      <div class="hc-header">
+        <span class="hc-titulo">${icono} ${r.Tipo_Actividad}</span>
+        <span class="hc-badge" style="background:${color}20;color:${color}">${r.Estatus}</span>
+      </div>
+      <div class="hc-desc">📍 ${r.Zona_Area || 'Área General'}${r.Trabajador ? ' · ' + r.Trabajador : ''}</div>
+      <div class="hc-meta">📅 ${formatearFecha(r.Fecha)}${horario ? ' · 🕐 ' + horario : ''}</div>
+      ${r.Notas ? `<div style="font-size:12px;color:#888;margin-top:4px;font-style:italic">${r.Notas}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
 // ── PANEL COMITÉ ──────────────────────────────────────────────
 
 let tabComiteActual = 'reportes';
@@ -1688,8 +1780,10 @@ function onConceptoChange() {
   const sel     = document.getElementById('cp-multa-concepto');
   const montoEl = document.getElementById('cp-multa-monto');
   if (!sel || !montoEl) return;
-  const opt   = sel.options[sel.selectedIndex];
-  const base  = parseFloat(opt?.dataset?.monto || 0) || 0;
+  const idConcepto = sel.value;
+  // Buscar el monto directo del catálogo en memoria (más confiable que data-monto del DOM)
+  const concepto = catalogoMultas.find(c => c.ID_Concepto === idConcepto);
+  const base = parseFloat(String(concepto?.Costo_Base || '0').replace(/[$,\s]/g,'')) || 0;
   montoEl.value = tipo === 'Llamada de Atención' ? 0 : base;
 }
 
@@ -1808,7 +1902,7 @@ function toggleSeg(panel) {
   segPanelActivo = panel;
   document.getElementById('seg-panel-' + panel).classList.add('activo');
   if (panel === 'agua')       actualizarAgua();
-  if (panel === 'servicios')  cargarActivosSeg();
+  if (panel === 'servicios')  { cargarActivosSeg(); cargarPrestamosActivosSeg(); }
   if (panel === 'paqueteria') cargarPkgPendientesSeg();
 }
 
@@ -1879,18 +1973,38 @@ async function actualizarAgua() {
     const registros = Array.isArray(data)
       ? data.filter(r => r.Tipo_Actividad === 'Control Agua' && limpiarFecha(r.Fecha) === hoyStr)
       : [];
+    // El último registro determina el estado actual
     const ultimo  = registros.length > 0 ? registros[registros.length - 1] : null;
-    const abierta = !ultimo || ultimo.Zona_Area === 'Apertura';
+    // Si el último fue "Cierre" está cerrada, si fue "Apertura" está abierta
+    // Si no hay registros hoy, asumimos estado según horario (11-19 = abierta)
+    let abierta;
+    if (ultimo) {
+      abierta = String(ultimo.Zona_Area || '').trim() === 'Apertura';
+    } else {
+      const hora = new Date().getHours();
+      abierta = hora >= 11 && hora < 19;
+    }
     const estadoEl = document.getElementById('agua-estado');
-    estadoEl.style.background = abierta ? '#e8f5e9' : '#ffebee';
-    document.getElementById('agua-icono').textContent = abierta ? '🚰' : '🔴';
-    document.getElementById('agua-txt').textContent   = abierta ? '💧 Agua ABIERTA' : '🔴 Agua CERRADA';
-    const btn = document.getElementById('agua-btn');
-    btn.textContent       = abierta ? '🔴 Cerrar llave' : '💧 Abrir llave';
-    btn.style.background  = abierta ? '#e53935' : '#43a047';
-    document.getElementById('agua-historial').innerHTML = registros.length === 0
-      ? '<p style="font-size:12px;color:#999">Sin registros hoy</p>'
-      : registros.map(r => `<div style="font-size:12px;padding:4px 0;border-bottom:1px solid #eee">${r.Hora_Entrada} — ${r.Zona_Area}</div>`).join('');
+    if (estadoEl) estadoEl.style.background = abierta ? '#e8f5e9' : '#ffebee';
+    const iconoEl = document.getElementById('agua-icono');
+    const txtEl   = document.getElementById('agua-txt');
+    const btn     = document.getElementById('agua-btn');
+    if (iconoEl) iconoEl.textContent = abierta ? '🚰' : '🔴';
+    if (txtEl)   txtEl.textContent   = abierta ? '💧 Agua ABIERTA' : '🔴 Agua CERRADA';
+    if (btn) {
+      btn.textContent      = abierta ? '🔴 Cerrar llave' : '💧 Abrir llave';
+      btn.style.background = abierta ? '#e53935' : '#43a047';
+    }
+    const histEl = document.getElementById('agua-historial');
+    if (histEl) {
+      histEl.innerHTML = registros.length === 0
+        ? '<p style="font-size:12px;color:#999">Sin registros hoy</p>'
+        : registros.slice().reverse().map(r =>
+            `<div style="font-size:12px;padding:4px 0;border-bottom:1px solid #eee">
+              ${r.Hora_Entrada} — <strong>${r.Zona_Area}</strong>
+            </div>`
+          ).join('');
+    }
   } catch(e) {}
 }
 
@@ -1953,6 +2067,42 @@ async function cargarActivosSeg() {
           </button>
         </div>`).join('');
   } catch(e) {}
+}
+
+async function cargarPrestamosActivosSeg() {
+  const el = document.getElementById('seg-prestamos-activos');
+  if (!el) return;
+  try {
+    const res  = await fetch(`${API}?accion=getTodosPrestamos`);
+    const data = await res.json();
+    const activos = Array.isArray(data) ? data.filter(s => s.Estatus === 'Prestado') : [];
+    el.innerHTML = activos.length === 0
+      ? '<p style="font-size:12px;color:#999">Sin préstamos activos</p>'
+      : activos.map(s => {
+          const icono = s.Articulo?.includes('Escalera') ? '🪜' : '🔑';
+          return `
+          <div class="bit-activa">
+            <div class="ba-nombre">${icono} ${s.Articulo} — Depto ${s.Casa}</div>
+            <div class="ba-info">${s.Nombre} · ${formatearFecha(s.Fecha)}</div>
+            <button onclick="devolverArticuloSeg('${s.ID}')"
+              style="background:#43a047;color:#fff;border:none;border-radius:6px;
+                     padding:6px 12px;font-size:12px;cursor:pointer;margin-top:6px">
+              ✅ Marcar devuelto
+            </button>
+          </div>`;
+        }).join('');
+  } catch(e) { el.innerHTML = '<p style="font-size:12px;color:#c62828">Error al cargar</p>'; }
+}
+
+async function devolverArticuloSeg(id) {
+  const msg = document.getElementById('msg-seg');
+  try {
+    const res = await post({ accion: 'devolverArticulo', id });
+    if (res.ok) {
+      showMsg(msg, 'ok', '✅ Devolución registrada');
+      cargarPrestamosActivosSeg();
+    } else showMsg(msg, 'error', res.error || 'Error');
+  } catch(e) { showMsg(msg, 'error', 'Error de conexión'); }
 }
 
 async function cerrarEntradaSeg(id) {
