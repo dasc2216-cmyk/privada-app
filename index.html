@@ -735,6 +735,12 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
       Estado en tiempo real · Toca para ocupar o liberar
     </p>
     <div id="amenidades-lista"><div class="loader">Cargando...</div></div>
+
+    <!-- Historial de uso -->
+    <div style="margin-top:8px">
+      <p class="seccion-titulo" style="margin-top:16px">📋 Historial de uso</p>
+      <div id="amenidades-historial"><div class="loader">Cargando...</div></div>
+    </div>
   </div>
 </div>
 
@@ -2656,8 +2662,54 @@ async function cargarAmenidades() {
     if (!Array.isArray(amenidadesData)) throw new Error('Sin datos');
     if (!Array.isArray(reglasData)) reglasData = [];
     renderAmenidades();
+    cargarHistorialAmenidades();
   } catch(e) {
     lista.innerHTML = '<p style="color:#c62828; text-align:center; padding:16px">Error al cargar</p>';
+  }
+}
+
+async function cargarHistorialAmenidades() {
+  const el = document.getElementById('amenidades-historial');
+  if (!el) return;
+  try {
+    const res  = await fetch(`${API}?accion=getRegistroAmenidades`);
+    const data = await res.json();
+    const lista = Array.isArray(data) ? data : [];
+
+    // Residente ve solo sus registros, Principal ve todos
+    const filtrado = sesion.verHistorialCompleto
+      ? lista.slice().reverse().slice(0, 20)
+      : lista.filter(r =>
+          String(r.Casa || '').toUpperCase().trim() === sesion.casa.toUpperCase().trim()
+        ).slice().reverse().slice(0, 20);
+
+    if (filtrado.length === 0) {
+      el.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:12px">Sin registros de uso</p>';
+      return;
+    }
+    const iconos = { 'Piscina':'🏊', 'Palapa':'🌴', 'Mesa 1':'🪑', 'Mesa 2':'🪑', 'Mesa 3':'🪑' };
+    el.innerHTML = filtrado.map(r => {
+      const icono  = iconos[r.Amenidad] || '📍';
+      const est    = String(r.Estatus || '').toLowerCase();
+      const color  = est === 'en uso' ? '#1976d2' : est === 'liberado' ? '#43a047' : '#999';
+      const horario = r.Hora_Inicio
+        ? `${fmt12(r.Hora_Inicio)}${r.Hora_Fin ? ' → ' + fmt12(r.Hora_Fin) : ''}`
+        : '';
+      return `
+      <div class="historial-card" style="border-left-color:${color}">
+        <div class="hc-header">
+          <span class="hc-titulo">${icono} ${r.Amenidad}</span>
+          <span class="hc-badge" style="background:${color}20;color:${color}">${r.Estatus}</span>
+        </div>
+        <div class="hc-meta">
+          Depto ${r.Casa} · ${formatearFecha(r.Fecha)}
+          ${horario ? ' · 🕐 ' + horario : ''}
+          ${r.Num_Personas ? ' · 👥 ' + r.Num_Personas + ' personas' : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<p style="color:#c62828;font-size:13px;text-align:center;padding:12px">Error al cargar historial</p>';
   }
 }
 
