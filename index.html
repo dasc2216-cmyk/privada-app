@@ -994,12 +994,14 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
       <button class="tab-btn" onclick="tabComite('mudanzas',this)">📦 Mudanzas</button>
       <button class="tab-btn" onclick="tabComite('multas',this)">⚠️ Multas</button>
       <button class="tab-btn" onclick="tabComite('prestamos',this)">🔑 Préstamos</button>
+      <button class="tab-btn" onclick="tabComite('riego',this)">🌿 Riego</button>
       <button class="tab-btn" onclick="tabComite('propietarios',this)">👤 Verificar</button>
     </div>
     <div id="cp-reportes"    class="panel-seccion activa"><div class="loader">Cargando...</div></div>
     <div id="cp-mudanzas"    class="panel-seccion"><div class="loader">Cargando...</div></div>
     <div id="cp-multas"      class="panel-seccion"><div class="loader">Cargando...</div></div>
     <div id="cp-prestamos"   class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-riego"       class="panel-seccion"><div class="loader">Cargando...</div></div>
     <div id="cp-propietarios" class="panel-seccion"><div class="loader">Cargando...</div></div>
   </div>
 </div>
@@ -1668,6 +1670,7 @@ async function renderTabComite(tab) {
     if (tab === 'mudanzas')     await renderMudanzasComite(el);
     if (tab === 'multas')       await renderMultasComite(el);
     if (tab === 'prestamos')    await renderPrestamosComite(el);
+    if (tab === 'riego')        await renderRiegoComite(el);
     if (tab === 'propietarios') await renderPropietariosComite(el);
   } catch(e) { el.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>'; }
 }
@@ -1870,6 +1873,97 @@ async function devolverComite(id) {
     if (res.ok) { showMsg(msg,'ok','✅ Marcado como devuelto'); renderTabComite('prestamos'); }
     else showMsg(msg,'error', res.error || 'Error');
   } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
+async function renderRiegoComite(el) {
+  // Cargar historial de riego de la bitácora
+  let historial = [];
+  try {
+    const res  = await fetch(`${API}?accion=getBitacora`);
+    const data = await res.json();
+    historial = Array.isArray(data)
+      ? data.filter(r => r.Tipo_Actividad === 'Riego Jardines').reverse().slice(0, 10)
+      : [];
+  } catch(e) {}
+
+  const zonas = ['Jardín Norte', 'Jardín Sur', 'Jardín Este', 'Jardín Oeste', 'Áreas Verdes Generales'];
+
+  el.innerHTML = `
+  <div class="item-comite" style="border:1.5px solid #43a047">
+    <p style="font-size:14px;font-weight:700;color:#2e7d32;margin-bottom:12px">🌿 Registrar Riego</p>
+    <div class="fg">
+      <label>Zona regada</label>
+      <select id="cp-riego-zona">
+        ${zonas.map(z => `<option value="${z}">${z}</option>`).join('')}
+        <option value="Todas las zonas">🌿 Todas las zonas</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Duración (minutos)</label>
+      <select id="cp-riego-duracion">
+        <option value="15">15 min</option>
+        <option value="30" selected>30 min</option>
+        <option value="45">45 min</option>
+        <option value="60">60 min</option>
+        <option value="90">90 min</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Notas (opcional)</label>
+      <input type="text" id="cp-riego-notas" placeholder="Ej: riego profundo, clima caluroso...">
+    </div>
+    <button class="btn-submit" style="margin-top:4px;background:linear-gradient(135deg,#2e7d32,#43a047)"
+      onclick="registrarRiegoComite()">💧 Registrar Riego</button>
+  </div>
+
+  <p class="seccion-titulo" style="margin-top:16px">📋 Últimos riegos</p>
+  ${historial.length === 0
+    ? '<p style="color:#888;font-size:13px;text-align:center;padding:12px">Sin registros de riego</p>'
+    : historial.map(r => `
+      <div class="item-comite" style="border-left:3px solid #43a047">
+        <div class="ic-header">
+          <span class="ic-titulo">🌿 ${r.Zona_Area}</span>
+          <span style="font-size:11px;color:#888">${formatearFecha(r.Fecha)}</span>
+        </div>
+        <div class="ic-meta">
+          🕐 ${r.Hora_Entrada || ''}${r.Hora_Salida ? ' → ' + r.Hora_Salida : ''}
+          · ${r.Registrado_Por || ''}
+        </div>
+        ${r.Notas ? `<div style="font-size:12px;color:#666;margin-top:4px;font-style:italic">${r.Notas}</div>` : ''}
+      </div>`).join('')}
+  `;
+}
+
+async function registrarRiegoComite() {
+  const msg      = document.getElementById('msg-comite');
+  const zona     = document.getElementById('cp-riego-zona').value;
+  const duracion = document.getElementById('cp-riego-duracion').value;
+  const notas    = document.getElementById('cp-riego-notas').value.trim();
+  const ahora    = new Date();
+  const horaIni  = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0');
+  const minutos  = parseInt(duracion);
+  const fin      = new Date(ahora.getTime() + minutos * 60000);
+  const horaFin  = String(fin.getHours()).padStart(2,'0') + ':' + String(fin.getMinutes()).padStart(2,'0');
+
+  try {
+    const res = await post({
+      accion: 'registrarBitacora',
+      tipo_actividad: 'Riego Jardines',
+      zona_area: zona,
+      trabajador: sesion.nombre,
+      registrado_por: sesion.nombre,
+      hora_entrada: horaIni,
+      hora_salida: horaFin,
+      notas: notas || `Duración: ${duracion} min`
+    });
+    if (res.ok) {
+      showMsg(msg, 'ok', `✅ Riego de ${zona} registrado (${horaIni} → ${horaFin})`);
+      document.getElementById('cp-riego-notas').value = '';
+      setTimeout(() => renderTabComite('riego'), 1000);
+    } else {
+      showMsg(msg, 'error', res.error || 'Error al registrar');
+    }
+  } catch(e) { showMsg(msg, 'error', 'Error de conexión'); }
 }
 
 async function renderPropietariosComite(el) {
