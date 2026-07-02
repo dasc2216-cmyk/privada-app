@@ -265,6 +265,16 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
   padding:8px 12px; color:#1565c0; font-size:13px; font-weight:600;
   cursor:pointer; flex-shrink:0; }
 
+/* ── BANNER DE ANUNCIOS ────────────────────────────────────── */
+.anuncio-item { background:linear-gradient(135deg,#1a237e,#283593);
+  border-radius:14px; padding:14px 16px; margin-bottom:10px;
+  display:flex; align-items:flex-start; gap:12px;
+  box-shadow:0 3px 12px rgba(26,35,126,.25); }
+.anuncio-icon { font-size:22px; flex-shrink:0; margin-top:1px; }
+.anuncio-txt  { font-size:14px; color:#fff; line-height:1.6; flex:1; }
+.anuncio-linea { width:40px; height:3px; background:rgba(255,255,255,.3);
+  border-radius:2px; margin:8px 0 0; }
+
 /* ── PANEL COMITÉ ──────────────────────────────────────────── */
 .tabs-comite { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
 .tab-btn { padding:8px 14px; border:1.5px solid #ddd; border-radius:20px;
@@ -559,6 +569,9 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
     </div>
   </div>
   <div class="content" style="overflow-y:auto">
+
+    <!-- Banner de Anuncios (se oculta si no hay activos) -->
+    <div id="banner-anuncios" class="hidden"></div>
 
     <!-- Bienvenida -->
     <div class="bienvenida-card">
@@ -1124,7 +1137,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbxav2GLJMbGKKCWNi52wcH0x469JJv64S3WVBL_9c9OJTSoFaVF3zWrnrCVTqLbgGe_UQ/exec'; // <-- reemplaza con tu URL del Apps Script
+const API = 'TU_URL_AQUI'; // <-- reemplaza con tu URL del Apps Script
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -1355,6 +1368,7 @@ async function cargarMenuPrincipal() {
   // Cargar estatus de finanzas y banners
   cargarEstatusHome();
   cargarBannerPaquete();
+  cargarAnuncios();
 
   // Mostrar panel del comité si aplica
   const btnComite = document.getElementById('btn-comite-wrap');
@@ -1940,7 +1954,7 @@ async function registrarRiegoComite() {
   const duracion = document.getElementById('cp-riego-duracion').value;
   const notas    = document.getElementById('cp-riego-notas').value.trim();
   const ahora    = new Date();
-  const horaIni  = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0');
+  const horaIni  = horaCanun();
   const minutos  = parseInt(duracion);
   const fin      = new Date(ahora.getTime() + minutos * 60000);
   const horaFin  = String(fin.getHours()).padStart(2,'0') + ':' + String(fin.getMinutes()).padStart(2,'0');
@@ -2146,7 +2160,7 @@ async function registrarEntradaSeg() {
   const zona  = document.getElementById('seg-zona').value;
   const notas = document.getElementById('seg-notas').value.trim();
   const ahora = new Date();
-  const hora  = String(ahora.getHours()).padStart(2,'0') + ':' + String(ahora.getMinutes()).padStart(2,'0');
+  const hora  = horaCanun();
   const btn   = document.querySelector('#seg-panel-servicios .btn-submit');
   btn.disabled = true; btn.textContent = 'Registrando...';
   try {
@@ -2351,7 +2365,7 @@ async function registrarMudanza() {
   const fecha = document.getElementById('mud-fecha').value;
   if (!tipoMudanzaSeleccionado) { showMsg(msg, 'error', 'Selecciona el tipo: Entrada o Salida'); return; }
   if (!fecha) { showMsg(msg, 'error', 'Selecciona la fecha de la mudanza'); return; }
-  const hoy = new Date().toISOString().split('T')[0];
+  const hoy = hoyCanun();
   if (fecha < hoy) { showMsg(msg, 'error', 'La fecha no puede ser en el pasado'); return; }
   const btn = document.querySelector('#s-mudanzas .btn-submit');
   btn.disabled = true; btn.textContent = 'Solicitando...';
@@ -2425,6 +2439,33 @@ async function cargarReglamentoVer() {
     el.innerHTML = texto;
   } catch(e) {
     el.innerHTML = '<p style="color:#c62828;text-align:center;padding:24px">Error al cargar</p>';
+  }
+}
+
+// ── ANUNCIOS ─────────────────────────────────────────────────
+
+async function cargarAnuncios() {
+  const contenedor = document.getElementById('banner-anuncios');
+  if (!contenedor) return;
+  try {
+    const res  = await fetch(`${API}?accion=getAnuncios`);
+    const data = await res.json();
+    const activos = Array.isArray(data) ? data : [];
+    if (activos.length === 0) {
+      contenedor.classList.add('hidden');
+      return;
+    }
+    contenedor.innerHTML = activos.map(a => `
+      <div class="anuncio-item">
+        <span class="anuncio-icon">📢</span>
+        <div>
+          <div class="anuncio-txt">${a.Texto_Anuncio}</div>
+          <div class="anuncio-linea"></div>
+        </div>
+      </div>`).join('');
+    contenedor.classList.remove('hidden');
+  } catch(e) {
+    contenedor.classList.add('hidden');
   }
 }
 
@@ -2661,6 +2702,23 @@ function formatearFecha(valor) {
 
 
 
+// ── FECHA Y HORA EN ZONA CANCUN (UTC-5 fijo, sin horario de verano) ──
+function ahoraCanun() {
+  const ahora = new Date();
+  const utc   = ahora.getTime() + (ahora.getTimezoneOffset() * 60000);
+  return new Date(utc - (5 * 3600000));
+}
+function hoyCanun() {
+  const d = ahoraCanun();
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2,'0') + '-' +
+    String(d.getDate()).padStart(2,'0');
+}
+function horaCanun() {
+  const d = ahoraCanun();
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
 function poblarHorasVisita() {
   const sel = document.getElementById('vis-hora');
   if (!sel || sel.options.length > 1) return;
@@ -2679,7 +2737,7 @@ function poblarHorasVisita() {
   opt.value = '00:00'; opt.textContent = '12:00 AM';
   sel.appendChild(opt);
   // Pre-seleccionar hora más cercana
-  const ahora = new Date();
+  const ahora = ahoraCanun();
   const m15   = Math.ceil(ahora.getMinutes() / 15) * 15;
   const mFin  = m15 >= 60 ? 0 : m15;
   const hFin  = m15 >= 60 ? ahora.getHours() + 1 : ahora.getHours();
@@ -2718,7 +2776,7 @@ async function cargarVisitas() {
   try {
     const res  = await fetch(`${API}?accion=getVisitas&casa=${encodeURIComponent(sesion.casa)}`);
     const data = await res.json();
-    const hoy  = new Date().toISOString().split('T')[0];
+    const hoy  = hoyCanun();
     const deHoy = Array.isArray(data)
       ? data.filter(v => String(v.Fecha || '').startsWith(hoy)).reverse()
       : [];
