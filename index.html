@@ -2450,20 +2450,24 @@ async function cargarAnuncios() {
   try {
     const res  = await fetch(`${API}?accion=getAnuncios`);
     const data = await res.json();
-    const activos = Array.isArray(data) ? data : [];
+    // Filtrar activos de forma permisiva
+    const activos = Array.isArray(data)
+      ? data.filter(a => String(a.Estatus || '').trim().toLowerCase().includes('activ'))
+      : [];
     if (activos.length === 0) {
       contenedor.classList.add('hidden');
+      contenedor.innerHTML = '';
       return;
     }
+    contenedor.classList.remove('hidden');
     contenedor.innerHTML = activos.map(a => `
       <div class="anuncio-item">
         <span class="anuncio-icon">📢</span>
         <div>
-          <div class="anuncio-txt">${a.Texto_Anuncio}</div>
+          <div class="anuncio-txt">${a.Texto_Anuncio || ''}</div>
           <div class="anuncio-linea"></div>
         </div>
       </div>`).join('');
-    contenedor.classList.remove('hidden');
   } catch(e) {
     contenedor.classList.add('hidden');
   }
