@@ -604,12 +604,12 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
     </div>
 
     <!-- Finanzas en home -->
-    <div class="finanzas-home" onclick="ir('s-finanzas'); cargarFinanzas()">
+    <div class="finanzas-home" id="finanzas-home-card" onclick="abrirFinanzas()">
       <div>
         <div class="fh-label">💳 Consultar estado de cuenta</div>
         <div class="fh-estatus" id="home-estatus">Cargando...</div>
       </div>
-      <span class="fh-chevron">›</span>
+      <span class="fh-chevron" id="finanzas-chevron">›</span>
     </div>
 
     <!-- Grid de módulos -->
@@ -1447,12 +1447,29 @@ async function cargarMenuPrincipal() {
   // Mostrar/ocultar módulos según rol
   const rolSesion = String(sesion.rol || '').trim().toLowerCase();
   const esPrincipal = rolSesion === 'propietario' || rolSesion === 'administrador';
+
+  // Botón de multas: solo Propietario y Administrador
   const btnMultas = document.getElementById('btn-mis-multas');
   if (btnMultas) btnMultas.style.display = esPrincipal ? '' : 'none';
-  // Debug temporal - muestra el rol en el depto
-  document.getElementById('menu-depto').textContent = `Depto ${sesion.casa} · rol: ${sesion.rol || 'sin rol'}`;
+
+  // Finanzas: Residente solo ve estatus, no puede entrar al detalle
+  const chevron = document.getElementById('finanzas-chevron');
+  if (chevron) chevron.style.display = esPrincipal ? '' : 'none';
+  const finCard = document.getElementById('finanzas-home-card');
+  if (finCard) finCard.style.cursor = esPrincipal ? 'pointer' : 'default';
+
+  // Panel del comité
   const btnComite = document.getElementById('btn-comite-wrap');
   if (btnComite) btnComite.style.display = sesion.cargo ? 'block' : 'none';
+}
+
+function abrirFinanzas() {
+  const rol = String(sesion.rol || '').trim().toLowerCase();
+  if (rol === 'propietario' || rol === 'administrador') {
+    ir('s-finanzas');
+    cargarFinanzas();
+  }
+  // Residente: no hace nada al tocar la tarjeta
 }
 
 async function cargarEstatusHome() {
