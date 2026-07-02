@@ -649,6 +649,11 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
         <span class="m-title">Paquetería</span>
         <span class="m-desc">Paquetes en caseta</span>
       </button>
+      <button class="modulo-btn" onclick="ir('s-multas-res'); cargarMultasResidente()">
+        <span class="m-icon">⚠️</span>
+        <span class="m-title">Mis Multas</span>
+        <span class="m-desc">Llamadas de atención y sanciones</span>
+      </button>
       <button class="modulo-btn" onclick="ir('s-bitacora'); cargarBitacoraResidente()">
         <span class="m-icon">📋</span>
         <span class="m-title">Bitácora</span>
@@ -967,6 +972,22 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
+     PANTALLA — MIS MULTAS (residentes)
+═══════════════════════════════════════════════════════════ -->
+<div id="s-multas-res" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>Mis Multas y Llamadas de Atención</p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="multas-res-lista"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
      PANTALLA — BITÁCORA DE MANTENIMIENTO
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-bitacora" class="screen">
@@ -1043,6 +1064,15 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
       </button>
       <button class="seg-btn" onclick="toggleSeg('incidencia')">
         <span class="sb-icon">⚠️</span><span class="sb-label">Incidencia</span>
+      </button>
+      <button class="seg-btn" onclick="toggleSeg('mudanzas')">
+        <span class="sb-icon">🚛</span><span class="sb-label">Mudanzas</span>
+      </button>
+      <button class="seg-btn" onclick="toggleSeg('amenidades')">
+        <span class="sb-icon">🏊</span><span class="sb-label">Amenidades</span>
+      </button>
+      <button class="seg-btn" onclick="toggleSeg('prestamos')" style="grid-column:span 2">
+        <span class="sb-icon">🔑</span><span class="sb-label">Préstamos Activos</span>
       </button>
     </div>
 
@@ -1129,6 +1159,50 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
           <input type="number" id="seg-inc-monto" readonly style="background:#f5f5f5"></div>
       </div>
       <button class="btn-submit" onclick="registrarIncidenciaSeg()">Enviar al Comité</button>
+    </div>
+
+    <!-- Mudanzas Caseta -->
+    <div id="seg-panel-mudanzas" class="seg-panel">
+      <h3 style="font-size:15px;margin-bottom:12px">🚛 Registro de Mudanza</h3>
+      <div class="fg"><label>Departamento</label>
+        <input type="text" id="seg-mud-depto" placeholder="Ej: 4A" style="text-transform:uppercase"></div>
+      <div class="fg"><label>Tipo</label>
+        <div class="seg-sub" style="margin-bottom:0">
+          <button id="seg-mud-e" class="activo" onclick="subMud('Entrada')">📥 Entrada</button>
+          <button id="seg-mud-s" onclick="subMud('Salida')">📤 Salida</button>
+        </div>
+      </div>
+      <div class="fg"><label>Nombre del responsable</label>
+        <input type="text" id="seg-mud-nombre" placeholder="Nombre completo"></div>
+      <button class="btn-submit" onclick="registrarMudanzaSeg()">Registrar Mudanza</button>
+      <p style="font-size:13px;color:#666;margin:12px 0 6px">Mudanzas del día:</p>
+      <div id="seg-mud-lista"><p style="font-size:12px;color:#999">Cargando...</p></div>
+    </div>
+
+    <!-- Amenidades Caseta -->
+    <div id="seg-panel-amenidades" class="seg-panel">
+      <h3 style="font-size:15px;margin-bottom:12px">🏊 Estado de Amenidades</h3>
+      <div id="seg-amenidades-lista"><div class="loader">Cargando...</div></div>
+      <p style="font-size:13px;color:#666;margin:12px 0 6px;border-top:1px solid #eee;padding-top:12px">Registrar ocupación manual:</p>
+      <div class="fg"><label>Amenidad</label>
+        <select id="seg-am-amenidad">
+          <option value="Mesa 1">🪑 Mesa 1</option>
+          <option value="Mesa 2">🪑 Mesa 2</option>
+          <option value="Mesa 3">🪑 Mesa 3</option>
+          <option value="Piscina">🏊 Piscina</option>
+          <option value="Palapa">🌴 Palapa</option>
+        </select></div>
+      <div class="fg"><label>Depto</label>
+        <input type="text" id="seg-am-depto" placeholder="Ej: 4A" style="text-transform:uppercase"></div>
+      <div class="fg"><label>Nombre</label>
+        <input type="text" id="seg-am-nombre" placeholder="Nombre del residente"></div>
+      <button class="btn-submit" onclick="ocuparAmenidadSeg()">Registrar Ocupación</button>
+    </div>
+
+    <!-- Préstamos Activos -->
+    <div id="seg-panel-prestamos" class="seg-panel">
+      <h3 style="font-size:15px;margin-bottom:12px">🔑 Préstamos Activos</h3>
+      <div id="seg-prestamos-lista"><div class="loader">Cargando...</div></div>
     </div>
 
     <button style="background:none;border:none;color:#999;font-size:13px;cursor:pointer;
@@ -1591,6 +1665,199 @@ async function cargarPaquetes() {
   }
 }
 
+// ── MULTAS RESIDENTES ─────────────────────────────────────────
+
+async function cargarMultasResidente() {
+  const lista = document.getElementById('multas-res-lista');
+  lista.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res  = await fetch(`${API}?accion=getMultas&casa=${encodeURIComponent(sesion.casa)}`);
+    const data = await res.json();
+    const todas = Array.isArray(data) ? data.slice().reverse() : [];
+
+    // Residente solo ve las suyas (por nombre), Propietario/Admin ve todas del depto
+    const esPrincipal = sesion.rol === 'Propietario' || sesion.rol === 'Administrador';
+    const items = esPrincipal ? todas : todas.filter(m => {
+      // Las multas no tienen nombre directo — el residente ve solo las que tienen
+      // Tipo_Incidencia registrado para él (las generadas por su rol)
+      // Por ahora mostramos todas del depto al residente también pero sin monto
+      return true;
+    });
+
+    if (items.length === 0) {
+      lista.innerHTML = '<div class="card"><p style="color:#888;text-align:center;padding:16px">Sin multas o llamadas de atención registradas ✅</p></div>';
+      return;
+    }
+    const fmt = n => '$' + Number(n || 0).toLocaleString('es-MX');
+    lista.innerHTML = items.map(m => {
+      const est   = String(m.Estatus || '').toLowerCase().replace('_','-');
+      const monto = parseFloat(m.Monto_Penalizacion) || 0;
+      const esLlamada = m.Tipo_Incidencia === 'Llamada de Atención';
+      const color = esLlamada ? '#fb8c00' : monto > 0 ? '#c62828' : '#1976d2';
+      const icono = esLlamada ? '⚠️' : '💰';
+      // Residente NO ve el monto si es propietario (privacidad)
+      const mostrarMonto = esPrincipal || !esLlamada;
+      return `
+      <div class="historial-card" style="border-left-color:${color}">
+        <div class="hc-header">
+          <span class="hc-titulo">${icono} ${m.Tipo_Incidencia}</span>
+          <span class="hc-badge" style="background:${color}20;color:${color}">${m.Estatus}</span>
+        </div>
+        <div class="hc-desc">${m.ID_Concepto}</div>
+        ${mostrarMonto && monto > 0 ? `<div style="font-size:15px;font-weight:700;color:${color};margin:4px 0">${fmt(monto)}</div>` : ''}
+        <div class="hc-meta">${formatearFecha(m.Fecha)} · ${m.Folio}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
+  }
+}
+
+// ── SEGURIDAD: MUDANZAS ───────────────────────────────────────
+
+let tipoMudSeg = 'Entrada';
+
+function subMud(tipo) {
+  tipoMudSeg = tipo;
+  document.getElementById('seg-mud-e').className = tipo === 'Entrada' ? 'activo' : '';
+  document.getElementById('seg-mud-s').className = tipo === 'Salida'  ? 'activo' : '';
+}
+
+async function registrarMudanzaSeg() {
+  const msg    = document.getElementById('msg-seg');
+  const depto  = document.getElementById('seg-mud-depto').value.trim().toUpperCase();
+  const nombre = document.getElementById('seg-mud-nombre').value.trim();
+  if (!depto || !nombre) { showMsg(msg, 'error', 'Completa depto y nombre'); return; }
+  const btn = document.querySelector('#seg-panel-mudanzas .btn-submit');
+  btn.disabled = true; btn.textContent = 'Registrando...';
+  try {
+    const res = await post({ accion: 'registrarMudanza', casa: depto,
+      nombre, tipo_movimiento: tipoMudSeg, fecha_mudanza: hoyCanun() });
+    if (res.ok) {
+      showMsg(msg, 'ok', `✅ Mudanza ${tipoMudSeg} registrada (${res.id})`);
+      document.getElementById('seg-mud-depto').value  = '';
+      document.getElementById('seg-mud-nombre').value = '';
+      cargarMudanzasSeg();
+    } else showMsg(msg, 'error', res.error || 'Error');
+  } catch(e) { showMsg(msg, 'error', 'Error de conexión'); }
+  btn.disabled = false; btn.textContent = 'Registrar Mudanza';
+}
+
+async function cargarMudanzasSeg() {
+  const el = document.getElementById('seg-mud-lista');
+  if (!el) return;
+  try {
+    const res  = await fetch(`${API}?accion=getTodasMudanzas`);
+    const data = await res.json();
+    const hoy  = hoyCanun();
+    const hoy_items = Array.isArray(data)
+      ? data.filter(m => limpiarFecha(m.Fecha_Solicitud) === hoy).reverse()
+      : [];
+    el.innerHTML = hoy_items.length === 0
+      ? '<p style="font-size:12px;color:#999">Sin mudanzas hoy</p>'
+      : hoy_items.map(m => `
+        <div class="bit-activa">
+          <div class="ba-nombre">${m.Tipo_Movimiento === 'Entrada' ? '📥' : '📤'} Depto ${m.Casa} — ${m.Tipo_Movimiento}</div>
+          <div class="ba-info">${m.Nombre} · ${m.Estatus}</div>
+        </div>`).join('');
+  } catch(e) {}
+}
+
+// ── SEGURIDAD: AMENIDADES ─────────────────────────────────────
+
+async function cargarAmenidadesSeg() {
+  const el = document.getElementById('seg-amenidades-lista');
+  if (!el) return;
+  el.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res  = await fetch(`${API}?accion=getAmenidades`);
+    const data = await res.json();
+    const items = Array.isArray(data)
+      ? data.filter(a => String(a.Amenidad).trim() !== 'Llave de Agua')
+      : [];
+    const iconos = { 'Piscina':'🏊','Palapa':'🌴','Mesa 1':'🪑','Mesa 2':'🪑','Mesa 3':'🪑' };
+    el.innerHTML = items.map(a => {
+      const libre  = a.Estatus !== 'Ocupada';
+      const color  = libre ? '#43a047' : '#e53935';
+      const icono  = iconos[a.Amenidad] || '📍';
+      return `
+      <div class="bit-activa" style="border-left-color:${color};background:${libre ? '#e8f5e9' : '#ffebee'}">
+        <div class="ba-nombre">${icono} ${a.Amenidad}
+          <span style="float:right;font-size:11px;font-weight:700;color:${color}">${libre ? '✅ Libre' : '🔴 Ocupada'}</span>
+        </div>
+        ${!libre ? `<div class="ba-info">Depto ${a.Ocupado_Por_Casa} · desde ${a.Hora_Inicio || ''}</div>` : ''}
+        ${!libre ? `<button onclick="liberarAmenidadSeg('${a.Amenidad}')"
+          style="background:#e53935;color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;margin-top:4px">
+          Liberar</button>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) { el.innerHTML = '<p style="color:#c62828;font-size:12px">Error al cargar</p>'; }
+}
+
+async function ocuparAmenidadSeg() {
+  const msg     = document.getElementById('msg-seg');
+  const amenidad = document.getElementById('seg-am-amenidad').value;
+  const depto   = document.getElementById('seg-am-depto').value.trim().toUpperCase();
+  const nombre  = document.getElementById('seg-am-nombre').value.trim();
+  if (!depto) { showMsg(msg, 'error', 'Ingresa el depto'); return; }
+  try {
+    const res = await fetch(API, {
+      method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ accion: 'ocuparAmenidadSeg', amenidad, casa: depto, nombre })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showMsg(msg, 'ok', `✅ ${amenidad} registrada como ocupada`);
+      document.getElementById('seg-am-depto').value  = '';
+      document.getElementById('seg-am-nombre').value = '';
+      cargarAmenidadesSeg();
+    } else showMsg(msg, 'error', data.error || 'Error');
+  } catch(e) { showMsg(msg, 'error', 'Error de conexión'); }
+}
+
+async function liberarAmenidadSeg(amenidad) {
+  const msg = document.getElementById('msg-seg');
+  try {
+    const res = await fetch(API, {
+      method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ accion: 'liberarAmenidad', amenidad, casa: 'CASETA' })
+    });
+    const data = await res.json();
+    if (data.ok) { showMsg(msg, 'ok', `✅ ${amenidad} liberada`); cargarAmenidadesSeg(); }
+    else showMsg(msg, 'error', data.error || 'Error');
+  } catch(e) { showMsg(msg, 'error', 'Error de conexión'); }
+}
+
+// ── SEGURIDAD: TODOS LOS PRÉSTAMOS ACTIVOS ───────────────────
+
+async function cargarTodosPrestamosActivosSeg() {
+  const el = document.getElementById('seg-prestamos-lista');
+  if (!el) return;
+  el.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res  = await fetch(`${API}?accion=getTodosPrestamos`);
+    const data = await res.json();
+    const activos = Array.isArray(data) ? data.filter(s => s.Estatus === 'Prestado') : [];
+    if (activos.length === 0) {
+      el.innerHTML = '<p style="font-size:13px;color:#888;text-align:center;padding:16px">Sin préstamos activos ✅</p>';
+      return;
+    }
+    el.innerHTML = activos.map(s => {
+      const icono = s.Articulo?.includes('Escalera') ? '🪜' : '🔑';
+      return `
+      <div class="bit-activa">
+        <div class="ba-nombre">${icono} ${s.Articulo} — Depto ${s.Casa}</div>
+        <div class="ba-info">${s.Nombre} · ${formatearFecha(s.Fecha)}</div>
+        <button onclick="devolverArticuloSeg('${s.ID}')"
+          style="background:#43a047;color:#fff;border:none;border-radius:6px;
+                 padding:6px 12px;font-size:12px;cursor:pointer;margin-top:6px">
+          ✅ Marcar devuelto
+        </button>
+      </div>`;
+    }).join('');
+  } catch(e) { el.innerHTML = '<p style="color:#c62828;font-size:12px;text-align:center">Error al cargar</p>'; }
+}
+
 // ── BITÁCORA (vista residentes) ───────────────────────────────
 
 let bitacoraCache = [];
@@ -2032,8 +2299,9 @@ function mostrarPantallaSeguridad() {
 }
 
 function toggleSeg(panel) {
-  ['paqueteria','agua','servicios','incidencia'].forEach(p => {
-    document.getElementById('seg-panel-' + p).classList.remove('activo');
+  ['paqueteria','agua','servicios','incidencia','mudanzas','amenidades','prestamos'].forEach(p => {
+    const el = document.getElementById('seg-panel-' + p);
+    if (el) el.classList.remove('activo');
   });
   if (segPanelActivo === panel) { segPanelActivo = null; return; }
   segPanelActivo = panel;
@@ -2041,6 +2309,9 @@ function toggleSeg(panel) {
   if (panel === 'agua')       actualizarAgua();
   if (panel === 'servicios')  { cargarActivosSeg(); cargarPrestamosActivosSeg(); }
   if (panel === 'paqueteria') cargarPkgPendientesSeg();
+  if (panel === 'mudanzas')   { subMud('Entrada'); cargarMudanzasSeg(); }
+  if (panel === 'amenidades') { cargarAmenidadesSeg(); }
+  if (panel === 'prestamos')  cargarTodosPrestamosActivosSeg();
 }
 
 function subPkg(sub) {
