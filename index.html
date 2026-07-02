@@ -570,8 +570,8 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
   </div>
   <div class="content" style="overflow-y:auto">
 
-    <!-- Banner de Anuncios (se oculta si no hay activos) -->
-    <div id="banner-anuncios" class="hidden"></div>
+    <!-- Banner de Anuncios -->
+    <div id="banner-anuncios" style="display:none"></div>
 
     <!-- Bienvenida -->
     <div class="bienvenida-card">
@@ -2450,26 +2450,24 @@ async function cargarAnuncios() {
   try {
     const res  = await fetch(`${API}?accion=getAnuncios`);
     const data = await res.json();
-    // Filtrar activos de forma permisiva
     const activos = Array.isArray(data)
       ? data.filter(a => String(a.Estatus || '').trim().toLowerCase().includes('activ'))
       : [];
     if (activos.length === 0) {
-      contenedor.classList.add('hidden');
-      contenedor.innerHTML = '';
+      contenedor.style.display = 'none';
       return;
     }
-    contenedor.classList.remove('hidden');
     contenedor.innerHTML = activos.map(a => `
       <div class="anuncio-item">
         <span class="anuncio-icon">📢</span>
-        <div>
+        <div style="flex:1">
           <div class="anuncio-txt">${a.Texto_Anuncio || ''}</div>
           <div class="anuncio-linea"></div>
         </div>
       </div>`).join('');
+    contenedor.style.display = 'block';
   } catch(e) {
-    contenedor.classList.add('hidden');
+    contenedor.style.display = 'none';
   }
 }
 
