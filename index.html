@@ -649,7 +649,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
         <span class="m-title">Paquetería</span>
         <span class="m-desc">Paquetes en caseta</span>
       </button>
-      <button class="modulo-btn" id="btn-mis-multas" onclick="ir('s-multas-res'); cargarMultasResidente()">
+      <button class="modulo-btn" id="btn-mis-multas" style="display:none" onclick="ir('s-multas-res'); cargarMultasResidente()">
         <span class="m-icon">⚠️</span>
         <span class="m-title">Mis Multas</span>
         <span class="m-desc">Llamadas de atención y sanciones</span>
@@ -1445,9 +1445,12 @@ async function cargarMenuPrincipal() {
   await cargarAnuncios();
 
   // Mostrar/ocultar módulos según rol
-  const esPrincipal = sesion.rol === 'Propietario' || sesion.rol === 'Administrador';
+  const rolSesion = String(sesion.rol || '').trim().toLowerCase();
+  const esPrincipal = rolSesion === 'propietario' || rolSesion === 'administrador';
   const btnMultas = document.getElementById('btn-mis-multas');
   if (btnMultas) btnMultas.style.display = esPrincipal ? '' : 'none';
+  // Debug temporal - muestra el rol en el depto
+  document.getElementById('menu-depto').textContent = `Depto ${sesion.casa} · rol: ${sesion.rol || 'sin rol'}`;
   const btnComite = document.getElementById('btn-comite-wrap');
   if (btnComite) btnComite.style.display = sesion.cargo ? 'block' : 'none';
 }
