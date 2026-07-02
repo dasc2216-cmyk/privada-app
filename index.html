@@ -649,7 +649,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
         <span class="m-title">Paquetería</span>
         <span class="m-desc">Paquetes en caseta</span>
       </button>
-      <button class="modulo-btn" onclick="ir('s-multas-res'); cargarMultasResidente()">
+      <button class="modulo-btn" id="btn-mis-multas" onclick="ir('s-multas-res'); cargarMultasResidente()">
         <span class="m-icon">⚠️</span>
         <span class="m-title">Mis Multas</span>
         <span class="m-desc">Llamadas de atención y sanciones</span>
@@ -1444,7 +1444,10 @@ async function cargarMenuPrincipal() {
   cargarBannerPaquete();
   await cargarAnuncios();
 
-  // Mostrar panel del comité si aplica
+  // Mostrar/ocultar módulos según rol
+  const esPrincipal = sesion.rol === 'Propietario' || sesion.rol === 'Administrador';
+  const btnMultas = document.getElementById('btn-mis-multas');
+  if (btnMultas) btnMultas.style.display = esPrincipal ? '' : 'none';
   const btnComite = document.getElementById('btn-comite-wrap');
   if (btnComite) btnComite.style.display = sesion.cargo ? 'block' : 'none';
 }
@@ -1673,30 +1676,17 @@ async function cargarMultasResidente() {
   try {
     const res  = await fetch(`${API}?accion=getMultas&casa=${encodeURIComponent(sesion.casa)}`);
     const data = await res.json();
-    const todas = Array.isArray(data) ? data.slice().reverse() : [];
-
-    // Residente solo ve las suyas (por nombre), Propietario/Admin ve todas del depto
-    const esPrincipal = sesion.rol === 'Propietario' || sesion.rol === 'Administrador';
-    const items = esPrincipal ? todas : todas.filter(m => {
-      // Las multas no tienen nombre directo — el residente ve solo las que tienen
-      // Tipo_Incidencia registrado para él (las generadas por su rol)
-      // Por ahora mostramos todas del depto al residente también pero sin monto
-      return true;
-    });
-
+    const items = Array.isArray(data) ? data.slice().reverse() : [];
     if (items.length === 0) {
-      lista.innerHTML = '<div class="card"><p style="color:#888;text-align:center;padding:16px">Sin multas o llamadas de atención registradas ✅</p></div>';
+      lista.innerHTML = '<div class="card"><p style="color:#888;text-align:center;padding:16px">Sin multas o llamadas de atención ✅</p></div>';
       return;
     }
     const fmt = n => '$' + Number(n || 0).toLocaleString('es-MX');
     lista.innerHTML = items.map(m => {
-      const est   = String(m.Estatus || '').toLowerCase().replace('_','-');
-      const monto = parseFloat(m.Monto_Penalizacion) || 0;
       const esLlamada = m.Tipo_Incidencia === 'Llamada de Atención';
-      const color = esLlamada ? '#fb8c00' : monto > 0 ? '#c62828' : '#1976d2';
-      const icono = esLlamada ? '⚠️' : '💰';
-      // Residente NO ve el monto si es propietario (privacidad)
-      const mostrarMonto = esPrincipal || !esLlamada;
+      const monto     = parseFloat(m.Monto_Penalizacion) || 0;
+      const color     = esLlamada ? '#fb8c00' : monto > 0 ? '#c62828' : '#1976d2';
+      const icono     = esLlamada ? '⚠️' : '💰';
       return `
       <div class="historial-card" style="border-left-color:${color}">
         <div class="hc-header">
@@ -1704,7 +1694,7 @@ async function cargarMultasResidente() {
           <span class="hc-badge" style="background:${color}20;color:${color}">${m.Estatus}</span>
         </div>
         <div class="hc-desc">${m.ID_Concepto}</div>
-        ${mostrarMonto && monto > 0 ? `<div style="font-size:15px;font-weight:700;color:${color};margin:4px 0">${fmt(monto)}</div>` : ''}
+        ${monto > 0 ? `<div style="font-size:15px;font-weight:700;color:${color};margin:4px 0">${fmt(monto)}</div>` : ''}
         <div class="hc-meta">${formatearFecha(m.Fecha)} · ${m.Folio}</div>
       </div>`;
     }).join('');
