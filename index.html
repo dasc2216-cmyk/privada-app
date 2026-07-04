@@ -270,6 +270,10 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
   border-radius:14px; padding:14px 16px; margin-bottom:10px;
   display:flex; align-items:flex-start; gap:12px;
   box-shadow:0 3px 12px rgba(26,35,126,.25); }
+.anuncio-item.dorado { background:linear-gradient(135deg,#7b5e00,#b8860b);
+  box-shadow:0 3px 12px rgba(180,140,0,.35); }
+.anuncio-item.dorado .anuncio-txt { color:#fff8dc; font-weight:600; }
+.anuncio-item.dorado .anuncio-linea { background:rgba(212,175,55,.6); }
 .anuncio-icon { font-size:22px; flex-shrink:0; margin-top:1px; }
 .anuncio-txt  { font-size:14px; color:#fff; line-height:1.6; flex:1; }
 .anuncio-linea { width:40px; height:3px; background:rgba(255,255,255,.3);
@@ -592,7 +596,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
       style="background:linear-gradient(135deg,#e65100,#fb8c00);border-radius:14px;
              padding:14px 16px;color:#fff;margin-bottom:16px;cursor:pointer;
              box-shadow:0 3px 10px rgba(230,81,0,.3);"
-      onclick="ir('s-paqueteria'); cargarPaquetes()">
+      onclick="abrirPaqueteria()">
       <div style="display:flex;align-items:center;gap:10px">
         <span style="font-size:28px">📦</span>
         <div>
@@ -644,7 +648,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
         <span class="m-title">Servicios</span>
         <span class="m-desc">Llave azotea y escalera</span>
       </button>
-      <button class="modulo-btn" onclick="ir('s-paqueteria'); cargarPaquetes()" id="btn-paqueteria">
+      <button class="modulo-btn" onclick="abrirPaqueteria()" id="btn-paqueteria">
         <span class="m-icon">📦</span>
         <span class="m-title">Paquetería</span>
         <span class="m-desc">Paquetes en caseta</span>
@@ -1084,6 +1088,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
         <button id="seg-pkg-e" onclick="subPkg('entregar')">📤 Entregar</button>
       </div>
       <div id="seg-pkg-recibir">
+        <div id="seg-pkg-autorizacion"></div>
         <div class="fg"><label>Compañía</label>
           <select id="seg-compania">
             <option>Mercado Libre</option><option>Amazon</option>
@@ -1207,6 +1212,29 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 
     <button style="background:none;border:none;color:#999;font-size:13px;cursor:pointer;
       padding:16px;width:100%;margin-top:8px" onclick="cerrarSesion()">Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL — CONSENTIMIENTO PAQUETERÍA
+═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-paqueteria-consent">
+  <div class="modal-box">
+    <p class="modal-title">📦 Autorización de Paquetería</p>
+    <p style="font-size:13px;color:#555;margin-bottom:12px">
+      Para recibir paquetes en caseta, necesitamos tu autorización formal.
+    </p>
+    <div id="terminos-paqueteria" style="background:#f8f9fa;border-radius:10px;
+      padding:12px;font-size:12px;color:#555;max-height:200px;overflow-y:auto;
+      margin-bottom:14px;line-height:1.7;border-left:3px solid #1976d2">
+      Cargando términos...
+    </div>
+    <button class="btn-submit" onclick="aceptarAutPaqueteria()">
+      ✅ Aceptar y Autorizar Recepción
+    </button>
+    <button class="btn-modal-cancel" onclick="cerrarModalPaqueteria()">
+      Ahora no
+    </button>
   </div>
 </div>
 
@@ -1645,7 +1673,64 @@ async function cargarServicios() {
   }
 }
 
+// ── CONSENTIMIENTO PAQUETERÍA ─────────────────────────────────
+
+async function verificarAutPaqueteria() {
+  // Si ya está autorizado en sesión, no preguntar de nuevo
+  if (sesion.autPaqueteria) return true;
+  try {
+    const res  = await fetch(`${API}?accion=getAutPaqueteria&casa=${encodeURIComponent(sesion.casa)}&nombre=${encodeURIComponent(sesion.nombre)}`);
+    const data = await res.json();
+    if (data.autorizado) { sesion.autPaqueteria = true; return true; }
+    // No autorizado — mostrar modal con términos
+    await mostrarModalPaqueteria();
+    return false;
+  } catch(e) { return true; } // Si falla la consulta, dejamos pasar
+}
+
+async function mostrarModalPaqueteria() {
+  // Cargar términos desde el Sheet
+  try {
+    const res  = await fetch(`${API}?accion=getReglas`);
+    const data = await res.json();
+    const reg  = Array.isArray(data)
+      ? data.find(r => String(r.Amenidad || '').trim().toLowerCase() === 'paqueteria')
+      : null;
+    const texto = reg ? (reg.Texto_Reglamento || reg.Regla || '') : '';
+    document.getElementById('terminos-paqueteria').innerHTML =
+      texto || 'Al autorizar, permites que el personal de seguridad reciba paquetes en tu nombre y los resguarde hasta que los recojas. Los paquetes serán entregados únicamente al titular o a quien él designe.';
+  } catch(e) {
+    document.getElementById('terminos-paqueteria').textContent =
+      'Al autorizar, permites que el personal de seguridad reciba tus paquetes.';
+  }
+  document.getElementById('modal-paqueteria-consent').classList.add('show');
+}
+
+function cerrarModalPaqueteria() {
+  document.getElementById('modal-paqueteria-consent').classList.remove('show');
+}
+
+async function aceptarAutPaqueteria() {
+  try {
+    const res = await post({ accion: 'setAutPaqueteria', casa: sesion.casa, nombre: sesion.nombre });
+    if (res.ok) {
+      sesion.autPaqueteria = true;
+      cerrarModalPaqueteria();
+      cargarPaquetes(); // Recargar módulo
+    }
+  } catch(e) { cerrarModalPaqueteria(); }
+}
+
 // ── PAQUETERÍA ────────────────────────────────────────────────
+
+async function abrirPaqueteria() {
+  ir('s-paqueteria');
+  await cargarPaquetes();
+  // Verificar autorización solo para residentes (propietario ya tiene acceso total)
+  if (!esPropietario()) {
+    await verificarAutPaqueteria();
+  }
+}
 
 async function cargarBannerPaquete() {
   try {
@@ -2361,6 +2446,22 @@ async function recibirPaqueteSeg() {
   const dest  = document.getElementById('seg-pkg-dest').value.trim();
   const comp  = document.getElementById('seg-compania').value;
   if (!depto || !dest) { showMsg(msg,'error','Completa depto y destinatario'); return; }
+
+  // Verificar autorización
+  const autEl = document.getElementById('seg-pkg-autorizacion');
+  try {
+    const resAut = await fetch(`${API}?accion=getAutPaqueteria&casa=${encodeURIComponent(depto)}&nombre=${encodeURIComponent(dest)}`);
+    const datAut = await resAut.json();
+    if (autEl) {
+      if (datAut.autorizado) {
+        autEl.innerHTML = '<div style="background:#e8f5e9;border-radius:8px;padding:8px 12px;font-size:13px;color:#2e7d32;font-weight:600;margin-bottom:10px">✅ Autorizado para recibir</div>';
+      } else {
+        autEl.innerHTML = '<div style="background:#ffebee;border-radius:8px;padding:8px 12px;font-size:13px;color:#c62828;font-weight:600;margin-bottom:10px">⚠️ No recibir — Sin autorización del residente</div>';
+        return;
+      }
+    }
+  } catch(e) {}
+
   const btn = document.querySelector('#seg-panel-paqueteria .btn-submit');
   btn.disabled = true; btn.textContent = 'Registrando...';
   try {
@@ -2370,11 +2471,11 @@ async function recibirPaqueteSeg() {
       showMsg(msg,'ok','✅ Paquete registrado — el residente será notificado');
       document.getElementById('seg-pkg-depto').value = '';
       document.getElementById('seg-pkg-dest').value  = '';
+      if (autEl) autEl.innerHTML = '';
     } else showMsg(msg,'error', res.error || 'Error');
   } catch(e) { showMsg(msg,'error','Error de conexión'); }
   btn.disabled = false; btn.textContent = 'Registrar Recepción';
 }
-
 async function cargarPkgPendientesSeg() {
   const lista = document.getElementById('seg-pkg-pendientes-lista');
   lista.innerHTML = '<div class="loader">Cargando...</div>';
@@ -2772,14 +2873,18 @@ async function cargarAnuncios() {
       contenedor.innerHTML = '';
       return;
     }
-    contenedor.innerHTML = activos.map(a => `
-      <div class="anuncio-item">
-        <span class="anuncio-icon">📢</span>
+    contenedor.innerHTML = activos.map(a => {
+      const esDorado = String(a.ID || '').trim() === '1';
+      const icono    = esDorado ? '⭐' : '📢';
+      return `
+      <div class="anuncio-item ${esDorado ? 'dorado' : ''}">
+        <span class="anuncio-icon">${icono}</span>
         <div style="flex:1">
           <div class="anuncio-txt">${a.Texto_Anuncio || ''}</div>
           <div class="anuncio-linea"></div>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     contenedor.style.display = 'block';
   } catch(e) {
     console.error('ANUNCIOS error:', e);
