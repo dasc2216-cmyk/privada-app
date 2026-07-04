@@ -1221,20 +1221,25 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 <div class="modal-overlay" id="modal-paqueteria-consent">
   <div class="modal-box">
     <p class="modal-title">📦 Autorización de Paquetería</p>
-    <p style="font-size:13px;color:#555;margin-bottom:12px">
-      Para recibir paquetes en caseta, necesitamos tu autorización formal.
+    <p style="font-size:13px;color:#666;margin-bottom:12px">
+      ¿Autorizas que el personal de seguridad reciba paquetes en tu nombre?
     </p>
     <div id="terminos-paqueteria" style="background:#f8f9fa;border-radius:10px;
-      padding:12px;font-size:12px;color:#555;max-height:200px;overflow-y:auto;
-      margin-bottom:14px;line-height:1.7;border-left:3px solid #1976d2">
+      padding:12px;font-size:12px;color:#555;max-height:180px;overflow-y:auto;
+      margin-bottom:16px;line-height:1.7;border-left:3px solid #1976d2">
       Cargando términos...
     </div>
-    <button class="btn-submit" onclick="aceptarAutPaqueteria()">
-      ✅ Aceptar y Autorizar Recepción
+    <button class="btn-submit" onclick="responderAutPaqueteria('SI')"
+      style="background:linear-gradient(135deg,#1565c0,#1976d2)">
+      ✅ Sí, autorizo la recepción
     </button>
-    <button class="btn-modal-cancel" onclick="cerrarModalPaqueteria()">
-      Ahora no
+    <button class="btn-submit" onclick="responderAutPaqueteria('NO')"
+      style="background:#e53935;margin-top:8px">
+      ❌ No, no autorizo
     </button>
+    <p style="font-size:11px;color:#aaa;text-align:center;margin-top:10px">
+      Puedes cambiar esto más adelante desde tu perfil
+    </p>
   </div>
 </div>
 
@@ -1676,20 +1681,16 @@ async function cargarServicios() {
 // ── CONSENTIMIENTO PAQUETERÍA ─────────────────────────────────
 
 async function verificarAutPaqueteria() {
-  // Si ya está autorizado en sesión, no preguntar de nuevo
-  if (sesion.autPaqueteria) return true;
+  if (sesion.autPaqueteriaRespondida) return;
   try {
     const res  = await fetch(`${API}?accion=getAutPaqueteria&casa=${encodeURIComponent(sesion.casa)}&nombre=${encodeURIComponent(sesion.nombre)}`);
     const data = await res.json();
-    if (data.autorizado) { sesion.autPaqueteria = true; return true; }
-    // No autorizado — mostrar modal con términos
+    if (data.respondido) { sesion.autPaqueteriaRespondida = true; return; }
     await mostrarModalPaqueteria();
-    return false;
-  } catch(e) { return true; } // Si falla la consulta, dejamos pasar
+  } catch(e) {}
 }
 
 async function mostrarModalPaqueteria() {
-  // Cargar términos desde el Sheet
   try {
     const res  = await fetch(`${API}?accion=getReglas`);
     const data = await res.json();
@@ -1697,12 +1698,9 @@ async function mostrarModalPaqueteria() {
       ? data.find(r => String(r.Amenidad || '').trim().toLowerCase() === 'paqueteria')
       : null;
     const texto = reg ? (reg.Texto_Reglamento || reg.Regla || '') : '';
-    document.getElementById('terminos-paqueteria').innerHTML =
-      texto || 'Al autorizar, permites que el personal de seguridad reciba paquetes en tu nombre y los resguarde hasta que los recojas. Los paquetes serán entregados únicamente al titular o a quien él designe.';
-  } catch(e) {
-    document.getElementById('terminos-paqueteria').textContent =
-      'Al autorizar, permites que el personal de seguridad reciba tus paquetes.';
-  }
+    document.getElementById('terminos-paqueteria').innerHTML = texto ||
+      'Al autorizar, el personal de seguridad podrá recibir paquetes en tu nombre y resguardarlos hasta que los recojas. Si no autorizas, la caseta no recibirá paquetes a tu nombre.';
+  } catch(e) {}
   document.getElementById('modal-paqueteria-consent').classList.add('show');
 }
 
@@ -1710,16 +1708,16 @@ function cerrarModalPaqueteria() {
   document.getElementById('modal-paqueteria-consent').classList.remove('show');
 }
 
-async function aceptarAutPaqueteria() {
+async function responderAutPaqueteria(valor) {
   try {
-    const res = await post({ accion: 'setAutPaqueteria', casa: sesion.casa, nombre: sesion.nombre });
-    if (res.ok) {
-      sesion.autPaqueteria = true;
-      cerrarModalPaqueteria();
-      cargarPaquetes(); // Recargar módulo
-    }
-  } catch(e) { cerrarModalPaqueteria(); }
+    await post({ accion: 'setAutPaqueteria', casa: sesion.casa, nombre: sesion.nombre, valor });
+    sesion.autPaqueteriaRespondida = true;
+    sesion.autPaqueteria = valor === 'SI';
+  } catch(e) {}
+  cerrarModalPaqueteria();
 }
+
+async function aceptarAutPaqueteria() { await responderAutPaqueteria('SI'); }
 
 // ── PAQUETERÍA ────────────────────────────────────────────────
 
