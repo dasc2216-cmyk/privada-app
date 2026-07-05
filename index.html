@@ -645,7 +645,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
         <span class="m-desc">Quejas y sugerencias</span>
       </button>
       <button class="modulo-btn" onclick="ir('s-mudanzas'); cargarMudanzas()">
-        <span class="m-icon">📦</span>
+        <span class="m-icon">🚛</span>
         <span class="m-title">Mudanzas</span>
         <span class="m-desc">Control de acceso</span>
       </button>
@@ -1076,7 +1076,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
         <span class="sb-icon">🚰</span><span class="sb-label">Llave de Agua</span>
       </button>
       <button class="seg-btn" onclick="toggleSeg('servicios')">
-        <span class="sb-icon">🛠️</span><span class="sb-label">Servicios</span>
+        <span class="sb-icon">🛠️</span><span class="sb-label">Trabajadores</span>
       </button>
       <button class="seg-btn" onclick="toggleSeg('incidencia')">
         <span class="sb-icon">⚠️</span><span class="sb-label">Incidencia</span>
@@ -2916,7 +2916,12 @@ async function cargarAnuncios() {
     const res  = await fetch(`${API}?accion=getAnuncios`);
     const data = await res.json();
     const activos = Array.isArray(data)
-      ? data.filter(a => String(a.Estatus || '').trim().toLowerCase().includes('activ'))
+      ? data.filter(a => {
+          const id  = String(a.ID || '').trim().toUpperCase();
+          const est = String(a.Estatus || '').trim().toLowerCase();
+          // Excluir los de seguridad del menú principal
+          return est.includes('activ') && id !== 'SEGURIDAD';
+        })
       : [];
     if (activos.length === 0) {
       contenedor.style.display = 'none';
