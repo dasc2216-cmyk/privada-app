@@ -1122,52 +1122,45 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 
     <!-- Paquetería -->
     <div id="seg-panel-paqueteria" class="seg-panel">
-      <h3 style="font-size:15px;margin-bottom:12px">📦 Paquetería</h3>
-      <div class="seg-sub">
-        <button id="seg-pkg-r" class="activo" onclick="subPkg('recibir')">📥 Recibir</button>
-        <button id="seg-pkg-e" onclick="subPkg('entregar')">📤 Entregar</button>
-      </div>
-      <div id="seg-pkg-recibir">
-        <div id="seg-pkg-autorizacion"></div>
-        <div class="fg">
-          <label>Compañía</label>
-          <select id="seg-compania">
-            <option>Mercado Libre</option><option>Amazon</option>
-            <option>J&T Express</option><option>Estafeta</option>
-            <option>DHL</option><option>FedEx</option><option>Otro</option>
-          </select>
-        </div>
-        <div class="fg">
-          <label>Departamento</label>
-          <input type="text" id="seg-pkg-depto" placeholder="Ej: 4A"
-            style="text-transform:uppercase" oninput="buscarResidentesSeg()">
-        </div>
-        <div id="seg-pkg-residentes-wrap" style="display:none;margin-bottom:12px">
-          <label style="font-size:13px;color:#666;margin-bottom:6px;display:block">Destinatario</label>
-          <select id="seg-pkg-dest-select" onchange="onResidenteSelect()" style="width:100%;padding:12px;border:1.5px solid #ddd;border-radius:10px;font-size:14px">
-            <option value="">Selecciona...</option>
-          </select>
-        </div>
-        <div class="fg" id="seg-pkg-dest-manual-wrap">
-          <label>Nombre del destinatario</label>
-          <input type="text" id="seg-pkg-dest" placeholder="Nombre completo">
-        </div>
+      <h3 style="font-size:15px;margin-bottom:12px">📦 Recepción de Paquetes</h3>
 
-        <!-- Lista de paquetes a registrar -->
-        <div id="seg-pkg-lista-preview" style="margin-bottom:10px"></div>
-        <div style="display:flex;gap:8px;margin-bottom:12px">
-          <button class="btn-submit" style="flex:1" onclick="agregarPaqueteLista()">
-            ➕ Agregar a la lista
-          </button>
-        </div>
-        <div id="seg-pkg-items" style="margin-bottom:12px"></div>
-        <button class="btn-submit" id="btn-registrar-paquetes" style="display:none;background:#43a047"
-          onclick="registrarPaquetesLista()">
-          📦 Registrar todos los paquetes
-        </button>
+      <!-- Paso 1 -->
+      <div id="pkg-paso1">
+        <div class="fg"><label>Compañía que entrega</label>
+          <select id="seg-compania" style="font-size:15px">
+            <option>Mercado Libre</option><option>Amazon</option>
+            <option>J&amp;T Express</option><option>Estafeta</option>
+            <option>DHL</option><option>FedEx</option><option>Otro</option>
+          </select></div>
+        <div class="fg"><label>¿Cuántos paquetes?</label>
+          <div style="display:flex;align-items:center;gap:16px;padding:8px 0">
+            <button onclick="cambiarCantPkg(-1)" style="width:44px;height:44px;border-radius:50%;
+              border:2px solid #1976d2;background:#fff;font-size:22px;cursor:pointer;color:#1976d2">−</button>
+            <span id="pkg-cantidad" style="font-size:32px;font-weight:800;color:#1565c0;min-width:40px;text-align:center">1</span>
+            <button onclick="cambiarCantPkg(1)" style="width:44px;height:44px;border-radius:50%;
+              border:2px solid #1976d2;background:#1976d2;font-size:22px;cursor:pointer;color:#fff">+</button>
+          </div></div>
+        <div class="fg"><label>¿Son para el mismo departamento?</label>
+          <div class="seg-sub" style="margin-bottom:0">
+            <button id="pkg-mismo-si" class="activo" onclick="selMismoDepto(true)">📍 Mismo depto</button>
+            <button id="pkg-mismo-no" onclick="selMismoDepto(false)">🏘️ Varios deptos</button>
+          </div></div>
+        <button class="btn-submit" onclick="pkgPaso2()">Continuar →</button>
       </div>
-      <div id="seg-pkg-entregar" style="display:none">
-        <div id="seg-pkg-pendientes-lista"><div class="loader">Cargando...</div></div>
+
+      <!-- Paso 2 -->
+      <div id="pkg-paso2" style="display:none">
+        <div id="pkg-autorizacion-badge"></div>
+        <div id="pkg-formulario"></div>
+        <button class="btn-submit" style="background:#43a047;margin-top:8px"
+          onclick="registrarPaquetesFlujo()">📦 Registrar paquetes</button>
+        <button class="btn-modal-cancel" onclick="pkgReset()">← Volver</button>
+      </div>
+
+      <!-- Pendientes -->
+      <div style="margin-top:16px;border-top:1px solid #eee;padding-top:12px">
+        <p style="font-size:13px;color:#666;margin-bottom:8px">📋 Pendientes de entrega:</p>
+        <div id="seg-pkg-pendientes-lista"><p style="font-size:12px;color:#999">Cargando...</p></div>
       </div>
     </div>
 
@@ -1315,7 +1308,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbw9-imf95X7_jGyUfuBCa34o4f-aynbo73fjHWYnRLMzLJe7kGdsl3DX2BDifculdnTZg/exec';
+const API = 'https://script.google.com/macros/s/AKfycbx3IZcPmIIA9LZrgbPqkLRy0c-JeHSD_YwiiVRMaMH924zsfISwDMvmtjnIVDI3VLq1OQ/exec';
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -2601,7 +2594,7 @@ function toggleSeg(panel) {
   document.getElementById('seg-panel-' + panel).classList.add('activo');
   if (panel === 'agua')       actualizarAgua();
   if (panel === 'servicios')  { cargarActivosSeg(); cargarPrestamosActivosSeg(); }
-  if (panel === 'paqueteria') cargarPkgPendientesSeg();
+  if (panel === 'paqueteria') { pkgResidentesCache = {}; cargarPkgPendientesSeg(); }
   if (panel === 'mudanzas')   { subMud('Entrada'); cargarMudanzasSeg(); }
   if (panel === 'amenidades') { cargarAmenidadesSeg(); }
   if (panel === 'prestamos')  cargarTodosPrestamosActivosSeg();
@@ -3352,110 +3345,194 @@ async function cargarHistorialVisitas() {
   }
 }
 
-// ── PAQUETERÍA MÚLTIPLE SEGURIDAD ────────────────────────────
 
-let pkgLista = [];
-let pkgDeptoAutorizado = null;
+// ── PAQUETERÍA SEGURIDAD — FLUJO POR PASOS ───────────────────
 
-async function buscarResidentesSeg() {
-  const depto      = document.getElementById('seg-pkg-depto').value.trim().toUpperCase();
-  const wrap       = document.getElementById('seg-pkg-residentes-wrap');
-  const manualWrap = document.getElementById('seg-pkg-dest-manual-wrap');
-  const autEl      = document.getElementById('seg-pkg-autorizacion');
-  if (depto.length < 1) { wrap.style.display = 'none'; return; }
-  if (pkgDeptoAutorizado !== depto) { pkgDeptoAutorizado = null; if (autEl) autEl.innerHTML = ''; }
+let pkgMismoDepto = true;
+let pkgCantidad   = 1;
+let pkgResidentesCache = {};
+
+function cambiarCantPkg(delta) {
+  pkgCantidad = Math.max(1, Math.min(20, pkgCantidad + delta));
+  document.getElementById('pkg-cantidad').textContent = pkgCantidad;
+}
+
+function selMismoDepto(mismo) {
+  pkgMismoDepto = mismo;
+  document.getElementById('pkg-mismo-si').className = mismo  ? 'activo' : '';
+  document.getElementById('pkg-mismo-no').className = !mismo ? 'activo' : '';
+}
+
+function pkgReset() {
+  document.getElementById('pkg-paso1').style.display = 'block';
+  document.getElementById('pkg-paso2').style.display = 'none';
+  document.getElementById('pkg-autorizacion-badge').innerHTML = '';
+  document.getElementById('pkg-formulario').innerHTML = '';
+  pkgCantidad = 1;
+  document.getElementById('pkg-cantidad').textContent = '1';
+}
+
+async function pkgPaso2() {
+  const paso1 = document.getElementById('pkg-paso1');
+  const paso2 = document.getElementById('pkg-paso2');
+  const badge = document.getElementById('pkg-autorizacion-badge');
+  const form  = document.getElementById('pkg-formulario');
+  const comp  = document.getElementById('seg-compania').value;
+
+  paso1.style.display = 'none';
+  paso2.style.display = 'block';
+  badge.innerHTML = '<div class="loader">Verificando...</div>';
+  form.innerHTML  = '';
+
+  if (pkgMismoDepto) {
+    // Un solo depto — campo de depto primero con verificación
+    badge.innerHTML = '';
+    form.innerHTML = `
+      <div class="fg"><label>Departamento</label>
+        <input type="text" id="pkg-depto-unico" placeholder="Ej: 4A"
+          style="text-transform:uppercase;font-size:16px"
+          oninput="verificarDeptoYcargar('${comp}')"></div>
+      <div id="pkg-depto-aut"></div>
+      <div id="pkg-filas-mismo"></div>`;
+  } else {
+    // Varios deptos — N filas
+    badge.innerHTML = '';
+    let html = `<p style="font-size:13px;color:#666;margin-bottom:10px">Llena cada paquete:</p>`;
+    for (let i = 0; i < pkgCantidad; i++) {
+      html += `
+      <div style="background:#f8f9fa;border-radius:10px;padding:12px;margin-bottom:10px">
+        <div style="font-weight:600;font-size:13px;color:#555;margin-bottom:8px">📦 Paquete ${i+1}</div>
+        <div class="fg" style="margin-bottom:6px"><label style="font-size:12px">Depto</label>
+          <input type="text" id="pkg-depto-${i}" placeholder="Ej: 4A"
+            style="text-transform:uppercase" oninput="verificarDeptoFila(${i})"></div>
+        <div id="pkg-aut-${i}" style="margin-bottom:6px"></div>
+        <div class="fg" style="margin-bottom:0"><label style="font-size:12px">Destinatario</label>
+          <select id="pkg-dest-${i}" style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px">
+            <option value="">Escribe el depto primero...</option>
+          </select></div>
+      </div>`;
+    }
+    form.innerHTML = html;
+  }
+}
+
+async function verificarDeptoYcargar(comp) {
+  const depto = document.getElementById('pkg-depto-unico')?.value.trim().toUpperCase();
+  const autEl = document.getElementById('pkg-depto-aut');
+  const filasEl = document.getElementById('pkg-filas-mismo');
+  if (!depto || depto.length < 1) { autEl.innerHTML = ''; filasEl.innerHTML = ''; return; }
+
+  // Verificar autorización
+  const { autorizado, residentes } = await verificarDeptoCompleto(depto);
+  autEl.innerHTML = autorizado
+    ? '<div style="background:#e8f5e9;border-radius:8px;padding:8px 12px;font-size:13px;color:#2e7d32;font-weight:600;margin-bottom:8px">✅ Depto autorizado</div>'
+    : '<div style="background:#ffebee;border-radius:8px;padding:8px 12px;font-size:13px;color:#c62828;font-weight:600;margin-bottom:8px">⚠️ Sin autorización — No se puede recibir</div>';
+
+  if (!autorizado) { filasEl.innerHTML = ''; return; }
+
+  // Generar N filas de destinatario
+  const optsResidentes = residentes.map(r => `<option value="${r.nombre}">${r.nombre}</option>`).join('') +
+    '<option value="__otro__">✏️ Otro...</option>';
+  let html = '';
+  for (let i = 0; i < pkgCantidad; i++) {
+    html += `
+    <div style="background:#f0f7ff;border-radius:8px;padding:10px;margin-bottom:8px">
+      <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px">📦 Paquete ${i+1} — ${comp}</div>
+      <select id="pkg-dst-mismo-${i}" onchange="onDstMismo(${i})"
+        style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px">
+        ${optsResidentes}
+      </select>
+      <input type="text" id="pkg-dst-manual-${i}" placeholder="Nombre del destinatario"
+        style="display:none;width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;margin-top:6px">
+    </div>`;
+  }
+  filasEl.innerHTML = html;
+}
+
+function onDstMismo(i) {
+  const sel = document.getElementById(`pkg-dst-mismo-${i}`);
+  const inp = document.getElementById(`pkg-dst-manual-${i}`);
+  if (sel.value === '__otro__') { inp.style.display = 'block'; inp.focus(); }
+  else inp.style.display = 'none';
+}
+
+async function verificarDeptoFila(i) {
+  const depto = document.getElementById(`pkg-depto-${i}`)?.value.trim().toUpperCase();
+  const autEl = document.getElementById(`pkg-aut-${i}`);
+  const destEl= document.getElementById(`pkg-dest-${i}`);
+  if (!depto) return;
+  const { autorizado, residentes } = await verificarDeptoCompleto(depto);
+  autEl.innerHTML = autorizado
+    ? '<div style="font-size:11px;color:#2e7d32;font-weight:600">✅ Autorizado</div>'
+    : '<div style="font-size:11px;color:#c62828;font-weight:600">⚠️ Sin autorización</div>';
+  destEl.innerHTML = autorizado
+    ? residentes.map(r => `<option value="${r.nombre}">${r.nombre}</option>`).join('') + '<option value="__otro__">✏️ Otro...</option>'
+    : '<option value="">Sin autorización</option>';
+  destEl.disabled = !autorizado;
+}
+
+async function verificarDeptoCompleto(depto) {
+  if (pkgResidentesCache[depto]) return pkgResidentesCache[depto];
   try {
-    const res  = await fetch(`${API}?accion=getResidentesDepto&casa=${encodeURIComponent(depto)}`);
-    const data = await res.json();
-    const residentes = Array.isArray(data) ? data : [];
-    if (residentes.length > 0) {
-      const sel = document.getElementById('seg-pkg-dest-select');
-      sel.innerHTML = '<option value="">Selecciona destinatario...</option>' +
-        residentes.map(r => `<option value="${r.nombre}">${r.nombre} (${r.rol})</option>`).join('') +
-        '<option value="__otro__">✏️ Otro nombre...</option>';
-      wrap.style.display = 'block';
-      manualWrap.style.display = 'none';
-    } else {
-      wrap.style.display = 'none';
-      manualWrap.style.display = 'block';
-    }
-    const resAut = await fetch(`${API}?accion=getAutPaqueteria&casa=${encodeURIComponent(depto)}&nombre=check`);
+    const [resAut, resRes] = await Promise.all([
+      fetch(`${API}?accion=getAutPaqueteria&casa=${encodeURIComponent(depto)}&nombre=check`),
+      fetch(`${API}?accion=getResidentesDepto&casa=${encodeURIComponent(depto)}`)
+    ]);
     const datAut = await resAut.json();
-    if (autEl) {
-      autEl.innerHTML = datAut.autorizado
-        ? '<div style="background:#e8f5e9;border-radius:8px;padding:8px 12px;font-size:13px;color:#2e7d32;font-weight:600;margin-bottom:10px">✅ Depto autorizado para recibir</div>'
-        : '<div style="background:#ffebee;border-radius:8px;padding:8px 12px;font-size:13px;color:#c62828;font-weight:600;margin-bottom:10px">⚠️ Sin autorización — No se puede recibir</div>';
-      pkgDeptoAutorizado = datAut.autorizado ? depto : null;
+    const datRes = await resRes.json();
+    const resultado = {
+      autorizado: datAut.autorizado,
+      residentes: Array.isArray(datRes) ? datRes : []
+    };
+    pkgResidentesCache[depto] = resultado;
+    return resultado;
+  } catch(e) { return { autorizado: false, residentes: [] }; }
+}
+
+async function registrarPaquetesFlujo() {
+  const msg  = document.getElementById('msg-seg');
+  const comp = document.getElementById('seg-compania').value;
+  const paquetes = [];
+
+  if (pkgMismoDepto) {
+    const depto = document.getElementById('pkg-depto-unico')?.value.trim().toUpperCase();
+    if (!depto) { showMsg(msg, 'error', 'Escribe el departamento'); return; }
+    for (let i = 0; i < pkgCantidad; i++) {
+      const sel  = document.getElementById(`pkg-dst-mismo-${i}`);
+      const inp  = document.getElementById(`pkg-dst-manual-${i}`);
+      const dest = sel?.value === '__otro__' ? inp?.value.trim() : sel?.value;
+      if (!dest) { showMsg(msg, 'error', `Falta destinatario del paquete ${i+1}`); return; }
+      paquetes.push({ depto, compania: comp, destinatario: dest });
     }
-  } catch(e) {}
-}
+  } else {
+    for (let i = 0; i < pkgCantidad; i++) {
+      const depto = document.getElementById(`pkg-depto-${i}`)?.value.trim().toUpperCase();
+      const sel   = document.getElementById(`pkg-dest-${i}`);
+      const dest  = sel?.value === '__otro__'
+        ? document.getElementById(`pkg-dst-manual-${i}`)?.value.trim()
+        : sel?.value;
+      if (!depto || !dest || dest === '') { showMsg(msg, 'error', `Completa el paquete ${i+1}`); return; }
+      paquetes.push({ depto, compania: comp, destinatario: dest });
+    }
+  }
 
-function onResidenteSelect() {
-  const sel        = document.getElementById('seg-pkg-dest-select');
-  const manualWrap = document.getElementById('seg-pkg-dest-manual-wrap');
-  const input      = document.getElementById('seg-pkg-dest');
-  if (sel.value === '__otro__') { manualWrap.style.display = 'block'; input.value = ''; input.focus(); }
-  else { manualWrap.style.display = 'none'; input.value = sel.value; }
-}
-
-function agregarPaqueteLista() {
-  const msg    = document.getElementById('msg-seg');
-  const depto  = document.getElementById('seg-pkg-depto').value.trim().toUpperCase();
-  const comp   = document.getElementById('seg-compania').value;
-  const sel    = document.getElementById('seg-pkg-dest-select');
-  const manual = document.getElementById('seg-pkg-dest').value.trim();
-  const dest   = (sel && sel.offsetParent && sel.value && sel.value !== '__otro__') ? sel.value : manual;
-  if (!depto) { showMsg(msg, 'error', 'Escribe el departamento'); return; }
-  if (!dest)  { showMsg(msg, 'error', 'Selecciona o escribe el destinatario'); return; }
-  if (!pkgDeptoAutorizado) { showMsg(msg, 'error', 'El depto no tiene autorización'); return; }
-  pkgLista.push({ depto, compania: comp, destinatario: dest });
-  renderPkgLista();
-  if (sel) sel.value = '';
-  document.getElementById('seg-pkg-dest').value = '';
-}
-
-function renderPkgLista() {
-  const el  = document.getElementById('seg-pkg-items');
-  const btn = document.getElementById('btn-registrar-paquetes');
-  if (!el) return;
-  if (pkgLista.length === 0) { el.innerHTML = ''; if (btn) btn.style.display = 'none'; return; }
-  if (btn) { btn.style.display = 'block'; btn.textContent = `📦 Registrar ${pkgLista.length} paquete${pkgLista.length > 1 ? 's' : ''}`; }
-  el.innerHTML = pkgLista.map((p, i) => `
-    <div style="background:#f8f9fa;border-radius:8px;padding:10px 12px;margin-bottom:6px;
-      display:flex;align-items:center;justify-content:space-between">
-      <div>
-        <div style="font-size:13px;font-weight:600">📦 ${p.compania} → Depto ${p.depto}</div>
-        <div style="font-size:12px;color:#666">Para: ${p.destinatario}</div>
-      </div>
-      <button onclick="quitarDeLista(${i})"
-        style="background:none;border:none;color:#e53935;font-size:18px;cursor:pointer">✕</button>
-    </div>`).join('');
-}
-
-function quitarDeLista(idx) { pkgLista.splice(idx, 1); renderPkgLista(); }
-
-async function registrarPaquetesLista() {
-  const msg = document.getElementById('msg-seg');
-  const btn = document.getElementById('btn-registrar-paquetes');
+  const btn = document.querySelector('#pkg-paso2 .btn-submit');
   if (btn) { btn.disabled = true; btn.textContent = 'Registrando...'; }
   let ok = 0, fail = 0;
-  for (const p of pkgLista) {
+  for (const p of paquetes) {
     try {
       const res = await post({ accion:'registrarPaquete', departamento:p.depto,
         destinatario:p.destinatario, compania:p.compania, recibido_por:sesion.nombre });
       if (res.ok) ok++; else fail++;
     } catch(e) { fail++; }
   }
-  pkgLista = [];
-  renderPkgLista();
-  document.getElementById('seg-pkg-depto').value = '';
-  document.getElementById('seg-pkg-dest').value  = '';
-  document.getElementById('seg-pkg-autorizacion').innerHTML = '';
-  document.getElementById('seg-pkg-residentes-wrap').style.display = 'none';
-  if (ok > 0) showMsg(msg,'ok',`✅ ${ok} paquete${ok>1?'s':''} registrado${ok>1?'s':''} ${fail>0?`(${fail} fallaron)`:''}`);
-  else showMsg(msg,'error','Error al registrar los paquetes');
-  if (btn) btn.disabled = false;
-  cargarPkgPendientesSeg();
+
+  pkgResidentesCache = {};
+  pkgReset();
+  if (ok > 0) showMsg(msg,'ok',`✅ ${ok} paquete${ok>1?'s':''} registrado${ok>1?'s':''}${fail>0?' ('+fail+' fallaron)':''}`);
+  else showMsg(msg,'error','Error al registrar');
+  if (btn) { btn.disabled = false; btn.textContent = '📦 Registrar paquetes'; }
+  setTimeout(() => cargarPkgPendientesSeg(), 800);
 }
 
 function poblarHorasVisita() {
