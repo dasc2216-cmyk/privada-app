@@ -1256,7 +1256,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbxWco4UeDMl5onPPCY-npbiget1H-vb-JiSQpkY3JfM-G_hkYfaNXqqp7zx2rclPCcOOw/exec';
+const API = 'https://script.google.com/macros/s/AKfycbwE6ZLOP5Ym5sbHYTA9LEn4q9ZFl9E9jLjwS0nM_tq4JAHl7ug0P7yhc8Z3ECh8TT3-nQ/exec';
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -1721,8 +1721,8 @@ function cerrarModalPaqueteria() {
 }
 
 async function responderAutPaqueteria(valor) {
-  const btn1 = document.querySelector('#modal-paqueteria-consent .btn-submit');
-  if (btn1) { btn1.disabled = true; btn1.textContent = 'Guardando...'; }
+  const btns = document.querySelectorAll('#modal-paqueteria-consent .btn-submit');
+  btns.forEach(b => { b.disabled = true; });
   try {
     const res = await fetch(API, {
       method: 'POST',
@@ -1738,10 +1738,19 @@ async function responderAutPaqueteria(valor) {
     if (data.ok) {
       sesion.autPaqueteriaRespondida = true;
       sesion.autPaqueteria = (valor === 'SI');
+      cerrarModalPaqueteria();
+    } else {
+      // Mostrar error pero igual cerrar para no bloquear al usuario
+      console.error('setAutPaqueteria error:', data.error);
+      sesion.autPaqueteriaRespondida = true; // evitar loop
+      cerrarModalPaqueteria();
     }
-  } catch(e) {}
-  cerrarModalPaqueteria();
-  if (btn1) { btn1.disabled = false; btn1.textContent = '✅ Sí, autorizo la recepción'; }
+  } catch(e) {
+    console.error('responderAutPaqueteria error:', e);
+    sesion.autPaqueteriaRespondida = true; // evitar loop
+    cerrarModalPaqueteria();
+  }
+  btns.forEach(b => { b.disabled = false; });
 }
 
 async function aceptarAutPaqueteria() { await responderAutPaqueteria('SI'); }
@@ -1751,10 +1760,7 @@ async function aceptarAutPaqueteria() { await responderAutPaqueteria('SI'); }
 async function abrirPaqueteria() {
   ir('s-paqueteria');
   await cargarPaquetes();
-  // Verificar autorización solo para residentes (propietario ya tiene acceso total)
-  if (!esPropietario()) {
-    await verificarAutPaqueteria();
-  }
+  await verificarAutPaqueteria();
 }
 
 async function cargarBannerPaquete() {
