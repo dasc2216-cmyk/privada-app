@@ -279,6 +279,17 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 .anuncio-linea { width:40px; height:3px; background:rgba(255,255,255,.3);
   border-radius:2px; margin:8px 0 0; }
 
+/* ── BANNER SEGURIDAD ──────────────────────────────────────── */
+.aviso-seg { background:#fff; border:1.5px solid #c62828; border-radius:12px;
+  padding:12px 14px; margin-bottom:10px;
+  display:flex; align-items:flex-start; gap:10px;
+  box-shadow:0 2px 8px rgba(198,40,40,.12); }
+.aviso-seg-icon { font-size:20px; flex-shrink:0; }
+.aviso-seg-txt  { font-size:13px; color:#c62828; line-height:1.6;
+  font-weight:600; flex:1; }
+.aviso-seg-linea { width:30px; height:2px; background:rgba(198,40,40,.3);
+  border-radius:2px; margin-top:6px; }
+
 /* ── PANEL COMITÉ ──────────────────────────────────────────── */
 .tabs-comite { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
 .tab-btn { padding:8px 14px; border:1.5px solid #ddd; border-radius:20px;
@@ -1055,6 +1066,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
     </div>
   </div>
   <div class="content" style="overflow-y:auto">
+    <div id="banner-seg-anuncios"></div>
     <div id="msg-seg" class="msg"></div>
     <div class="seg-grid">
       <button class="seg-btn" onclick="toggleSeg('paqueteria')">
@@ -1709,12 +1721,27 @@ function cerrarModalPaqueteria() {
 }
 
 async function responderAutPaqueteria(valor) {
+  const btn1 = document.querySelector('#modal-paqueteria-consent .btn-submit');
+  if (btn1) { btn1.disabled = true; btn1.textContent = 'Guardando...'; }
   try {
-    await post({ accion: 'setAutPaqueteria', casa: sesion.casa, nombre: sesion.nombre, valor });
-    sesion.autPaqueteriaRespondida = true;
-    sesion.autPaqueteria = valor === 'SI';
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        accion: 'setAutPaqueteria',
+        casa:   sesion.casa,
+        nombre: sesion.nombre,
+        valor:  valor
+      })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      sesion.autPaqueteriaRespondida = true;
+      sesion.autPaqueteria = (valor === 'SI');
+    }
   } catch(e) {}
   cerrarModalPaqueteria();
+  if (btn1) { btn1.disabled = false; btn1.textContent = '✅ Sí, autorizo la recepción'; }
 }
 
 async function aceptarAutPaqueteria() { await responderAutPaqueteria('SI'); }
@@ -2405,6 +2432,30 @@ async function rechazarPropietario(casa, nombre) {
 
 // ── PANEL SEGURIDAD ───────────────────────────────────────────
 
+// ── PANEL SEGURIDAD ───────────────────────────────────────────
+
+async function cargarAnunciosSeg() {
+  const contenedor = document.getElementById('banner-seg-anuncios');
+  if (!contenedor) return;
+  try {
+    const res  = await fetch(`${API}?accion=getAnuncios`);
+    const data = await res.json();
+    // Solo anuncios cuyo ID sea exactamente "SEGURIDAD" (case-insensitive)
+    const segAvisos = Array.isArray(data)
+      ? data.filter(a => String(a.ID || '').trim().toUpperCase() === 'SEGURIDAD')
+      : [];
+    if (segAvisos.length === 0) { contenedor.innerHTML = ''; return; }
+    contenedor.innerHTML = segAvisos.map(a => `
+      <div class="aviso-seg">
+        <span class="aviso-seg-icon">🚨</span>
+        <div style="flex:1">
+          <div class="aviso-seg-txt">${a.Texto_Anuncio || ''}</div>
+          <div class="aviso-seg-linea"></div>
+        </div>
+      </div>`).join('');
+  } catch(e) { contenedor.innerHTML = ''; }
+}
+
 let segPanelActivo = null;
 
 function mostrarPantallaSeguridad() {
@@ -2412,6 +2463,7 @@ function mostrarPantallaSeguridad() {
   document.getElementById('seg-nombre').textContent = sesion.nombre;
   cargarCatalogoSeg();
   cargarActivosSeg();
+  cargarAnunciosSeg();
 }
 
 function toggleSeg(panel) {
