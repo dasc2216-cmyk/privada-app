@@ -279,6 +279,27 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 .anuncio-linea { width:40px; height:3px; background:rgba(255,255,255,.3);
   border-radius:2px; margin:8px 0 0; }
 
+/* ── VISITAS SEGURIDAD ─────────────────────────────────────── */
+.visita-seg { background:#fff; border-radius:12px; padding:14px 16px;
+  margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,.08);
+  border-left:4px solid #1565c0; position:relative; }
+.visita-seg.ingreso  { border-left-color:#43a047; }
+.visita-seg.terminado{ border-left-color:#78909c; opacity:.8; }
+.vs-hora   { font-size:22px; font-weight:800; color:#1565c0;
+  font-variant-numeric:tabular-nums; }
+.vs-nombre { font-size:15px; font-weight:700; color:#333; margin:4px 0 2px; }
+.vs-depto  { font-size:12px; color:#888; }
+.vs-badge  { display:inline-block; font-size:11px; font-weight:700;
+  padding:3px 10px; border-radius:20px; margin-top:6px; }
+.vs-badge.pendiente  { background:#e3f0ff; color:#1565c0; }
+.vs-badge.ingreso    { background:#e8f5e9; color:#2e7d32; }
+.vs-badge.terminado  { background:#f5f5f5; color:#666; }
+.vs-acciones { display:flex; gap:8px; margin-top:10px; }
+.btn-vs { border:none; border-radius:8px; padding:8px 14px;
+  font-size:13px; font-weight:600; cursor:pointer; }
+.btn-vs.verde { background:#43a047; color:#fff; }
+.btn-vs.gris  { background:#eceff1; color:#546e7a; }
+
 /* ── BANNER SEGURIDAD ──────────────────────────────────────── */
 .aviso-seg { background:#fff; border:1.5px solid #c62828; border-radius:12px;
   padding:12px 14px; margin-bottom:10px;
@@ -1090,6 +1111,9 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
       <button class="seg-btn" onclick="toggleSeg('prestamos')" style="grid-column:span 2">
         <span class="sb-icon">🔑</span><span class="sb-label">Préstamos Activos</span>
       </button>
+      <button class="seg-btn" onclick="toggleSeg('visitas')" style="grid-column:span 2">
+        <span class="sb-icon">🚗</span><span class="sb-label">Visitas del Día</span>
+      </button>
     </div>
 
     <!-- Paquetería -->
@@ -1222,6 +1246,12 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
       <div id="seg-prestamos-lista"><div class="loader">Cargando...</div></div>
     </div>
 
+    <!-- Visitas del Día -->
+    <div id="seg-panel-visitas" class="seg-panel">
+      <h3 style="font-size:15px;margin-bottom:12px">🚗 Visitas Programadas — Hoy</h3>
+      <div id="seg-visitas-lista"><div class="loader">Cargando...</div></div>
+    </div>
+
     <button style="background:none;border:none;color:#999;font-size:13px;cursor:pointer;
       padding:16px;width:100%;margin-top:8px" onclick="cerrarSesion()">Cerrar sesión</button>
   </div>
@@ -1256,7 +1286,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbyc13vhObPoZCnjnG_QHhRIHky_eDTFZDvWzepsuhQhjR_TbGCuSfomxrzwlXBMY6bFdg/exec';
+const API = 'https://script.google.com/macros/s/AKfycbzJHt3-stEcIw7ELeOWrqwljfC3hrVmD9FYh6uQG8eFL9aj4mpONDvsQ3pv5Xc7TanYfw/exec';
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -1977,6 +2007,66 @@ async function liberarAmenidadSeg(amenidad) {
   } catch(e) { showMsg(msg, 'error', 'Error de conexión'); }
 }
 
+// ── SEGURIDAD: VISITAS DEL DÍA ───────────────────────────────
+
+async function cargarVisitasSeg() {
+  const el = document.getElementById('seg-visitas-lista');
+  if (!el) return;
+  el.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res  = await fetch(`${API}?accion=getVisitas&casa=todas`);
+    const data = await res.json();
+    const hoy  = hoyCanun();
+    // Filtrar visitas de hoy de todos los deptos
+    const hoyVisitas = Array.isArray(data)
+      ? data.filter(v => limpiarFecha(v.Fecha) === hoy)
+             .sort((a, b) => (a.Hora_Estimada || '').localeCompare(b.Hora_Estimada || ''))
+      : [];
+    if (hoyVisitas.length === 0) {
+      el.innerHTML = '<p style="color:#888;text-align:center;padding:24px;font-size:14px">Sin visitas programadas para hoy</p>';
+      return;
+    }
+    el.innerHTML = hoyVisitas.map(v => {
+      const est  = String(v.Estatus || 'Activa').trim();
+      const claseCard = est === 'Ingresó' ? 'ingreso' : est === 'Terminado' ? 'terminado' : '';
+      const claseBadge = est === 'Ingresó' ? 'ingreso' : est === 'Terminado' ? 'terminado' : 'pendiente';
+      const hora12 = fmt12(v.Hora_Estimada || '');
+      return `
+      <div class="visita-seg ${claseCard}" id="visita-${v.ID}">
+        <div class="vs-hora">${hora12 || '—'}</div>
+        <div class="vs-nombre">👤 ${v.Nombre_Visitante}</div>
+        <div class="vs-depto">📍 Depto ${v.Casa} · Registró: ${v.Registrado_Por || ''}</div>
+        <span class="vs-badge ${claseBadge}">${est}</span>
+        <div class="vs-acciones">
+          ${est === 'Activa' || est === 'Pendiente' ? `
+            <button class="btn-vs verde" onclick="accionVisitaSeg('${v.ID}','Ingresó')">
+              ✅ Registrar Ingreso
+            </button>` : ''}
+          ${est === 'Ingresó' ? `
+            <button class="btn-vs gris" onclick="accionVisitaSeg('${v.ID}','Terminado')">
+              🚪 Registrar Salida
+            </button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
+  }
+}
+
+async function accionVisitaSeg(id, estatus) {
+  const msg = document.getElementById('msg-seg');
+  try {
+    const res = await post({ accion: 'actualizarVisita', id, estatus });
+    if (res.ok) {
+      showMsg(msg, 'ok', `✅ Visita marcada como "${estatus}"`);
+      cargarVisitasSeg();
+    } else {
+      showMsg(msg, 'error', res.error || 'Error al actualizar');
+    }
+  } catch(e) { showMsg(msg, 'error', 'Error de conexión'); }
+}
+
 // ── SEGURIDAD: TODOS LOS PRÉSTAMOS ACTIVOS ───────────────────
 
 async function cargarTodosPrestamosActivosSeg() {
@@ -2473,7 +2563,7 @@ function mostrarPantallaSeguridad() {
 }
 
 function toggleSeg(panel) {
-  ['paqueteria','agua','servicios','incidencia','mudanzas','amenidades','prestamos'].forEach(p => {
+  ['paqueteria','agua','servicios','incidencia','mudanzas','amenidades','prestamos','visitas'].forEach(p => {
     const el = document.getElementById('seg-panel-' + p);
     if (el) el.classList.remove('activo');
   });
@@ -2486,6 +2576,7 @@ function toggleSeg(panel) {
   if (panel === 'mudanzas')   { subMud('Entrada'); cargarMudanzasSeg(); }
   if (panel === 'amenidades') { cargarAmenidadesSeg(); }
   if (panel === 'prestamos')  cargarTodosPrestamosActivosSeg();
+  if (panel === 'visitas')    cargarVisitasSeg();
 }
 
 function subPkg(sub) {
