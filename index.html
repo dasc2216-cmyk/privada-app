@@ -650,7 +650,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 
     <!-- Grid de módulos -->
     <div class="modulos-grid">
-      <button class="modulo-btn" onclick="ir('s-visitas'); cargarVisitas()">
+      <button class="modulo-btn" onclick="ir('s-visitas'); cargarVisitas(); cargarHistorialVisitas()">
         <span class="m-icon">🚗</span>
         <span class="m-title">Visitas</span>
         <span class="m-desc">Registra accesos</span>
@@ -768,6 +768,10 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
     <div class="card">
       <p class="card-title">📋 Visitas de hoy</p>
       <div id="visitas-lista"><div class="loader">Cargando...</div></div>
+    </div>
+    <div class="card" id="visitas-historial-card">
+      <p class="card-title">🗂️ Historial completo</p>
+      <div id="visitas-historial"><div class="loader">Cargando...</div></div>
     </div>
   </div>
 </div>
@@ -1125,17 +1129,42 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
       </div>
       <div id="seg-pkg-recibir">
         <div id="seg-pkg-autorizacion"></div>
-        <div class="fg"><label>Compañía</label>
+        <div class="fg">
+          <label>Compañía</label>
           <select id="seg-compania">
             <option>Mercado Libre</option><option>Amazon</option>
             <option>J&T Express</option><option>Estafeta</option>
             <option>DHL</option><option>FedEx</option><option>Otro</option>
-          </select></div>
-        <div class="fg"><label>Departamento</label>
-          <input type="text" id="seg-pkg-depto" placeholder="Ej: 4A" style="text-transform:uppercase"></div>
-        <div class="fg"><label>Nombre del destinatario</label>
-          <input type="text" id="seg-pkg-dest" placeholder="Nombre completo"></div>
-        <button class="btn-submit" onclick="recibirPaqueteSeg()">Registrar Recepción</button>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Departamento</label>
+          <input type="text" id="seg-pkg-depto" placeholder="Ej: 4A"
+            style="text-transform:uppercase" oninput="buscarResidentesSeg()">
+        </div>
+        <div id="seg-pkg-residentes-wrap" style="display:none;margin-bottom:12px">
+          <label style="font-size:13px;color:#666;margin-bottom:6px;display:block">Destinatario</label>
+          <select id="seg-pkg-dest-select" onchange="onResidenteSelect()" style="width:100%;padding:12px;border:1.5px solid #ddd;border-radius:10px;font-size:14px">
+            <option value="">Selecciona...</option>
+          </select>
+        </div>
+        <div class="fg" id="seg-pkg-dest-manual-wrap">
+          <label>Nombre del destinatario</label>
+          <input type="text" id="seg-pkg-dest" placeholder="Nombre completo">
+        </div>
+
+        <!-- Lista de paquetes a registrar -->
+        <div id="seg-pkg-lista-preview" style="margin-bottom:10px"></div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <button class="btn-submit" style="flex:1" onclick="agregarPaqueteLista()">
+            ➕ Agregar a la lista
+          </button>
+        </div>
+        <div id="seg-pkg-items" style="margin-bottom:12px"></div>
+        <button class="btn-submit" id="btn-registrar-paquetes" style="display:none;background:#43a047"
+          onclick="registrarPaquetesLista()">
+          📦 Registrar todos los paquetes
+        </button>
       </div>
       <div id="seg-pkg-entregar" style="display:none">
         <div id="seg-pkg-pendientes-lista"><div class="loader">Cargando...</div></div>
@@ -1286,7 +1315,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbzJHt3-stEcIw7ELeOWrqwljfC3hrVmD9FYh6uQG8eFL9aj4mpONDvsQ3pv5Xc7TanYfw/exec';
+const API = 'https://script.google.com/macros/s/AKfycbw9-imf95X7_jGyUfuBCa34o4f-aynbo73fjHWYnRLMzLJe7kGdsl3DX2BDifculdnTZg/exec';
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -3294,6 +3323,141 @@ function horaCanun() {
   return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
 }
 
+// ── HISTORIAL COMPLETO DE VISITAS ────────────────────────────
+
+async function cargarHistorialVisitas() {
+  const el   = document.getElementById('visitas-historial');
+  const card = document.getElementById('visitas-historial-card');
+  if (!el) return;
+  try {
+    const res  = await fetch(`${API}?accion=getVisitas&casa=${encodeURIComponent(sesion.casa)}`);
+    const data = await res.json();
+    const todas = Array.isArray(data) ? data.slice().reverse() : [];
+    const items = filtrarPorRol(todas, 'Registrado_Por');
+    if (items.length === 0) {
+      if (!esPropietario()) { if (card) card.style.display = 'none'; return; }
+      el.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin visitas en el historial</p>';
+      return;
+    }
+    if (card) card.style.display = '';
+    const iconEst = { 'Activa':'🕐', 'Ingresó':'✅', 'Terminado':'🏁' };
+    el.innerHTML = items.map(v => `
+      <div class="visita-card">
+        <div class="vc-nombre">👤 ${v.Nombre_Visitante}</div>
+        <div class="vc-hora">🕐 ${fmt12(v.Hora_Estimada)} · ${iconEst[v.Estatus] || ''} ${v.Estatus}</div>
+        <div class="vc-meta">${formatearFecha(v.Fecha)} · Depto ${v.Casa} · ${v.Registrado_Por}</div>
+      </div>`).join('');
+  } catch(e) {
+    el.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
+  }
+}
+
+// ── PAQUETERÍA MÚLTIPLE SEGURIDAD ────────────────────────────
+
+let pkgLista = [];
+let pkgDeptoAutorizado = null;
+
+async function buscarResidentesSeg() {
+  const depto      = document.getElementById('seg-pkg-depto').value.trim().toUpperCase();
+  const wrap       = document.getElementById('seg-pkg-residentes-wrap');
+  const manualWrap = document.getElementById('seg-pkg-dest-manual-wrap');
+  const autEl      = document.getElementById('seg-pkg-autorizacion');
+  if (depto.length < 1) { wrap.style.display = 'none'; return; }
+  if (pkgDeptoAutorizado !== depto) { pkgDeptoAutorizado = null; if (autEl) autEl.innerHTML = ''; }
+  try {
+    const res  = await fetch(`${API}?accion=getResidentesDepto&casa=${encodeURIComponent(depto)}`);
+    const data = await res.json();
+    const residentes = Array.isArray(data) ? data : [];
+    if (residentes.length > 0) {
+      const sel = document.getElementById('seg-pkg-dest-select');
+      sel.innerHTML = '<option value="">Selecciona destinatario...</option>' +
+        residentes.map(r => `<option value="${r.nombre}">${r.nombre} (${r.rol})</option>`).join('') +
+        '<option value="__otro__">✏️ Otro nombre...</option>';
+      wrap.style.display = 'block';
+      manualWrap.style.display = 'none';
+    } else {
+      wrap.style.display = 'none';
+      manualWrap.style.display = 'block';
+    }
+    const resAut = await fetch(`${API}?accion=getAutPaqueteria&casa=${encodeURIComponent(depto)}&nombre=check`);
+    const datAut = await resAut.json();
+    if (autEl) {
+      autEl.innerHTML = datAut.autorizado
+        ? '<div style="background:#e8f5e9;border-radius:8px;padding:8px 12px;font-size:13px;color:#2e7d32;font-weight:600;margin-bottom:10px">✅ Depto autorizado para recibir</div>'
+        : '<div style="background:#ffebee;border-radius:8px;padding:8px 12px;font-size:13px;color:#c62828;font-weight:600;margin-bottom:10px">⚠️ Sin autorización — No se puede recibir</div>';
+      pkgDeptoAutorizado = datAut.autorizado ? depto : null;
+    }
+  } catch(e) {}
+}
+
+function onResidenteSelect() {
+  const sel        = document.getElementById('seg-pkg-dest-select');
+  const manualWrap = document.getElementById('seg-pkg-dest-manual-wrap');
+  const input      = document.getElementById('seg-pkg-dest');
+  if (sel.value === '__otro__') { manualWrap.style.display = 'block'; input.value = ''; input.focus(); }
+  else { manualWrap.style.display = 'none'; input.value = sel.value; }
+}
+
+function agregarPaqueteLista() {
+  const msg    = document.getElementById('msg-seg');
+  const depto  = document.getElementById('seg-pkg-depto').value.trim().toUpperCase();
+  const comp   = document.getElementById('seg-compania').value;
+  const sel    = document.getElementById('seg-pkg-dest-select');
+  const manual = document.getElementById('seg-pkg-dest').value.trim();
+  const dest   = (sel && sel.offsetParent && sel.value && sel.value !== '__otro__') ? sel.value : manual;
+  if (!depto) { showMsg(msg, 'error', 'Escribe el departamento'); return; }
+  if (!dest)  { showMsg(msg, 'error', 'Selecciona o escribe el destinatario'); return; }
+  if (!pkgDeptoAutorizado) { showMsg(msg, 'error', 'El depto no tiene autorización'); return; }
+  pkgLista.push({ depto, compania: comp, destinatario: dest });
+  renderPkgLista();
+  if (sel) sel.value = '';
+  document.getElementById('seg-pkg-dest').value = '';
+}
+
+function renderPkgLista() {
+  const el  = document.getElementById('seg-pkg-items');
+  const btn = document.getElementById('btn-registrar-paquetes');
+  if (!el) return;
+  if (pkgLista.length === 0) { el.innerHTML = ''; if (btn) btn.style.display = 'none'; return; }
+  if (btn) { btn.style.display = 'block'; btn.textContent = `📦 Registrar ${pkgLista.length} paquete${pkgLista.length > 1 ? 's' : ''}`; }
+  el.innerHTML = pkgLista.map((p, i) => `
+    <div style="background:#f8f9fa;border-radius:8px;padding:10px 12px;margin-bottom:6px;
+      display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:13px;font-weight:600">📦 ${p.compania} → Depto ${p.depto}</div>
+        <div style="font-size:12px;color:#666">Para: ${p.destinatario}</div>
+      </div>
+      <button onclick="quitarDeLista(${i})"
+        style="background:none;border:none;color:#e53935;font-size:18px;cursor:pointer">✕</button>
+    </div>`).join('');
+}
+
+function quitarDeLista(idx) { pkgLista.splice(idx, 1); renderPkgLista(); }
+
+async function registrarPaquetesLista() {
+  const msg = document.getElementById('msg-seg');
+  const btn = document.getElementById('btn-registrar-paquetes');
+  if (btn) { btn.disabled = true; btn.textContent = 'Registrando...'; }
+  let ok = 0, fail = 0;
+  for (const p of pkgLista) {
+    try {
+      const res = await post({ accion:'registrarPaquete', departamento:p.depto,
+        destinatario:p.destinatario, compania:p.compania, recibido_por:sesion.nombre });
+      if (res.ok) ok++; else fail++;
+    } catch(e) { fail++; }
+  }
+  pkgLista = [];
+  renderPkgLista();
+  document.getElementById('seg-pkg-depto').value = '';
+  document.getElementById('seg-pkg-dest').value  = '';
+  document.getElementById('seg-pkg-autorizacion').innerHTML = '';
+  document.getElementById('seg-pkg-residentes-wrap').style.display = 'none';
+  if (ok > 0) showMsg(msg,'ok',`✅ ${ok} paquete${ok>1?'s':''} registrado${ok>1?'s':''} ${fail>0?`(${fail} fallaron)`:''}`);
+  else showMsg(msg,'error','Error al registrar los paquetes');
+  if (btn) btn.disabled = false;
+  cargarPkgPendientesSeg();
+}
+
 function poblarHorasVisita() {
   const sel = document.getElementById('vis-hora');
   if (!sel || sel.options.length > 1) return;
@@ -3338,6 +3502,7 @@ async function registrarVisita() {
       showMsg(msg, 'ok', `✅ Visita registrada (${res.id})`);
       document.getElementById('vis-nombre').value = '';
       cargarVisitas();
+      cargarHistorialVisitas();
     } else {
       showMsg(msg, 'error', res.error || 'Error al registrar');
     }
