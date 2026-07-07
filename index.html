@@ -2261,60 +2261,52 @@ let misPagosData = [];
 let misPagosMesFiltro = 'todos';
 
 async function cargarMisPagos() {
-  const lista = document.getElementById('mis-pagos-lista');
+  const lista    = document.getElementById('mis-pagos-lista');
   const adeudoEl = document.getElementById('mis-pagos-adeudo');
   lista.innerHTML = '<div class="loader">Cargando...</div>';
 
+  // Cargar depósitos
   try {
-    const [resD, resA] = await Promise.all([
-      fetch(`${API}?accion=getDepositos&depto=${encodeURIComponent(sesion.casa)}`),
-      fetch(`${API}?accion=getAdeudos&depto=${encodeURIComponent(sesion.casa)}`)
-    ]);
+    const resD = await fetch(`${API}?accion=getDepositos&depto=${encodeURIComponent(sesion.casa)}`);
     misPagosData = await resD.json();
-    const adeudos = await resA.json();
     if (!Array.isArray(misPagosData)) misPagosData = [];
+  } catch(e) { misPagosData = []; }
 
-    // Tarjeta de adeudo
+  // Cargar adeudos (independiente para que no bloquee los depósitos)
+  try {
+    const resA   = await fetch(`${API}?accion=getAdeudos&depto=${encodeURIComponent(sesion.casa)}`);
+    const adeudos = await resA.json();
     const ad = Array.isArray(adeudos) && adeudos.length > 0 ? adeudos[0] : null;
-    if (ad) {
+    if (ad && (parseFloat(ad.ADEUDO_TOTAL) > 0 || parseFloat(ad.APORTE_TOTAL) > 0)) {
       adeudoEl.innerHTML = `
       <div class="adeudo-card">
         <div class="adeudo-titulo">Estado de cuenta — Depto ${sesion.casa}</div>
         <div class="adeudo-monto">${fmt$(ad.ADEUDO_TOTAL)}</div>
         <div style="font-size:12px;opacity:.7;margin-top:2px">Adeudo total</div>
         <div class="adeudo-grid">
-          <div class="adeudo-item">
-            <div class="adeudo-item-l">Adeudo Mtto</div>
-            <div class="adeudo-item-v">${fmt$(ad.ADEUDO_MTTO)}</div>
-          </div>
-          <div class="adeudo-item">
-            <div class="adeudo-item-l">Adeudo Cuotas</div>
-            <div class="adeudo-item-v">${fmt$(ad.ADEUDO_CUOTAS)}</div>
-          </div>
-          <div class="adeudo-item">
-            <div class="adeudo-item-l">Cuota 2026</div>
-            <div class="adeudo-item-v">${fmt$(ad.CUOTA_2026)}</div>
-          </div>
-          <div class="adeudo-item">
-            <div class="adeudo-item-l">Aporte Total</div>
-            <div class="adeudo-item-v">${fmt$(ad.APORTE_TOTAL)}</div>
-          </div>
+          <div class="adeudo-item"><div class="adeudo-item-l">Adeudo Mtto</div><div class="adeudo-item-v">${fmt$(ad.ADEUDO_MTTO)}</div></div>
+          <div class="adeudo-item"><div class="adeudo-item-l">Adeudo Cuotas</div><div class="adeudo-item-v">${fmt$(ad.ADEUDO_CUOTAS)}</div></div>
+          <div class="adeudo-item"><div class="adeudo-item-l">Cuota 2026</div><div class="adeudo-item-v">${fmt$(ad.CUOTA_2026)}</div></div>
+          <div class="adeudo-item"><div class="adeudo-item-l">Aporte Total</div><div class="adeudo-item-v">${fmt$(ad.APORTE_TOTAL)}</div></div>
         </div>
       </div>`;
-    } else {
-      adeudoEl.innerHTML = '';
-    }
+    } else { adeudoEl.innerHTML = ''; }
+  } catch(e) { adeudoEl.innerHTML = ''; }
 
-    // Filtros por mes
-    const mesesPresentes = [...new Set(misPagosData.map(d => String(d.MES || '').toUpperCase().trim()).filter(Boolean))];
-    const filtrosEl = document.getElementById('mis-pagos-filtros-mes');
-    filtrosEl.innerHTML = `<span class="fin-filtro activo" onclick="filtrarMisPagos('todos',this)">Todos</span>` +
-      mesesPresentes.map(m => `<span class="fin-filtro" onclick="filtrarMisPagos('${m}',this)">${m}</span>`).join('');
-
-    renderMisPagos();
-  } catch(e) {
-    lista.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
+  // Filtros por mes
+  const mesesPresentes = [...new Set(misPagosData
+    .map(d => String(d.MES || '').toUpperCase().trim())
+    .filter(Boolean))];
+  const filtrosEl = document.getElementById('mis-pagos-filtros-mes');
+  if (filtrosEl) {
+    filtrosEl.innerHTML =
+      `<span class="fin-filtro activo" onclick="filtrarMisPagos('todos',this)">Todos</span>` +
+      mesesPresentes.map(m =>
+        `<span class="fin-filtro" onclick="filtrarMisPagos('${m}',this)">${m}</span>`
+      ).join('');
   }
+
+  renderMisPagos();
 }
 
 function filtrarMisPagos(mes, el) {
