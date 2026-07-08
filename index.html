@@ -2634,7 +2634,9 @@ async function cargarMisFinanzas() {
     const gastos    = await resG.json();
     const adeudos   = await resA.json();
     if (!Array.isArray(finMisPagosData)) finMisPagosData = [];
-    const totalIng = finMisPagosData.reduce((s,d) => s + (parseFloat(d.MONTO)||0), 0);
+    const totalIngBruto = finMisPagosData.reduce((s,d) => s + (parseFloat(d.MONTO)||0), 0);
+    // NOTA: finMisPagosData aquí es ALL deposits para el comparativo de la privada
+    const totalIng = totalIngBruto + INGRESO_INICIAL_COMITE;
     const totalGas = Array.isArray(gastos) ? gastos.reduce((s,g) => s + (parseFloat(g.MONTO)||0), 0) : 0;
     const balance  = totalIng - totalGas;
     const balBg    = balance >= 0 ? 'linear-gradient(135deg,#1b5e20,#2e7d32)' : 'linear-gradient(135deg,#b71c1c,#c62828)';
@@ -2684,30 +2686,47 @@ async function cargarMisFinanzas() {
   }
 }
 
-// ── HISTORIAL DE GASTOS ───────────────────────────────────────
+// ── HISTORIAL DE GASTOS ─────────────────────────────────────────
 
-let gastosData  = [];
-let gastosFiltro = 'todos';
+const INGRESO_INICIAL_COMITE = 28552; // Ingreso inicial comité anterior (fijo)
+
+let gastosData    = [];
+let gastosCache   = {}; // cache por mes
+let gastosFiltro  = null;
+
+const SECCIONES_GASTO = [
+  { key:'SEGURIDAD',  label:'🛡️ Seguridad',           color:'#1565c0', bg:'#e3f0ff' },
+  { key:'AREAS_JARD', label:'🌿 Áreas y Jardinería',   color:'#2e7d32', bg:'#e8f5e9' },
+  { key:'LUZ',        label:'⚡ Luz',                  color:'#f57f17', bg:'#fffde7' },
+  { key:'ALBERCA',    label:'🏊 Alberca',              color:'#0277bd', bg:'#e1f5fe' },
+  { key:'VARIABLES',  label:'📦 Variables / Caja',    color:'#6a1b9a', bg:'#f3e5f5' },
+];
 
 async function cargarMisGastos() {
   const lista   = document.getElementById('gastos-lista');
   const filtros = document.getElementById('gastos-filtros');
-  lista.innerHTML = '<div class="loader">Cargando...</div>';
+  if (lista) lista.innerHTML = '<div class="loader">Cargando...</div>';
   try {
     const res = await fetch(`${API}?accion=getGastos`);
     gastosData = await res.json();
     if (!Array.isArray(gastosData)) gastosData = [];
-    // Filtrar solo filas con monto > 0
-    gastosData = gastosData.filter(g => parseFloat(g.MONTO||0) > 0);
-    const meses = [...new Set(gastosData.map(g => String(g.MES||'').toUpperCase().trim()).filter(Boolean))];
+    // Construir cache por mes
+    gastosCache = {};
+    gastosData.forEach(g => {
+      const m = String(g.MES || '').toUpperCase().trim();
+      if (!gastosCache[m]) gastosCache[m] = [];
+      gastosCache[m].push(g);
+    });
+    const meses = Object.keys(gastosCache);
     if (filtros) {
-      filtros.innerHTML =
-        `<span class="fin-mes-chip activo" onclick="filtrarGastos('todos',this)">Todos</span>` +
-        meses.map(m => `<span class="fin-mes-chip" onclick="filtrarGastos('${m}',this)">${m}</span>`).join('');
+      filtros.innerHTML = meses.map((m,i) =>
+        `<span class="fin-mes-chip ${i===0?'activo':''}" onclick="filtrarGastos('${m}',this)">${m}</span>`
+      ).join('');
     }
+    gastosFiltro = meses[0] || null;
     renderGastos();
   } catch(e) {
-    lista.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
+    if (lista) lista.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
   }
 }
 
@@ -2720,66 +2739,106 @@ function filtrarGastos(mes, el) {
 
 function renderGastos() {
   const lista = document.getElementById('gastos-lista');
-  const items = gastosFiltro === 'todos'
-    ? gastosData
-    : gastosData.filter(g => String(g.MES||'').toUpperCase().trim() === gastosFiltro);
-
+  if (!lista) return;
+  const items = gastosFiltro ? (gastosCache[gastosFiltro] || []) : gastosData;
   if (items.length === 0) {
-    lista.innerHTML = '<p style="color:#888;text-align:center;padding:24px">Sin gastos registrados</p>';
+    lista.innerHTML = '<p style="color:#888;text-align:center;padding:24px">Sin gastos en este mes</p>';
     return;
   }
+  lista.innerHTML = renderGastosHTML(items, gastosFiltro || 'Total');
+}
 
-  // Total del filtro actual
-  const total = items.reduce((s,g) => s + (parseFloat(g.MONTO)||0), 0);
-  const conceptos = ['SEGURIDAD','AREAS/JARD','LUZ','ALBERCA','VARIABLES','CAJA_CH_(EFECTIVO)'];
+function renderGastosHTML(items, mesLabel) {
+  const totalMes = items.reduce((s,g) => s + (parseFloat(g.MONTO)||0), 0);
+  
+  // Totales por sección
+  const totSec = {};
+  SECCIONES_GASTO.forEach(s => {
+    const keys = s.key === 'VARIABLES' ? ['VARIABLES','CAJA_CH'] : [s.key];
+    totSec[s.key] = items.reduce((sum,g) => sum + keys.reduce((ss,k) => ss + (parseFloat(g[k])||0), 0), 0);
+  });
 
-  lista.innerHTML = `
-  <div style="background:linear-gradient(135deg,#b71c1c,#e53935);border-radius:12px;
-    padding:14px 16px;color:#fff;margin-bottom:14px;text-align:center">
-    <div style="font-size:11px;opacity:.8">Total gastos</div>
-    <div style="font-size:24px;font-weight:800">${fmt$(total)}</div>
-  </div>` +
-  items.map(g => {
-    const desglose = conceptos.map(c => ({
-      l: c.replace('_',' ').replace('/',' / '),
-      v: parseFloat(g[c]||0)
-    })).filter(i => i.v > 0);
-    return `
-    <div class="dep-pago-card" style="border-left-color:#e65100">
-      <div class="dep-pago-header">
-        <div>
-          <div class="dep-pago-mes">${g.MES || '—'}</div>
-          <div class="dep-pago-meta" style="margin:0">${g.FECHA || ''} · ${g.METODO || ''}</div>
-        </div>
-        <span class="dep-pago-monto" style="color:#c62828">${fmt$(g.MONTO)}</span>
+  // Resumen visual por sección
+  const resumenHtml = SECCIONES_GASTO.filter(s => totSec[s.key] > 0).map(s => `
+    <div style="background:${s.bg};border-radius:12px;padding:12px 14px;
+      border-left:4px solid ${s.color};margin-bottom:8px;
+      display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:${s.color}">${s.label}</div>
+        <div style="font-size:11px;color:#888;margin-top:2px">${items.filter(g => {
+          const keys = s.key === 'VARIABLES' ? ['VARIABLES','CAJA_CH'] : [s.key];
+          return keys.some(k => parseFloat(g[k]||0) > 0);
+        }).length} registro(s)</div>
       </div>
-      ${g.CONCEPTO ? `<div style="font-size:13px;color:#555;margin:6px 0">${g.CONCEPTO}</div>` : ''}
-      ${desglose.length > 0 ? `
-      <div class="dep-pago-grid" style="margin-top:8px">
-        ${desglose.map(i => `
-        <div class="dep-pago-item" style="background:#fff5f5">
-          <div class="dep-pago-item-l">${i.l}</div>
-          <div class="dep-pago-item-v" style="color:#c62828">${fmt$(i.v)}</div>
-        </div>`).join('')}
+      <div style="font-size:18px;font-weight:800;color:${s.color}">${fmt$(totSec[s.key])}</div>
+    </div>`).join('');
+
+  // Detalle por registro
+  const detalleHtml = items.map(g => {
+    const seccActivas = SECCIONES_GASTO.filter(s => {
+      const keys = s.key === 'VARIABLES' ? ['VARIABLES','CAJA_CH'] : [s.key];
+      return keys.some(k => parseFloat(g[k]||0) > 0);
+    });
+    const metodoBadge = g.METODO === 'TRANSFER'
+      ? 'background:#e3f0ff;color:#1565c0'
+      : g.METODO === 'CAJA CHICA'
+      ? 'background:#fff3e0;color:#e65100'
+      : 'background:#f3e5f5;color:#6a1b9a';
+    return `
+    <div style="background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:8px;
+      box-shadow:0 2px 6px rgba(0,0,0,.06)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#333">${g.CONCEPTO || '—'}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">${g.FECHA || ''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:17px;font-weight:800;color:#c62828">${fmt$(g.MONTO)}</div>
+          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;
+            ${metodoBadge}">${g.METODO || ''}</span>
+        </div>
+      </div>
+      ${seccActivas.length > 0 ? `
+      <div style="display:grid;grid-template-columns:repeat(${Math.min(seccActivas.length,3)},1fr);gap:5px">
+        ${seccActivas.map(s => {
+          const keys = s.key === 'VARIABLES' ? ['VARIABLES','CAJA_CH'] : [s.key];
+          const val  = keys.reduce((ss,k) => ss + (parseFloat(g[k])||0), 0);
+          return `<div style="background:${s.bg};border-radius:8px;padding:6px 8px;text-align:center">
+            <div style="font-size:9px;color:${s.color};font-weight:700;text-transform:uppercase">${s.label.replace(/^[^ ]+ /,'')}</div>
+            <div style="font-size:12px;font-weight:800;color:${s.color};margin-top:2px">${fmt$(val)}</div>
+          </div>`;
+        }).join('')}
       </div>` : ''}
     </div>`;
   }).join('');
+
+  return `
+  <div style="background:linear-gradient(135deg,#b71c1c,#e53935);border-radius:14px;
+    padding:16px;color:#fff;margin-bottom:16px;text-align:center">
+    <div style="font-size:12px;opacity:.8;margin-bottom:4px">${mesLabel}</div>
+    <div style="font-size:26px;font-weight:800">${fmt$(totalMes)}</div>
+    <div style="font-size:11px;opacity:.7;margin-top:2px">${items.length} registro(s)</div>
+  </div>
+  <p style="font-size:12px;font-weight:700;color:#888;text-transform:uppercase;
+    letter-spacing:.5px;margin-bottom:10px">Resumen por categoría</p>
+  ${resumenHtml}
+  <p style="font-size:12px;font-weight:700;color:#888;text-transform:uppercase;
+    letter-spacing:.5px;margin:14px 0 10px">Detalle de registros</p>
+  ${detalleHtml}`;
 }
 
 // ── NIVEL 3: HISTORIAL DE PAGOS ───────────────────────────────
 
 async function cargarMisPagos() {
-  const lista = document.getElementById('mis-pagos-lista');
+  const lista   = document.getElementById('mis-pagos-lista');
   const filtros = document.getElementById('mis-pagos-filtros');
   lista.innerHTML = '<div class="loader">Cargando...</div>';
-
-  if (!finMisPagosData.length) {
-    try {
-      const res = await fetch(`${API}?accion=getDepositos&depto=${encodeURIComponent(sesion.casa)}`);
-      finMisPagosData = await res.json();
-      if (!Array.isArray(finMisPagosData)) finMisPagosData = [];
-    } catch(e) { finMisPagosData = []; }
-  }
+  try {
+    // Siempre recargar filtrando por depto del usuario
+    const res  = await fetch(`${API}?accion=getDepositos&depto=${encodeURIComponent(sesion.casa)}`);
+    const data = await res.json();
+    finMisPagosData = Array.isArray(data) ? data : [];
+  } catch(e) { finMisPagosData = []; }
 
   const meses = [...new Set(finMisPagosData.map(d => String(d.MES||'').toUpperCase().trim()).filter(Boolean))];
   if (filtros) {
@@ -2855,47 +2914,59 @@ async function renderFinanzasComite(el) {
     const mesActual = MESES_ES[new Date().getMonth()];
     const [resD, resG, resA] = await Promise.all([
       fetch(`${API}?accion=getDepositos`),
-      fetch(`${API}?accion=getGastos&mes=${encodeURIComponent(mesActual)}`),
+      fetch(`${API}?accion=getGastos`),
       fetch(`${API}?accion=getAdeudos&depto=todos`)
     ]);
     comiteFinData  = await resD.json();
-    const gastos   = await resG.json();
+    const gastosAll = await resG.json();
     comiteAdeudos  = await resA.json();
     if (!Array.isArray(comiteFinData))  comiteFinData  = [];
     if (!Array.isArray(comiteAdeudos))  comiteAdeudos  = [];
-    if (!Array.isArray(gastos))         gastos.length  = 0;
 
-    const totalIng  = comiteFinData.reduce((s,d) => s + (parseFloat(d.MONTO)||0), 0);
-    const totalGas  = gastos.reduce ? gastos.reduce((s,g) => s + (parseFloat(g.MONTO)||0), 0) : 0;
+    // Construir cache de gastos por mes
+    gastosCache = {};
+    if (Array.isArray(gastosAll)) gastosAll.forEach(g => {
+      const m = String(g.MES||'').toUpperCase().trim();
+      if (!m) return;
+      if (!gastosCache[m]) gastosCache[m] = [];
+      gastosCache[m].push(g);
+    });
+    const mesesGastos = Object.keys(gastosCache);
+    gastosFiltro = mesActual;
+    if (!gastosCache[mesActual] && mesesGastos.length > 0)
+      gastosFiltro = mesesGastos[mesesGastos.length - 1];
+
+    const totalIngBruto = comiteFinData.reduce((s,d) => s + (parseFloat(d.MONTO)||0), 0);
+    const totalIng  = totalIngBruto + INGRESO_INICIAL_COMITE;
+    const gastosActuales = gastosCache[gastosFiltro] || [];
+    const totalGas  = gastosActuales.reduce((s,g) => s + (parseFloat(g.MONTO)||0), 0);
     const balance   = totalIng - totalGas;
     const balBg     = balance >= 0 ? 'linear-gradient(135deg,#1b5e20,#2e7d32)' : 'linear-gradient(135deg,#b71c1c,#c62828)';
-    const mesesU    = [...new Set(comiteFinData.map(d => String(d.MES||'').toUpperCase().trim()).filter(Boolean))];
-
-    // Edificios con semáforo
-    const edificiosU = [...new Set(comiteAdeudos.map(d => String(d.EDIFICIO||'').trim()).filter(Boolean))]
-      .sort((a,b) => parseInt(a) - parseInt(b));
+    const mesesDep  = [...new Set(comiteFinData.map(d => String(d.MES||'').toUpperCase().trim()).filter(Boolean))];
+    const edificiosU= [...new Set(comiteAdeudos.map(d => String(d.EDIFICIO||'').trim()).filter(Boolean))]
+                      .sort((a,b) => parseInt(a)-parseInt(b));
 
     const colorEdif = (edif) => {
-      const deptos = comiteAdeudos.filter(d => String(d.EDIFICIO||'').trim() === edif);
-      const conAdeudo = deptos.filter(d => parseFloat(d.ADEUDO_TOTAL_CAMBIO_COMITE||0) > 0).length;
-      if (conAdeudo === 0) return 'verde';
-      if (conAdeudo < deptos.length) return 'amarillo';
+      const deps = comiteAdeudos.filter(d => String(d.EDIFICIO||'').trim() === edif);
+      const conAd = deps.filter(d => parseFloat(d.ADEUDO_TOTAL_CAMBIO_COMITE||0) > 0).length;
+      if (conAd === 0) return 'verde';
+      if (conAd < deps.length) return 'amarillo';
       return 'rojo';
     };
 
     el.innerHTML = `
-    <!-- Comparativo -->
-    <p class="seccion-titulo">Balance ${mesActual} ${new Date().getFullYear()}</p>
+    <!-- Balance -->
+    <p class="seccion-titulo">Balance — ${mesActual} ${new Date().getFullYear()}</p>
     <div class="fin-comparativo">
       <div class="fin-comp-card" style="background:linear-gradient(135deg,#1a237e,#1565c0)">
         <div class="fin-comp-label">💰 Ingresos</div>
         <div class="fin-comp-monto">${fmt$(totalIng)}</div>
-        <div style="font-size:10px;opacity:.7;margin-top:2px">Total depósitos</div>
+        <div style="font-size:9px;opacity:.7;margin-top:2px">Incl. $${INGRESO_INICIAL_COMITE.toLocaleString()} comité anterior</div>
       </div>
       <div class="fin-comp-card" style="background:linear-gradient(135deg,#b71c1c,#e53935)">
         <div class="fin-comp-label">💸 Gastos</div>
         <div class="fin-comp-monto">${fmt$(totalGas)}</div>
-        <div style="font-size:10px;opacity:.7;margin-top:2px">${mesActual}</div>
+        <div style="font-size:9px;opacity:.7;margin-top:2px">${gastosFiltro}</div>
       </div>
     </div>
     <div class="fin-balance" style="background:${balBg}">
@@ -2903,22 +2974,19 @@ async function renderFinanzasComite(el) {
       <div class="fin-balance-monto">${fmt$(balance)}</div>
     </div>
 
-    <!-- Gastos del mes -->
-    <p class="seccion-titulo" style="margin-top:4px">💸 Gastos de ${mesActual}</p>
-    <div style="background:#fff;border-radius:12px;padding:12px 16px;margin-bottom:14px;
-      box-shadow:0 2px 6px rgba(0,0,0,.06)">
-      ${gastos.length === 0 ? '<p style="color:#888;font-size:13px;text-align:center;padding:8px">Sin gastos registrados</p>' :
-        gastos.map(g => `
-        <div class="gasto-item">
-          <div><div class="gasto-concepto">${g.CONCEPTO || '—'}</div>
-            <div class="gasto-fecha">${g.FECHA || ''} · ${g.METODO || ''}</div></div>
-          <div class="gasto-monto-val">${fmt$(g.MONTO)}</div>
-        </div>`).join('')}
+    <!-- Gastos por mes -->
+    <p class="seccion-titulo" style="margin-top:4px">💸 Gastos por Mes</p>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px" id="cf-filtros-gastos">
+      ${mesesGastos.map(m =>
+        `<span class="fin-mes-chip ${m===gastosFiltro?'activo':''}"
+          onclick="cfFiltrarGastos('${m}',this)">${m}</span>`
+      ).join('')}
     </div>
+    <div id="cf-gastos-detalle">${renderGastosHTML(gastosActuales, gastosFiltro)}</div>
 
     <!-- Edificios -->
-    <p class="seccion-titulo">🏘️ Estado por Edificio</p>
-    <div style="font-size:11px;display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+    <p class="seccion-titulo" style="margin-top:14px">🏘️ Estado por Edificio</p>
+    <div style="font-size:11px;display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap">
       <span>🟢 Al corriente</span><span>🟡 Parcial</span><span>🔴 Adeudo</span>
     </div>
     <div class="edif-grid" id="cf-edif-grid">
@@ -2928,18 +2996,16 @@ async function renderFinanzasComite(el) {
         <div class="edif-sub">Edif.</div>
       </div>`).join('')}
     </div>
-
-    <!-- Deptos del edificio seleccionado -->
     <div id="cf-deptos-wrap" style="display:none">
       <p class="seccion-titulo" id="cf-deptos-titulo">Departamentos</p>
       <div id="cf-deptos-lista"></div>
     </div>
 
-    <!-- Filtro depósitos -->
+    <!-- Depósitos -->
     <p class="seccion-titulo" style="margin-top:14px">📋 Depósitos</p>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px" id="cf-filtros-mes">
       <span class="fin-mes-chip activo" onclick="filtrarComiteDep('todos',this)">Todos</span>
-      ${mesesU.map(m=>`<span class="fin-mes-chip" onclick="filtrarComiteDep('${m}',this)">${m}</span>`).join('')}
+      ${mesesDep.map(m=>`<span class="fin-mes-chip" onclick="filtrarComiteDep('${m}',this)">${m}</span>`).join('')}
     </div>
     <div id="cf-lista"></div>`;
 
@@ -2947,6 +3013,14 @@ async function renderFinanzasComite(el) {
   } catch(e) {
     el.innerHTML = `<p style="color:#c62828;text-align:center;padding:16px">Error: ${e.message}</p>`;
   }
+}
+
+function cfFiltrarGastos(mes, el) {
+  gastosFiltro = mes;
+  document.querySelectorAll('#cf-filtros-gastos .fin-mes-chip').forEach(b => b.classList.remove('activo'));
+  if (el) el.classList.add('activo');
+  const det = document.getElementById('cf-gastos-detalle');
+  if (det) det.innerHTML = renderGastosHTML(gastosCache[mes] || [], mes);
 }
 
 function cfSelEdif(edif, el) {
