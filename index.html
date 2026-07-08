@@ -1374,7 +1374,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbwE6ZLOP5Ym5sbHYTA9LEn4q9ZFl9E9jLjwS0nM_tq4JAHl7ug0P7yhc8Z3ECh8TT3-nQ/exec';
+const API = 'https://script.google.com/macros/s/AKfycbzsIMUTZjiB75t0ezEylmTvrFeWQea8YCgUtDk9MYc12w8zK942lRz2QWgoSHi67DxINA/exec';
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -2268,9 +2268,14 @@ async function cargarMisPagos() {
   // Cargar depósitos
   try {
     const resD = await fetch(`${API}?accion=getDepositos&depto=${encodeURIComponent(sesion.casa)}`);
-    misPagosData = await resD.json();
-    if (!Array.isArray(misPagosData)) misPagosData = [];
-  } catch(e) { misPagosData = []; }
+    const rawD = await resD.json();
+    console.log('DEBUG getDepositos:', JSON.stringify(rawD).substring(0, 200));
+    misPagosData = Array.isArray(rawD) ? rawD : [];
+    console.log('DEBUG misPagosData.length:', misPagosData.length);
+  } catch(e) { 
+    console.error('ERROR getDepositos:', e);
+    misPagosData = []; 
+  }
 
   // Cargar adeudos (independiente para que no bloquee los depósitos)
   try {
@@ -2317,15 +2322,23 @@ function filtrarMisPagos(mes, el) {
 }
 
 function renderMisPagos() {
-  const lista  = document.getElementById('mis-pagos-lista');
-  const items  = misPagosMesFiltro === 'todos'
+  const lista = document.getElementById('mis-pagos-lista');
+  const items = misPagosMesFiltro === 'todos'
     ? misPagosData
     : misPagosData.filter(d => String(d.MES || '').toUpperCase().trim() === misPagosMesFiltro);
+  
+  console.log('DEBUG renderMisPagos items:', items.length, 'filtro:', misPagosMesFiltro);
+  
   if (items.length === 0) {
-    lista.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin depósitos registrados</p>';
+    lista.innerHTML = `<p style="color:#888;text-align:center;padding:16px">Sin depósitos (total en cache: ${misPagosData.length})</p>`;
     return;
   }
-  lista.innerHTML = items.map((d, idx) => renderDepCard(d, idx, false)).join('');
+  try {
+    lista.innerHTML = items.map((d, idx) => renderDepCard(d, idx, false)).join('');
+  } catch(e) {
+    console.error('ERROR renderDepCard:', e);
+    lista.innerHTML = `<p style="color:#c62828;text-align:center;padding:16px">Error al renderizar: ${e.message}</p>`;
+  }
 }
 
 function renderDepCard(d, idx, esComite) {
