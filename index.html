@@ -1089,6 +1089,20 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
+     PANTALLA — HISTORIAL DE GASTOS
+═══════════════════════════════════════════════════════════ -->
+<div id="s-mis-gastos" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-mis-finanzas')">←</button>
+    <div class="header-title"><h1>Privada Paamul</h1><p>Historial de Gastos</p></div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="gastos-filtros" style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:6px"></div>
+    <div id="gastos-lista"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
      PANTALLA — HISTORIAL DE PAGOS (nivel 3)
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-mis-pagos" class="screen">
@@ -2606,48 +2620,42 @@ let finMisPagosData = [];
 let finMisPagosFiltro = 'todos';
 
 async function cargarMisFinanzas() {
-  const compWrap  = document.getElementById('fin-comparativo-wrap');
+  const compWrap   = document.getElementById('fin-comparativo-wrap');
   const adeudoWrap = document.getElementById('fin-adeudo-wrap');
   if (compWrap) compWrap.innerHTML = '<div class="loader">Cargando...</div>';
-
   const mesActual = MESES_ES[new Date().getMonth()];
-
   try {
     const [resD, resG, resA] = await Promise.all([
-      fetch(`${API}?accion=getDepositos&depto=${encodeURIComponent(sesion.casa)}`),
+      fetch(`${API}?accion=getDepositos`),
       fetch(`${API}?accion=getGastos&mes=${encodeURIComponent(mesActual)}`),
       fetch(`${API}?accion=getAdeudos&depto=${encodeURIComponent(sesion.casa)}`)
     ]);
     finMisPagosData = await resD.json();
-    const gastos  = await resG.json();
-    const adeudos = await resA.json();
+    const gastos    = await resG.json();
+    const adeudos   = await resA.json();
     if (!Array.isArray(finMisPagosData)) finMisPagosData = [];
-
-    // Calcular totales
     const totalIng = finMisPagosData.reduce((s,d) => s + (parseFloat(d.MONTO)||0), 0);
     const totalGas = Array.isArray(gastos) ? gastos.reduce((s,g) => s + (parseFloat(g.MONTO)||0), 0) : 0;
     const balance  = totalIng - totalGas;
-    const balColor = balance >= 0 ? '#1b5e20' : '#b71c1c';
     const balBg    = balance >= 0 ? 'linear-gradient(135deg,#1b5e20,#2e7d32)' : 'linear-gradient(135deg,#b71c1c,#c62828)';
-
     if (compWrap) compWrap.innerHTML = `
-    <p class="seccion-titulo">Resumen — ${mesActual} ${new Date().getFullYear()}</p>
+    <p class="seccion-titulo">Resumen Privada — ${mesActual} ${new Date().getFullYear()}</p>
     <div class="fin-comparativo">
       <div class="fin-comp-card" style="background:linear-gradient(135deg,#1a237e,#1565c0)">
-        <div class="fin-comp-label">💰 Ingresos</div>
+        <div class="fin-comp-label">💰 Ingresos Privada</div>
         <div class="fin-comp-monto">${fmt$(totalIng)}</div>
+        <div style="font-size:10px;opacity:.7;margin-top:2px">Total depósitos</div>
       </div>
       <div class="fin-comp-card" style="background:linear-gradient(135deg,#b71c1c,#e53935)">
         <div class="fin-comp-label">💸 Gastos</div>
         <div class="fin-comp-monto">${fmt$(totalGas)}</div>
+        <div style="font-size:10px;opacity:.7;margin-top:2px">${mesActual}</div>
       </div>
     </div>
     <div class="fin-balance" style="background:${balBg}">
       <div class="fin-balance-label">Balance</div>
       <div class="fin-balance-monto">${fmt$(balance)}</div>
     </div>`;
-
-    // Tarjeta adeudo
     const ad = Array.isArray(adeudos) && adeudos.length > 0 ? adeudos[0] : null;
     if (adeudoWrap && ad) {
       const adeudoTotal = parseFloat(ad.ADEUDO_TOTAL_CAMBIO_COMITE) || 0;
@@ -2660,28 +2668,102 @@ async function cargarMisFinanzas() {
           ${alCorriente ? '✅ Al corriente' : '⚠️ Adeudo: ' + fmt$(adeudoTotal)}
         </div>
         <div class="fin-adeudo-grid">
-          <div class="fin-adeudo-item">
-            <div class="fin-adeudo-item-l">Cuota 2026</div>
-            <div class="fin-adeudo-item-v">${fmt$(ad.CUOTA_2026)}</div>
-          </div>
-          <div class="fin-adeudo-item">
-            <div class="fin-adeudo-item-l">Aporte Total</div>
-            <div class="fin-adeudo-item-v" style="color:#2e7d32">${fmt$(ad.APORTE_TOTAL)}</div>
-          </div>
-          <div class="fin-adeudo-item">
-            <div class="fin-adeudo-item-l">Adeudo Mtto</div>
-            <div class="fin-adeudo-item-v">${fmt$(ad.ADEUDO_MTTO_CAMBIO_COMITE)}</div>
-          </div>
-          <div class="fin-adeudo-item">
-            <div class="fin-adeudo-item-l">Recargos</div>
-            <div class="fin-adeudo-item-v">${fmt$(ad.RECARGOS_2026)}</div>
-          </div>
+          <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Cuota 2026</div><div class="fin-adeudo-item-v">${fmt$(ad.CUOTA_2026)}</div></div>
+          <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Aporte Total</div><div class="fin-adeudo-item-v" style="color:#2e7d32">${fmt$(ad.APORTE_TOTAL)}</div></div>
+          <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Adeudo Mtto</div><div class="fin-adeudo-item-v">${fmt$(ad.ADEUDO_MTTO_CAMBIO_COMITE)}</div></div>
+          <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Recargos</div><div class="fin-adeudo-item-v">${fmt$(ad.RECARGOS_2026)}</div></div>
         </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+        <button class="btn-submit" onclick="ir('s-mis-pagos'); cargarMisPagos()">📋 Mis pagos</button>
+        <button class="btn-submit" style="background:#e65100" onclick="ir('s-mis-gastos'); cargarMisGastos()">💸 Ver gastos</button>
       </div>`;
     }
   } catch(e) {
     if (compWrap) compWrap.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
   }
+}
+
+// ── HISTORIAL DE GASTOS ───────────────────────────────────────
+
+let gastosData  = [];
+let gastosFiltro = 'todos';
+
+async function cargarMisGastos() {
+  const lista   = document.getElementById('gastos-lista');
+  const filtros = document.getElementById('gastos-filtros');
+  lista.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res = await fetch(`${API}?accion=getGastos`);
+    gastosData = await res.json();
+    if (!Array.isArray(gastosData)) gastosData = [];
+    // Filtrar solo filas con monto > 0
+    gastosData = gastosData.filter(g => parseFloat(g.MONTO||0) > 0);
+    const meses = [...new Set(gastosData.map(g => String(g.MES||'').toUpperCase().trim()).filter(Boolean))];
+    if (filtros) {
+      filtros.innerHTML =
+        `<span class="fin-mes-chip activo" onclick="filtrarGastos('todos',this)">Todos</span>` +
+        meses.map(m => `<span class="fin-mes-chip" onclick="filtrarGastos('${m}',this)">${m}</span>`).join('');
+    }
+    renderGastos();
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
+  }
+}
+
+function filtrarGastos(mes, el) {
+  gastosFiltro = mes;
+  document.querySelectorAll('#gastos-filtros .fin-mes-chip').forEach(b => b.classList.remove('activo'));
+  if (el) el.classList.add('activo');
+  renderGastos();
+}
+
+function renderGastos() {
+  const lista = document.getElementById('gastos-lista');
+  const items = gastosFiltro === 'todos'
+    ? gastosData
+    : gastosData.filter(g => String(g.MES||'').toUpperCase().trim() === gastosFiltro);
+
+  if (items.length === 0) {
+    lista.innerHTML = '<p style="color:#888;text-align:center;padding:24px">Sin gastos registrados</p>';
+    return;
+  }
+
+  // Total del filtro actual
+  const total = items.reduce((s,g) => s + (parseFloat(g.MONTO)||0), 0);
+  const conceptos = ['SEGURIDAD','AREAS/JARD','LUZ','ALBERCA','VARIABLES','CAJA_CH_(EFECTIVO)'];
+
+  lista.innerHTML = `
+  <div style="background:linear-gradient(135deg,#b71c1c,#e53935);border-radius:12px;
+    padding:14px 16px;color:#fff;margin-bottom:14px;text-align:center">
+    <div style="font-size:11px;opacity:.8">Total gastos</div>
+    <div style="font-size:24px;font-weight:800">${fmt$(total)}</div>
+  </div>` +
+  items.map(g => {
+    const desglose = conceptos.map(c => ({
+      l: c.replace('_',' ').replace('/',' / '),
+      v: parseFloat(g[c]||0)
+    })).filter(i => i.v > 0);
+    return `
+    <div class="dep-pago-card" style="border-left-color:#e65100">
+      <div class="dep-pago-header">
+        <div>
+          <div class="dep-pago-mes">${g.MES || '—'}</div>
+          <div class="dep-pago-meta" style="margin:0">${g.FECHA || ''} · ${g.METODO || ''}</div>
+        </div>
+        <span class="dep-pago-monto" style="color:#c62828">${fmt$(g.MONTO)}</span>
+      </div>
+      ${g.CONCEPTO ? `<div style="font-size:13px;color:#555;margin:6px 0">${g.CONCEPTO}</div>` : ''}
+      ${desglose.length > 0 ? `
+      <div class="dep-pago-grid" style="margin-top:8px">
+        ${desglose.map(i => `
+        <div class="dep-pago-item" style="background:#fff5f5">
+          <div class="dep-pago-item-l">${i.l}</div>
+          <div class="dep-pago-item-v" style="color:#c62828">${fmt$(i.v)}</div>
+        </div>`).join('')}
+      </div>` : ''}
+    </div>`;
+  }).join('');
 }
 
 // ── NIVEL 3: HISTORIAL DE PAGOS ───────────────────────────────
@@ -2877,13 +2959,23 @@ function cfSelEdif(edif, el) {
   if (!wrap) return;
   wrap.style.display = 'block';
   if (titulo) titulo.textContent = `Edificio ${edif} — Departamentos`;
+
   const deptos = comiteAdeudos.filter(d => String(d.EDIFICIO||'').trim() === edif);
   lista.innerHTML = deptos.map(d => {
     const adeudo = parseFloat(d.ADEUDO_TOTAL_CAMBIO_COMITE||0);
     const color  = adeudo > 0 ? '#c62828' : '#2e7d32';
+    // Solo mostrar campos con valor > 0
+    const campos = [
+      {l:'Cuota 2026',    v:d.CUOTA_2026},
+      {l:'Aporte Total',  v:d.APORTE_TOTAL,           c:'#2e7d32'},
+      {l:'Adeudo Mtto',   v:d.ADEUDO_MTTO_CAMBIO_COMITE},
+      {l:'Recargos',      v:d.RECARGOS_2026},
+      {l:'Abono Mtto',    v:d.ABONO_MTTO_CAMBIO_COMITE},
+      {l:'Adeudo Cuota',  v:d.ADEUDO_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE},
+    ].filter(f => parseFloat(f.v||0) > 0);
     return `
     <div class="fin-adeudo-card" style="border-color:${color};margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${campos.length?'10px':'0'}">
         <div>
           <div style="font-weight:700;font-size:15px">Depto ${d.DEPTO}</div>
           <div style="font-size:12px;color:${color};font-weight:600;margin-top:2px">
@@ -2895,14 +2987,19 @@ function cfSelEdif(edif, el) {
           <div style="font-size:14px;font-weight:700;color:#1565c0">${fmt$(d.APORTE_TOTAL)}</div>
         </div>
       </div>
-      <div class="fin-adeudo-grid" style="margin-top:10px">
-        <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Cuota 2026</div><div class="fin-adeudo-item-v">${fmt$(d.CUOTA_2026)}</div></div>
-        <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Recargos</div><div class="fin-adeudo-item-v">${fmt$(d.RECARGOS_2026)}</div></div>
-        <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Adeudo Mtto</div><div class="fin-adeudo-item-v">${fmt$(d.ADEUDO_MTTO_CAMBIO_COMITE)}</div></div>
-        <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Abono Mtto</div><div class="fin-adeudo-item-v">${fmt$(d.ABONO_MTTO_CAMBIO_COMITE)}</div></div>
-      </div>
+      ${campos.length > 0 ? `
+      <div class="fin-adeudo-grid">
+        ${campos.map(f => `
+        <div class="fin-adeudo-item">
+          <div class="fin-adeudo-item-l">${f.l}</div>
+          <div class="fin-adeudo-item-v" style="color:${f.c||'#1a237e'}">${fmt$(f.v)}</div>
+        </div>`).join('')}
+      </div>` : ''}
     </div>`;
   }).join('');
+
+  // Scroll suave al detalle
+  setTimeout(() => wrap.scrollIntoView({behavior:'smooth', block:'start'}), 100);
 }
 
 function filtrarComiteDep(mes, el) {
@@ -2915,9 +3012,17 @@ function filtrarComiteDep(mes, el) {
 function renderComiteFinLista() {
   const lista = document.getElementById('cf-lista');
   if (!lista) return;
-  const items = comiteFinMes === 'todos'
-    ? comiteFinData
-    : comiteFinData.filter(d => String(d.MES||'').toUpperCase().trim() === comiteFinMes);
+  let items = comiteFinData.filter(d => parseFloat(d.MONTO||0) > 0); // ocultar ceros
+  if (comiteFinMes !== 'todos')
+    items = items.filter(d => String(d.MES||'').toUpperCase().trim() === comiteFinMes);
+  // Si hay un edificio seleccionado, filtrar por sus deptos
+  if (comiteFinEdificio) {
+    const deptosEdif = comiteAdeudos
+      .filter(d => String(d.EDIFICIO||'').trim() === comiteFinEdificio)
+      .map(d => String(d.DEPTO||'').toUpperCase().trim());
+    if (deptosEdif.length > 0)
+      items = items.filter(d => deptosEdif.includes(String(d.DEPTO||'').toUpperCase().trim()));
+  }
   if (items.length === 0) {
     lista.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin depósitos</p>';
     return;
@@ -2934,9 +3039,10 @@ function renderComiteFinLista() {
       </div>
       <div class="dep-pago-meta">${d.FECHA||''} · ${d.METODO||''}</div>
       <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
-        <span class="dep-conf-badge ${confComite?'dep-conf-ok':'dep-conf-pend'}" style="cursor:${!confComite?'pointer':'default'}"
+        <span class="dep-conf-badge ${confComite?'dep-conf-ok':'dep-conf-pend'}"
+          style="cursor:${!confComite?'pointer':'default'}"
           ${!confComite ? `onclick="confirmarPagoComite(${idx+1},'comite')"` : ''}>
-          ${confComite ? '✅ Registrado' : '⏳ Confirmar registro'}
+          ${confComite ? '✅ Registrado' : '⏳ Confirmar'}
         </span>
         <span class="dep-conf-badge ${confTes?'dep-conf-ok':'dep-conf-pend'}">
           ${confTes ? '✅ Tesorera' : '⏳ Pend. tesorera'}
