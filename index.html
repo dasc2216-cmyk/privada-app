@@ -2638,17 +2638,17 @@ async function cargarMisFinanzas() {
     const balance  = totalIng - totalGas;
     const balBg    = balance >= 0 ? 'linear-gradient(135deg,#1b5e20,#2e7d32)' : 'linear-gradient(135deg,#b71c1c,#c62828)';
     if (compWrap) compWrap.innerHTML = `
-    <p class="seccion-titulo">Resumen Privada — ${mesActual} ${new Date().getFullYear()}</p>
+    <p class="seccion-titulo">Resumen Privada — ${new Date().getFullYear()}</p>
     <div class="fin-comparativo">
       <div class="fin-comp-card" style="background:linear-gradient(135deg,#1a237e,#1565c0)">
         <div class="fin-comp-label">💰 Ingresos Privada</div>
         <div class="fin-comp-monto">${fmt$(totalIng)}</div>
-        <div style="font-size:10px;opacity:.7;margin-top:2px">Total depósitos</div>
+        <div style="font-size:9px;opacity:.7;margin-top:2px">Incl. $28,552 comité anterior</div>
       </div>
       <div class="fin-comp-card" style="background:linear-gradient(135deg,#b71c1c,#e53935)">
         <div class="fin-comp-label">💸 Gastos</div>
         <div class="fin-comp-monto">${fmt$(totalGas)}</div>
-        <div style="font-size:10px;opacity:.7;margin-top:2px">Total gastos</div>
+        <div style="font-size:9px;opacity:.7;margin-top:2px">Total gastos</div>
       </div>
     </div>
     <div class="fin-balance" style="background:${balBg}">
@@ -2927,7 +2927,7 @@ async function renderFinanzasComite(el) {
 
     el.innerHTML = `
     <!-- Balance -->
-    <p class="seccion-titulo">Balance — ${mesActual} ${new Date().getFullYear()}</p>
+    <p class="seccion-titulo">Balance — ${new Date().getFullYear()}</p>
     <div class="fin-comparativo">
       <div class="fin-comp-card" style="background:linear-gradient(135deg,#1a237e,#1565c0)">
         <div class="fin-comp-label">💰 Ingresos</div>
@@ -2936,26 +2936,21 @@ async function renderFinanzasComite(el) {
       </div>
       <div class="fin-comp-card" style="background:linear-gradient(135deg,#b71c1c,#e53935)">
         <div class="fin-comp-label">💸 Gastos</div>
-        <div class="fin-comp-monto">${fmt$(totalGas)}</div>
-        <div style="font-size:9px;opacity:.7;margin-top:2px">${gastosFiltro}</div>
+        <div class="fin-comp-monto">${fmt$(Object.values(gastosCache).flat().reduce((s,g)=>s+(parseFloat(g.MONTO)||0),0))}</div>
+        <div style="font-size:9px;opacity:.7;margin-top:2px">Total gastos</div>
       </div>
     </div>
     <div class="fin-balance" style="background:${balBg}">
       <div class="fin-balance-label">Balance general</div>
       <div class="fin-balance-monto">${fmt$(balance)}</div>
     </div>
-
-    <!-- Gastos por mes -->
     <p class="seccion-titulo" style="margin-top:4px">💸 Gastos por Mes</p>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px" id="cf-filtros-gastos">
       ${mesesGastos.map(m =>
-        `<span class="fin-mes-chip ${m===gastosFiltro?'activo':''}"
-          onclick="cfFiltrarGastos('${m}',this)">${m}</span>`
+        `<span class="fin-mes-chip ${m===gastosFiltro?'activo':''}" onclick="cfFiltrarGastos('${m}',this)">${m}</span>`
       ).join('')}
     </div>
     <div id="cf-gastos-detalle">${renderGastosHTML(gastosActuales, gastosFiltro, (window._ingCache||{})[gastosFiltro]||0)}</div>
-
-    <!-- Edificios -->
     <p class="seccion-titulo" style="margin-top:14px">🏘️ Estado por Edificio</p>
     <div style="font-size:11px;display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap">
       <span>🟢 Al corriente</span><span>🟡 Parcial</span><span>🔴 Adeudo</span>
@@ -2971,15 +2966,14 @@ async function renderFinanzasComite(el) {
       <p class="seccion-titulo" id="cf-deptos-titulo">Departamentos</p>
       <div id="cf-deptos-lista"></div>
     </div>
-
-    <!-- Depósitos -->
     <p class="seccion-titulo" style="margin-top:14px">📋 Depósitos</p>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px" id="cf-filtros-mes">
-      <span class="fin-mes-chip activo" onclick="filtrarComiteDep('todos',this)">Todos</span>
       ${mesesDep.map(m=>`<span class="fin-mes-chip" onclick="filtrarComiteDep('${m}',this)">${m}</span>`).join('')}
     </div>
-    <div id="cf-lista"></div>`;
-
+    <p style="font-size:13px;color:#888;text-align:center;padding:12px;background:#f8f9fa;border-radius:10px" id="cf-dep-hint">
+      Selecciona un mes o edificio para ver los depósitos
+    </p>
+    <div id="cf-lista" style="display:none"></div>`
     renderComiteFinLista();
   } catch(e) {
     el.innerHTML = `<p style="color:#c62828;text-align:center;padding:16px">Error: ${e.message}</p>`;
@@ -3044,6 +3038,13 @@ function cfSelEdif(edif, el) {
     </div>`;
   }).join('');
 
+  // Mostrar depósitos del edificio
+  const hint  = document.getElementById('cf-dep-hint');
+  const listaEl3 = document.getElementById('cf-lista');
+  if (hint)  hint.style.display = 'none';
+  if (listaEl3) listaEl3.style.display = 'block';
+  renderComiteFinLista();
+
   // Scroll suave al detalle
   setTimeout(() => wrap.scrollIntoView({behavior:'smooth', block:'start'}), 100);
 }
@@ -3052,6 +3053,10 @@ function filtrarComiteDep(mes, el) {
   comiteFinMes = mes;
   document.querySelectorAll('#cf-filtros-mes .fin-mes-chip').forEach(b => b.classList.remove('activo'));
   if (el) el.classList.add('activo');
+  const hintEl  = document.getElementById('cf-dep-hint');
+  const listaEl2 = document.getElementById('cf-lista');
+  if (hintEl)   hintEl.style.display = 'none';
+  if (listaEl2) listaEl2.style.display = 'block';
   renderComiteFinLista();
 }
 
@@ -3105,6 +3110,101 @@ async function confirmarPagoComite(fila, tipo) {
     if (res.ok) { showMsg(msg,'ok','✅ Confirmado'); renderTabComite('finanzas'); }
     else showMsg(msg,'error', res.error || 'Error');
   } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
+// ── TOGGLE DETALLE ────────────────────────────────────────────
+
+function toggleDetalle(id) {
+  const el  = document.getElementById(id);
+  const btn = document.getElementById('btn-' + id);
+  if (!el) return;
+  const abierto = el.style.display !== 'none';
+  el.style.display = abierto ? 'none' : 'block';
+  if (btn) {
+    const n = btn.textContent.match(/\d+/)?.[0] || '';
+    btn.textContent = abierto
+      ? `📋 Ver ${n} registro(s) de gastos`
+      : `🔼 Ocultar registros`;
+  }
+}
+
+// ── HISTORIAL DE PAGOS (nivel 3) ──────────────────────────────
+
+// finMisPagosData ya declarado arriba
+// finMisPagosFiltro ya declarado arriba
+
+async function cargarMisPagos() {
+  const lista   = document.getElementById('mis-pagos-lista');
+  const filtros = document.getElementById('mis-pagos-filtros');
+  if (lista) lista.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res  = await fetch(`${API}?accion=getDepositos&depto=${encodeURIComponent(sesion.casa)}`);
+    const data = await res.json();
+    finMisPagosData = Array.isArray(data) ? data : [];
+  } catch(e) { finMisPagosData = []; }
+
+  const meses = [...new Set(finMisPagosData.map(d => String(d.MES||'').toUpperCase().trim()).filter(Boolean))];
+  if (filtros) {
+    filtros.innerHTML =
+      `<span class="fin-mes-chip activo" onclick="filtrarPagos('todos',this)">Todos</span>` +
+      meses.map(m => `<span class="fin-mes-chip" onclick="filtrarPagos('${m}',this)">${m}</span>`).join('');
+  }
+  finMisPagosFiltro = 'todos';
+  renderMisPagos();
+}
+
+function filtrarPagos(mes, el) {
+  finMisPagosFiltro = mes;
+  document.querySelectorAll('#mis-pagos-filtros .fin-mes-chip').forEach(b => b.classList.remove('activo'));
+  if (el) el.classList.add('activo');
+  renderMisPagos();
+}
+
+function renderMisPagos() {
+  const lista = document.getElementById('mis-pagos-lista');
+  if (!lista) return;
+  const items = finMisPagosFiltro === 'todos'
+    ? finMisPagosData
+    : finMisPagosData.filter(d => String(d.MES||'').toUpperCase().trim() === finMisPagosFiltro);
+  if (items.length === 0) {
+    lista.innerHTML = '<p style="color:#888;text-align:center;padding:24px">Sin depósitos registrados</p>';
+    return;
+  }
+  lista.innerHTML = items.map((d, idx) => {
+    const monto      = parseFloat(d.MONTO) || 0;
+    const confComite = String(d.CONFIRMADO_COMITE||'').toUpperCase() === 'SI';
+    const confTes    = String(d.CONFIRMADO_TESORERA||'').toUpperCase() === 'SI';
+    const desglose   = [
+      {l:'Mtto',    v:d.MANTO},   {l:'Luz',    v:d.LUZ},
+      {l:'CE 2026', v:d.CE_2026}, {l:'Adeudo', v:d.ADEUDO},
+      {l:'Chip',    v:d.CHIP},    {l:'Control',v:d.CONTROL},
+      {l:'Multas',  v:d.MULTAS},  {l:'Rentas', v:d.RENTAS},
+    ].filter(i => parseFloat(i.v||0) > 0);
+    return `
+    <div class="dep-pago-card">
+      <div class="dep-pago-header">
+        <span class="dep-pago-mes">${d.MES||'—'}</span>
+        <span class="dep-pago-monto">${monto>0?fmt$(monto):'—'}</span>
+      </div>
+      <div class="dep-pago-meta">${d.FECHA||''} · ${d.METODO||''}</div>
+      ${desglose.length>0?`
+      <div class="dep-pago-grid">
+        ${desglose.map(i=>`
+        <div class="dep-pago-item">
+          <div class="dep-pago-item-l">${i.l}</div>
+          <div class="dep-pago-item-v">${fmt$(i.v)}</div>
+        </div>`).join('')}
+      </div>`:''}
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+        <span class="dep-conf-badge ${confComite?'dep-conf-ok':'dep-conf-pend'}">
+          ${confComite?'✅ Registrado':'⏳ Pendiente comité'}
+        </span>
+        <span class="dep-conf-badge ${confTes?'dep-conf-ok':'dep-conf-pend'}">
+          ${confTes?'✅ Tesorera':'⏳ Pendiente tesorera'}
+        </span>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ── PANEL COMITÉ ──────────────────────────────────────────────
