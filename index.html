@@ -312,44 +312,59 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
   border-radius:2px; margin-top:6px; }
 
 /* ── MÓDULO FINANCIERO ─────────────────────────────────────── */
-.fin-filtros { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
-.fin-filtro  { padding:7px 14px; border:1.5px solid #ddd; border-radius:20px;
-  font-size:13px; background:#fff; cursor:pointer; }
-.fin-filtro.activo { background:#1565c0; color:#fff; border-color:#1565c0; }
+.fin-comparativo { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px; }
+.fin-comp-card   { border-radius:14px;padding:16px;color:#fff;text-align:center; }
+.fin-comp-label  { font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px; }
+.fin-comp-monto  { font-size:22px;font-weight:800; }
+.fin-balance     { border-radius:14px;padding:16px;color:#fff;text-align:center;margin-bottom:14px; }
+.fin-balance-label { font-size:12px;opacity:.8;margin-bottom:4px; }
+.fin-balance-monto { font-size:28px;font-weight:800; }
 
-.dep-card { background:#fff; border-radius:14px; padding:16px;
-  margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); }
-.dep-header { display:flex; justify-content:space-between; align-items:center;
-  margin-bottom:8px; }
-.dep-mes    { font-size:13px; font-weight:700; color:#1565c0;
-  background:#e3f0ff; padding:4px 10px; border-radius:20px; }
-.dep-monto  { font-size:20px; font-weight:800; color:#1a237e; }
-.dep-depto  { font-size:12px; color:#888; }
-.dep-desglose { display:grid; grid-template-columns:1fr 1fr; gap:6px;
-  margin-top:10px; padding-top:10px; border-top:1px solid #f0f0f0; }
-.dep-item   { background:#f8f9fa; border-radius:8px; padding:8px 10px; }
-.dep-item-label { font-size:10px; color:#888; text-transform:uppercase;
-  letter-spacing:.5px; }
-.dep-item-val   { font-size:14px; font-weight:700; color:#333; margin-top:2px; }
-.dep-confirmado { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
-.dep-badge-ok  { background:#e8f5e9; color:#2e7d32; font-size:11px;
-  font-weight:700; padding:4px 10px; border-radius:20px; }
-.dep-badge-pend { background:#fff3e0; color:#e65100; font-size:11px;
-  font-weight:700; padding:4px 10px; border-radius:20px; cursor:pointer; }
+.fin-adeudo-card { border-radius:14px;padding:16px;margin-bottom:14px;
+  border:2px solid #eee;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.06); }
+.fin-adeudo-depto { font-size:13px;color:#888;margin-bottom:6px; }
+.fin-adeudo-estatus { font-size:18px;font-weight:800;margin-bottom:12px; }
+.fin-adeudo-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
+.fin-adeudo-item { background:#f8f9fa;border-radius:10px;padding:10px;text-align:center; }
+.fin-adeudo-item-l { font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.4px; }
+.fin-adeudo-item-v { font-size:15px;font-weight:800;color:#1a237e;margin-top:2px; }
 
-.adeudo-card { background:linear-gradient(135deg,#1a237e,#1565c0);
-  border-radius:14px; padding:16px; color:#fff; margin-bottom:14px; }
-.adeudo-titulo { font-size:13px; opacity:.8; margin-bottom:4px; }
-.adeudo-monto  { font-size:28px; font-weight:800; }
-.adeudo-grid   { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
-.adeudo-item   { background:rgba(255,255,255,.15); border-radius:10px; padding:10px; }
-.adeudo-item-l { font-size:10px; opacity:.8; text-transform:uppercase; }
-.adeudo-item-v { font-size:15px; font-weight:700; margin-top:2px; }
+.fin-mes-chip { display:inline-block;padding:6px 14px;border-radius:20px;
+  border:1.5px solid #ddd;font-size:13px;cursor:pointer;margin:3px;background:#fff; }
+.fin-mes-chip.activo { background:#1565c0;color:#fff;border-color:#1565c0; }
 
-.resumen-fin { background:#f8f9fa; border-radius:12px; padding:14px 16px;
-  margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
-.resumen-fin-label { font-size:13px; color:#555; }
-.resumen-fin-val   { font-size:16px; font-weight:800; color:#1a237e; }
+.dep-pago-card { background:#fff;border-radius:12px;padding:14px 16px;
+  margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,.06);
+  border-left:4px solid #1976d2; }
+.dep-pago-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; }
+.dep-pago-mes  { font-weight:700;font-size:14px;color:#1565c0; }
+.dep-pago-monto { font-size:20px;font-weight:800;color:#1a237e; }
+.dep-pago-meta { font-size:12px;color:#888;margin-bottom:8px; }
+.dep-pago-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px; }
+.dep-pago-item { background:#f0f7ff;border-radius:7px;padding:6px 4px;text-align:center; }
+.dep-pago-item-l { font-size:9px;color:#888;text-transform:uppercase; }
+.dep-pago-item-v { font-size:12px;font-weight:700;color:#1565c0;margin-top:1px; }
+.dep-conf-badge { font-size:11px;font-weight:600;padding:3px 8px;border-radius:12px;display:inline-block;margin-top:6px; }
+.dep-conf-ok   { background:#e8f5e9;color:#2e7d32; }
+.dep-conf-pend { background:#fff3e0;color:#e65100; }
+
+/* Edificios comité */
+.edif-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px; }
+.edif-card { border-radius:12px;padding:12px 6px;text-align:center;cursor:pointer;
+  transition:transform .15s;border:2px solid transparent; }
+.edif-card:active { transform:scale(.96); }
+.edif-card.verde  { background:#e8f5e9;border-color:#43a047; }
+.edif-card.amarillo { background:#fff8e1;border-color:#fdd835; }
+.edif-card.rojo   { background:#ffebee;border-color:#e53935; }
+.edif-card.selec  { box-shadow:0 0 0 3px #1565c0; }
+.edif-num  { font-size:18px;font-weight:800; }
+.edif-sub  { font-size:10px;color:#666;margin-top:2px; }
+
+.gasto-item { display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid #f0f0f0; }
+.gasto-concepto { font-size:13px;color:#333;font-weight:500; }
+.gasto-fecha    { font-size:11px;color:#888;margin-top:2px; }
+.gasto-monto-val { font-size:15px;font-weight:800;color:#c62828; }
 
 /* ── PANEL COMITÉ ──────────────────────────────────────────── */
 .tabs-comite { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
@@ -730,10 +745,10 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
         <span class="m-title">Mis Multas</span>
         <span class="m-desc">Llamadas de atención y sanciones</span>
       </button>
-      <button class="modulo-btn" id="btn-mis-pagos" style="display:none" onclick="ir('s-mis-pagos'); cargarMisPagos()">
+      <button class="modulo-btn" id="btn-mis-pagos" style="display:none" onclick="ir('s-mis-finanzas'); cargarMisFinanzas()">
         <span class="m-icon">💳</span>
-        <span class="m-title">Mis Pagos</span>
-        <span class="m-desc">Historial y adeudos</span>
+        <span class="m-title">Mis Finanzas</span>
+        <span class="m-desc">Pagos y estado de cuenta</span>
       </button>
       <button class="modulo-btn" onclick="ir('s-bitacora'); cargarBitacoraResidente()">
         <span class="m-icon">📋</span>
@@ -1053,6 +1068,335 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
   <div class="content" style="overflow-y:auto">
     <div id="msg-juntas" class="msg"></div>
     <div id="juntas-lista"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — MIS FINANZAS (nivel 2 — resumen)
+═══════════════════════════════════════════════════════════ -->
+<div id="s-mis-finanzas" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title"><h1>Privada Paamul</h1><p>Mis Finanzas</p></div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="fin-comparativo-wrap"></div>
+    <div id="fin-adeudo-wrap"></div>
+    <button class="btn-submit" style="margin-top:8px" onclick="ir('s-mis-pagos'); cargarMisPagos()">
+      📋 Ver historial de pagos →
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — HISTORIAL DE PAGOS (nivel 3)
+═══════════════════════════════════════════════════════════ -->
+<div id="s-mis-pagos" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-mis-finanzas')">←</button>
+    <div class="header-title"><h1>Privada Paamul</h1><p>Historial de Pagos</p></div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="mis-pagos-filtros" style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:6px"></div>
+    <div id="mis-pagos-lista"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — MIS MULTAS (residentes)
+═══════════════════════════════════════════════════════════ -->
+<div id="s-multas-res" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>Mis Multas y Llamadas de Atención</p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="multas-res-lista"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — BITÁCORA DE MANTENIMIENTO
+═══════════════════════════════════════════════════════════ -->
+<div id="s-bitacora" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>Bitácora de Mantenimiento</p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <button class="tipo-chip selected" onclick="filtrarBitacora('todos',this)">Todos</button>
+      <button class="tipo-chip" onclick="filtrarBitacora('Limpieza Áreas Comunes',this)">🧹 Limpieza</button>
+      <button class="tipo-chip" onclick="filtrarBitacora('Mantenimiento Alberca',this)">🏊 Alberca</button>
+      <button class="tipo-chip" onclick="filtrarBitacora('Riego Jardines',this)">🌿 Riego</button>
+      <button class="tipo-chip" onclick="filtrarBitacora('Poda',this)">✂️ Poda</button>
+    </div>
+    <div id="bitacora-lista"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — PANEL DEL COMITÉ
+═══════════════════════════════════════════════════════════ -->
+<div id="s-comite" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>⭐ Panel del Comité</p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="msg-comite" class="msg"></div>
+    <div class="tabs-comite">
+      <button class="tab-btn activo" onclick="tabComite('reportes',this)">📝 Reportes</button>
+      <button class="tab-btn" onclick="tabComite('mudanzas',this)">📦 Mudanzas</button>
+      <button class="tab-btn" onclick="tabComite('multas',this)">⚠️ Multas</button>
+      <button class="tab-btn" onclick="tabComite('prestamos',this)">🔑 Préstamos</button>
+      <button class="tab-btn" onclick="tabComite('riego',this)">🌿 Riego</button>
+      <button class="tab-btn" onclick="tabComite('finanzas',this)">💰 Finanzas</button>
+      <button class="tab-btn" onclick="tabComite('propietarios',this)">👤 Verificar</button>
+    </div>
+    <div id="cp-reportes"    class="panel-seccion activa"><div class="loader">Cargando...</div></div>
+    <div id="cp-mudanzas"    class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-multas"      class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-prestamos"   class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-riego"       class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-finanzas"    class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-propietarios" class="panel-seccion"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — PANEL DE SEGURIDAD
+═══════════════════════════════════════════════════════════ -->
+<div id="s-seguridad" class="screen">
+  <div class="app-header">
+    <div class="header-title">
+      <h1>🛡️ Paamul — Caseta</h1>
+      <p id="seg-nombre"></p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="banner-seg-anuncios"></div>
+    <div id="msg-seg" class="msg"></div>
+    <div class="seg-grid">
+      <button class="seg-btn" onclick="toggleSeg('paqueteria')">
+        <span class="sb-icon">📦</span><span class="sb-label">Paquetería</span>
+      </button>
+      <button class="seg-btn" onclick="toggleSeg('agua')">
+        <span class="sb-icon">🚰</span><span class="sb-label">Llave de Agua</span>
+      </button>
+      <button class="seg-btn" onclick="toggleSeg('servicios')">
+        <span class="sb-icon">🛠️</span><span class="sb-label">Trabajadores</span>
+      </button>
+      <button class="seg-btn" onclick="toggleSeg('incidencia')">
+        <span class="sb-icon">⚠️</span><span class="sb-label">Incidencia</span>
+      </button>
+      <button class="seg-btn" onclick="toggleSeg('mudanzas')">
+        <span class="sb-icon">🚛</span><span class="sb-label">Mudanzas</span>
+      </button>
+      <button class="seg-btn" onclick="toggleSeg('amenidades')">
+        <span class="sb-icon">🏊</span><span class="sb-label">Amenidades</span>
+      </button>
+      <button class="seg-btn" onclick="toggleSeg('prestamos')" style="grid-column:span 2">
+        <span class="sb-icon">🔑</span><span class="sb-label">Préstamos Activos</span>
+      </button>
+      <button class="seg-btn" onclick="toggleSeg('visitas')" style="grid-column:span 2">
+        <span class="sb-icon">🚗</span><span class="sb-label">Visitas del Día</span>
+      </button>
+    </div>
+
+    <!-- Paquetería -->
+    <div id="seg-panel-paqueteria" class="seg-panel">
+      <h3 style="font-size:15px;margin-bottom:12px">📦 Recepción de Paquetes</h3>
+
+      <!-- Paso 1 -->
+      <div id="pkg-paso1">
+        <div class="fg"><label>Compañía que entrega</label>
+          <select id="seg-compania" style="font-size:15px">
+            <option>Mercado Libre</option><option>Amazon</option>
+            <option>J&amp;T Express</option><option>Estafeta</option>
+            <option>DHL</option><option>FedEx</option><option>Otro</option>
+          </select></div>
+        <div class="fg"><label>¿Cuántos paquetes?</label>
+          <div style="display:flex;align-items:center;gap:16px;padding:8px 0">
+            <button onclick="cambiarCantPkg(-1)" style="width:44px;height:44px;border-radius:50%;
+              border:2px solid #1976d2;background:#fff;font-size:22px;cursor:pointer;color:#1976d2">−</button>
+            <span id="pkg-cantidad" style="font-size:32px;font-weight:800;color:#1565c0;min-width:40px;text-align:center">1</span>
+            <button onclick="cambiarCantPkg(1)" style="width:44px;height:44px;border-radius:50%;
+              border:2px solid #1976d2;background:#1976d2;font-size:22px;cursor:pointer;color:#fff">+</button>
+          </div></div>
+        <div class="fg"><label>¿Son para el mismo departamento?</label>
+          <div class="seg-sub" style="margin-bottom:0">
+            <button id="pkg-mismo-si" class="activo" onclick="selMismoDepto(true)">📍 Mismo depto</button>
+            <button id="pkg-mismo-no" onclick="selMismoDepto(false)">🏘️ Varios deptos</button>
+          </div></div>
+        <button class="btn-submit" onclick="pkgPaso2()">Continuar →</button>
+      </div>
+
+      <!-- Paso 2 -->
+      <div id="pkg-paso2" style="display:none">
+        <div id="pkg-autorizacion-badge"></div>
+        <div id="pkg-formulario"></div>
+        <button class="btn-submit" style="background:#43a047;margin-top:8px"
+          onclick="registrarPaquetesFlujo()">📦 Registrar paquetes</button>
+        <button class="btn-modal-cancel" onclick="pkgReset()">← Volver</button>
+      </div>
+
+      <!-- Pendientes -->
+      <div style="margin-top:16px;border-top:1px solid #eee;padding-top:12px">
+        <p style="font-size:13px;color:#666;margin-bottom:8px">📋 Pendientes de entrega:</p>
+        <div id="seg-pkg-pendientes-lista"><p style="font-size:12px;color:#999">Cargando...</p></div>
+      </div>
+    </div>
+
+    <!-- Llave de Agua -->
+    <div id="seg-panel-agua" class="seg-panel">
+      <h3 style="font-size:15px;margin-bottom:12px">🚰 Control de Agua</h3>
+      <div id="agua-estado" style="border-radius:12px;padding:16px;text-align:center;margin-bottom:12px">
+        <div style="font-size:32px" id="agua-icono">🚰</div>
+        <div style="font-size:16px;font-weight:700;margin:6px 0" id="agua-txt">Verificando...</div>
+        <div style="font-size:12px;color:#666">Horario regular: 11:00 — 19:00 hrs</div>
+      </div>
+      <button class="btn-submit" id="agua-btn" onclick="toggleAgua()">Cargando...</button>
+      <p style="font-size:13px;color:#666;margin:12px 0 6px">Registros de hoy:</p>
+      <div id="agua-historial"><p style="font-size:12px;color:#999">Sin registros</p></div>
+    </div>
+
+    <!-- Servicios -->
+    <div id="seg-panel-servicios" class="seg-panel">
+      <h3 style="font-size:15px;margin-bottom:12px">🛠️ Servicios y Mantenimiento</h3>
+      <div class="fg"><label>Tipo de actividad</label>
+        <select id="seg-tipo">
+          <option>Limpieza Áreas Comunes</option>
+          <option>Mantenimiento Alberca</option>
+          <option>Riego Jardines</option>
+          <option>Poda</option>
+          <option>Proveedor Externo</option>
+        </select></div>
+      <div class="fg"><label>Zona / Área</label>
+        <select id="seg-zona">
+          <option>Área General</option><option>Alberca / Deck</option>
+          <option>Jardines</option><option>Acceso / Caseta</option>
+          <option>Edificio (ver notas)</option>
+        </select></div>
+      <div class="fg"><label>Nombre del trabajador</label>
+        <input type="text" id="seg-trabajador" placeholder="Nombre completo"></div>
+      <div class="fg"><label>Notas</label>
+        <input type="text" id="seg-notas" placeholder="Detalles adicionales..."></div>
+      <button class="btn-submit" onclick="registrarEntradaSeg()">Registrar Entrada</button>
+      <p style="font-size:13px;color:#666;margin:12px 0 6px">En curso:</p>
+      <div id="seg-activos"><p style="font-size:12px;color:#999">Sin actividades activas</p></div>
+      <p style="font-size:13px;color:#666;margin:12px 0 6px;border-top:1px solid #eee;padding-top:12px">🔑 Préstamos activos:</p>
+      <div id="seg-prestamos-activos"><p style="font-size:12px;color:#999">Cargando...</p></div>
+    </div>
+
+    <!-- Incidencia / Multa -->
+    <div id="seg-panel-incidencia" class="seg-panel">
+      <h3 style="font-size:15px;margin-bottom:12px">⚠️ Registrar Incidencia</h3>
+      <div class="fg"><label>Departamento</label>
+        <input type="text" id="seg-inc-casa" placeholder="Ej: 4A" style="text-transform:uppercase"></div>
+      <div class="fg"><label>Tipo</label>
+        <select id="seg-inc-tipo">
+          <option value="Llamada de Atención">Llamada de Atención (sin costo)</option>
+          <option value="Multa">Multa</option>
+        </select></div>
+      <div class="fg"><label>Concepto</label>
+        <select id="seg-inc-concepto"><option value="">Cargando...</option></select></div>
+      <div id="seg-inc-monto-wrap" style="display:none">
+        <div class="fg"><label>Monto</label>
+          <input type="number" id="seg-inc-monto" readonly style="background:#f5f5f5"></div>
+      </div>
+      <button class="btn-submit" onclick="registrarIncidenciaSeg()">Enviar al Comité</button>
+    </div>
+
+    <!-- Mudanzas Caseta -->
+    <div id="seg-panel-mudanzas" class="seg-panel">
+      <h3 style="font-size:15px;margin-bottom:12px">🚛 Registro de Mudanza</h3>
+      <div class="fg"><label>Departamento</label>
+        <input type="text" id="seg-mud-depto" placeholder="Ej: 4A" style="text-transform:uppercase"></div>
+      <div class="fg"><label>Tipo</label>
+        <div class="seg-sub" style="margin-bottom:0">
+          <button id="seg-mud-e" class="activo" onclick="subMud('Entrada')">📥 Entrada</button>
+          <button id="seg-mud-s" onclick="subMud('Salida')">📤 Salida</button>
+        </div>
+      </div>
+      <div class="fg"><label>Nombre del responsable</label>
+        <input type="text" id="seg-mud-nombre" placeholder="Nombre completo"></div>
+      <button class="btn-submit" onclick="registrarMudanzaSeg()">Registrar Mudanza</button>
+      <p style="font-size:13px;color:#666;margin:12px 0 6px">Mudanzas del día:</p>
+      <div id="seg-mud-lista"><p style="font-size:12px;color:#999">Cargando...</p></div>
+    </div>
+
+    <!-- Amenidades Caseta -->
+    <div id="seg-panel-amenidades" class="seg-panel">
+      <h3 style="font-size:15px;margin-bottom:12px">🏊 Estado de Amenidades</h3>
+      <div id="seg-amenidades-lista"><div class="loader">Cargando...</div></div>
+      <p style="font-size:13px;color:#666;margin:12px 0 6px;border-top:1px solid #eee;padding-top:12px">Registrar ocupación manual:</p>
+      <div class="fg"><label>Amenidad</label>
+        <select id="seg-am-amenidad">
+          <option value="Mesa 1">🪑 Mesa 1</option>
+          <option value="Mesa 2">🪑 Mesa 2</option>
+          <option value="Mesa 3">🪑 Mesa 3</option>
+          <option value="Piscina">🏊 Piscina</option>
+          <option value="Palapa">🌴 Palapa</option>
+        </select></div>
+      <div class="fg"><label>Depto</label>
+        <input type="text" id="seg-am-depto" placeholder="Ej: 4A" style="text-transform:uppercase"></div>
+      <div class="fg"><label>Nombre</label>
+        <input type="text" id="seg-am-nombre" placeholder="Nombre del residente"></div>
+      <button class="btn-submit" onclick="ocuparAmenidadSeg()">Registrar Ocupación</button>
+    </div>
+
+    <!-- Préstamos Activos -->
+    <div id="seg-panel-prestamos" class="seg-panel">
+      <h3 style="font-size:15px;margin-bottom:12px">🔑 Préstamos Activos</h3>
+      <div id="seg-prestamos-lista"><div class="loader">Cargando...</div></div>
+    </div>
+
+    <!-- Visitas del Día -->
+    <div id="seg-panel-visitas" class="seg-panel">
+      <h3 style="font-size:15px;margin-bottom:12px">🚗 Visitas Programadas — Hoy</h3>
+      <div id="seg-visitas-lista"><div class="loader">Cargando...</div></div>
+    </div>
+
+    <button style="background:none;border:none;color:#999;font-size:13px;cursor:pointer;
+      padding:16px;width:100%;margin-top:8px" onclick="cerrarSesion()">Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL — CONSENTIMIENTO PAQUETERÍA
+═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-paqueteria-consent">
+  <div class="modal-box">
+    <p class="modal-title">📦 Autorización de Paquetería</p>
+    <p style="font-size:13px;color:#666;margin-bottom:12px">
+      ¿Autorizas que el personal de seguridad reciba paquetes en tu nombre?
+    </p>
+    <div id="terminos-paqueteria" style="background:#f8f9fa;border-radius:10px;
+      padding:12px;font-size:12px;color:#555;max-height:180px;overflow-y:auto;
+      margin-bottom:16px;line-height:1.7;border-left:3px solid #1976d2">
+      Cargando términos...
+    </div>
+    <button class="btn-submit" onclick="responderAutPaqueteria('SI')"
+      style="background:linear-gradient(135deg,#1565c0,#1976d2)">
+      ✅ Sí, autorizo la recepción
+    </button>
+    <button class="btn-submit" onclick="responderAutPaqueteria('NO')"
+      style="background:#e53935;margin-top:8px">
+      ❌ No, no autorizo
+    </button>
+    <p style="font-size:11px;color:#aaa;text-align:center;margin-top:10px">
+      Puedes cambiar esto más adelante desde tu perfil
+    </p>
   </div>
 </div>
 
@@ -2248,206 +2592,188 @@ function renderBitacora() {
   }).join('');
 }
 
-// ── MÓDULO FINANCIERO ─────────────────────────────────────────
 
-const MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO',
-               'JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+// ── MÓDULO FINANCIERO ─────────────────────────────────────────
 
 const fmt$ = n => '$' + Number(n || 0).toLocaleString('es-MX', {minimumFractionDigits:0});
 
-// ── MIS PAGOS (propietario) ────────────────────────────────
+const MESES_ES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO',
+                  'JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
 
-let misPagosData = [];
-let misPagosMesFiltro = 'todos';
+// ── NIVEL 2: RESUMEN FINANZAS ─────────────────────────────────
+
+let finMisPagosData = [];
+let finMisPagosFiltro = 'todos';
+
+async function cargarMisFinanzas() {
+  const compWrap  = document.getElementById('fin-comparativo-wrap');
+  const adeudoWrap = document.getElementById('fin-adeudo-wrap');
+  if (compWrap) compWrap.innerHTML = '<div class="loader">Cargando...</div>';
+
+  const mesActual = MESES_ES[new Date().getMonth()];
+
+  try {
+    const [resD, resG, resA] = await Promise.all([
+      fetch(`${API}?accion=getDepositos&depto=${encodeURIComponent(sesion.casa)}`),
+      fetch(`${API}?accion=getGastos&mes=${encodeURIComponent(mesActual)}`),
+      fetch(`${API}?accion=getAdeudos&depto=${encodeURIComponent(sesion.casa)}`)
+    ]);
+    finMisPagosData = await resD.json();
+    const gastos  = await resG.json();
+    const adeudos = await resA.json();
+    if (!Array.isArray(finMisPagosData)) finMisPagosData = [];
+
+    // Calcular totales
+    const totalIng = finMisPagosData.reduce((s,d) => s + (parseFloat(d.MONTO)||0), 0);
+    const totalGas = Array.isArray(gastos) ? gastos.reduce((s,g) => s + (parseFloat(g.MONTO)||0), 0) : 0;
+    const balance  = totalIng - totalGas;
+    const balColor = balance >= 0 ? '#1b5e20' : '#b71c1c';
+    const balBg    = balance >= 0 ? 'linear-gradient(135deg,#1b5e20,#2e7d32)' : 'linear-gradient(135deg,#b71c1c,#c62828)';
+
+    if (compWrap) compWrap.innerHTML = `
+    <p class="seccion-titulo">Resumen — ${mesActual} ${new Date().getFullYear()}</p>
+    <div class="fin-comparativo">
+      <div class="fin-comp-card" style="background:linear-gradient(135deg,#1a237e,#1565c0)">
+        <div class="fin-comp-label">💰 Ingresos</div>
+        <div class="fin-comp-monto">${fmt$(totalIng)}</div>
+      </div>
+      <div class="fin-comp-card" style="background:linear-gradient(135deg,#b71c1c,#e53935)">
+        <div class="fin-comp-label">💸 Gastos</div>
+        <div class="fin-comp-monto">${fmt$(totalGas)}</div>
+      </div>
+    </div>
+    <div class="fin-balance" style="background:${balBg}">
+      <div class="fin-balance-label">Balance</div>
+      <div class="fin-balance-monto">${fmt$(balance)}</div>
+    </div>`;
+
+    // Tarjeta adeudo
+    const ad = Array.isArray(adeudos) && adeudos.length > 0 ? adeudos[0] : null;
+    if (adeudoWrap && ad) {
+      const adeudoTotal = parseFloat(ad.ADEUDO_TOTAL_CAMBIO_COMITE) || 0;
+      const alCorriente = adeudoTotal <= 0;
+      const borderColor = alCorriente ? '#43a047' : '#e53935';
+      adeudoWrap.innerHTML = `
+      <div class="fin-adeudo-card" style="border-color:${borderColor}">
+        <div class="fin-adeudo-depto">📍 Depto ${ad.DEPTO} · Edif. ${ad.EDIFICIO || '—'}</div>
+        <div class="fin-adeudo-estatus" style="color:${borderColor}">
+          ${alCorriente ? '✅ Al corriente' : '⚠️ Adeudo: ' + fmt$(adeudoTotal)}
+        </div>
+        <div class="fin-adeudo-grid">
+          <div class="fin-adeudo-item">
+            <div class="fin-adeudo-item-l">Cuota 2026</div>
+            <div class="fin-adeudo-item-v">${fmt$(ad.CUOTA_2026)}</div>
+          </div>
+          <div class="fin-adeudo-item">
+            <div class="fin-adeudo-item-l">Aporte Total</div>
+            <div class="fin-adeudo-item-v" style="color:#2e7d32">${fmt$(ad.APORTE_TOTAL)}</div>
+          </div>
+          <div class="fin-adeudo-item">
+            <div class="fin-adeudo-item-l">Adeudo Mtto</div>
+            <div class="fin-adeudo-item-v">${fmt$(ad.ADEUDO_MTTO_CAMBIO_COMITE)}</div>
+          </div>
+          <div class="fin-adeudo-item">
+            <div class="fin-adeudo-item-l">Recargos</div>
+            <div class="fin-adeudo-item-v">${fmt$(ad.RECARGOS_2026)}</div>
+          </div>
+        </div>
+      </div>`;
+    }
+  } catch(e) {
+    if (compWrap) compWrap.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
+  }
+}
+
+// ── NIVEL 3: HISTORIAL DE PAGOS ───────────────────────────────
 
 async function cargarMisPagos() {
-  const lista    = document.getElementById('mis-pagos-lista');
-  const adeudoEl = document.getElementById('mis-pagos-adeudo');
+  const lista = document.getElementById('mis-pagos-lista');
+  const filtros = document.getElementById('mis-pagos-filtros');
   lista.innerHTML = '<div class="loader">Cargando...</div>';
 
-  // Cargar depósitos
-  try {
-    const resD = await fetch(`${API}?accion=getDepositos&depto=${encodeURIComponent(sesion.casa)}`);
-    misPagosData = await resD.json();
-    if (!Array.isArray(misPagosData)) misPagosData = [];
-  } catch(e) { misPagosData = []; }
+  if (!finMisPagosData.length) {
+    try {
+      const res = await fetch(`${API}?accion=getDepositos&depto=${encodeURIComponent(sesion.casa)}`);
+      finMisPagosData = await res.json();
+      if (!Array.isArray(finMisPagosData)) finMisPagosData = [];
+    } catch(e) { finMisPagosData = []; }
+  }
 
-  // Cargar adeudos con detalle
-  try {
-    const resA    = await fetch(`${API}?accion=getAdeudos&depto=${encodeURIComponent(sesion.casa)}`);
-    const adeudos = await resA.json();
-    const ad = Array.isArray(adeudos) && adeudos.length > 0 ? adeudos[0] : null;
-    if (ad) {
-      adeudoEl.innerHTML = renderAdeudoCard(ad, false);
-    } else { adeudoEl.innerHTML = ''; }
-  } catch(e) { adeudoEl.innerHTML = ''; }
-
-  // Filtros por mes
-  const mesesPresentes = [...new Set(misPagosData
-    .map(d => String(d.MES || '').toUpperCase().trim()).filter(Boolean))];
-  const filtrosEl = document.getElementById('mis-pagos-filtros-mes');
-  if (filtrosEl) {
-    filtrosEl.innerHTML =
-      `<span class="fin-filtro activo" onclick="filtrarMisPagos('todos',this)">Todos</span>` +
-      mesesPresentes.map(m =>
-        `<span class="fin-filtro" onclick="filtrarMisPagos('${m}',this)">${m}</span>`
-      ).join('');
+  const meses = [...new Set(finMisPagosData.map(d => String(d.MES||'').toUpperCase().trim()).filter(Boolean))];
+  if (filtros) {
+    filtros.innerHTML = `<span class="fin-mes-chip activo" onclick="filtrarPagos('todos',this)">Todos</span>` +
+      meses.map(m => `<span class="fin-mes-chip" onclick="filtrarPagos('${m}',this)">${m}</span>`).join('');
   }
   renderMisPagos();
 }
 
-function filtrarMisPagos(mes, el) {
-  misPagosMesFiltro = mes;
-  document.querySelectorAll('#mis-pagos-filtros-mes .fin-filtro').forEach(b => b.classList.remove('activo'));
+function filtrarPagos(mes, el) {
+  finMisPagosFiltro = mes;
+  document.querySelectorAll('#mis-pagos-filtros .fin-mes-chip').forEach(b => b.classList.remove('activo'));
   if (el) el.classList.add('activo');
   renderMisPagos();
 }
 
 function renderMisPagos() {
   const lista = document.getElementById('mis-pagos-lista');
-  const items = misPagosMesFiltro === 'todos'
-    ? misPagosData
-    : misPagosData.filter(d => String(d.MES || '').toUpperCase().trim() === misPagosMesFiltro);
-  
-  console.log('DEBUG renderMisPagos items:', items.length, 'filtro:', misPagosMesFiltro);
-  
+  const items = finMisPagosFiltro === 'todos'
+    ? finMisPagosData
+    : finMisPagosData.filter(d => String(d.MES||'').toUpperCase().trim() === finMisPagosFiltro);
   if (items.length === 0) {
-    lista.innerHTML = `<p style="color:#888;text-align:center;padding:16px">Sin depósitos (total en cache: ${misPagosData.length})</p>`;
+    lista.innerHTML = '<p style="color:#888;text-align:center;padding:24px">Sin depósitos registrados</p>';
     return;
   }
-  try {
-    lista.innerHTML = items.map((d, idx) => renderDepCard(d, idx, false)).join('');
-  } catch(e) {
-    console.error('ERROR renderDepCard:', e);
-    lista.innerHTML = `<p style="color:#c62828;text-align:center;padding:16px">Error al renderizar: ${e.message}</p>`;
-  }
-}
-
-function renderDepCard(d, idx, esComite) {
-  const monto      = parseFloat(d.MONTO) || 0;
-  const confComite = String(d.CONFIRMADO_COMITE || '').trim().toUpperCase() === 'SI';
-  const confTes    = String(d.CONFIRMADO_TESORERA || '').trim().toUpperCase() === 'SI';
-  const desglose   = [
-    { l:'Mantenimiento', v:d.MANTO },
-    { l:'Luz',           v:d.LUZ },
-    { l:'CE 2026',       v:d.CE_2026 },
-    { l:'CE 2025',       v:d.CE_2025 },
-    { l:'Adeudo',        v:d.ADEUDO },
-    { l:'Chip',          v:d.CHIP },
-    { l:'Control',       v:d.CONTROL },
-    { l:'Multas',        v:d.MULTAS },
-    { l:'Rentas',        v:d.RENTAS },
-  ].filter(i => parseFloat(i.v) > 0);
-
-  return `
-  <div class="dep-card">
-    <div class="dep-header">
-      <span class="dep-mes">${d.MES || '—'}</span>
-      ${monto > 0 ? `<span class="dep-monto">${fmt$(monto)}</span>` : '<span style="font-size:12px;color:#aaa">Ver línea anterior</span>'}
-    </div>
-    <div class="dep-depto">${d.FECHA || ''} · ${d.METODO || ''} · Depto ${d.DEPTO || ''}</div>
-    ${desglose.length > 0 ? `
-    <div class="dep-desglose">
-      ${desglose.map(i => `
-        <div class="dep-item">
-          <div class="dep-item-label">${i.l}</div>
-          <div class="dep-item-val">${fmt$(i.v)}</div>
-        </div>`).join('')}
-    </div>` : ''}
-    <div class="dep-confirmado">
-      ${confComite
-        ? `<span class="dep-badge-ok">✅ Comité: ${d.FECHA_COMITE || ''}</span>`
-        : esComite
-          ? `<span class="dep-badge-pend" onclick="confirmarPagoComite(${idx+1},'comite')">⏳ Confirmar registro</span>`
-          : '<span class="dep-badge-pend">⏳ Pendiente comité</span>'}
-      ${confTes
-        ? `<span class="dep-badge-ok">✅ Tesorera: ${d.FECHA_TESORERA || ''}</span>`
-        : '<span class="dep-badge-pend">⏳ Pendiente tesorera</span>'}
-    </div>
-  </div>`;
-}
-
-const BLOQUES_FIN = [
-  'Aporte_Total','Mantenimiento','Luz','CE_2026',
-  'Adeudo','CE_2025','Chip','Control','Multas','Rentas'
-];
-const MESES_FIN = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO',
-                   'JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-
-function renderAdeudoCard(ad, expandible) {
-  const id = 'ad-' + (ad.DEPTO || Math.random()).toString().replace(/\W/g,'');
-  const adeudoTotal = parseFloat(ad.ADEUDO_TOTAL) || 0;
-  const color = adeudoTotal > 0 ? '#c62828' : '#2e7d32';
-
-  // Detalle mes a mes por concepto
-  const detalleHtml = BLOQUES_FIN.map(b => {
-    const datos = ad[b] || {};
-    const vals  = MESES_FIN.map(m => ({ mes: m.substring(0,3), val: datos[m] || 0 }));
-    const total = vals.reduce((s, v) => s + v.val, 0);
-    if (total === 0) return ''; // Ocultar conceptos sin datos
+  lista.innerHTML = items.map((d, idx) => {
+    const monto = parseFloat(d.MONTO) || 0;
+    const confComite = String(d.CONFIRMADO_COMITE||'').toUpperCase() === 'SI';
+    const confTes    = String(d.CONFIRMADO_TESORERA||'').toUpperCase() === 'SI';
+    const desglose   = [
+      {l:'Mtto',    v:d.MANTO},  {l:'Luz',    v:d.LUZ},
+      {l:'CE 2026', v:d.CE_2026},{l:'Adeudo', v:d.ADEUDO},
+      {l:'Chip',    v:d.CHIP},   {l:'Control',v:d.CONTROL},
+      {l:'Multas',  v:d.MULTAS}, {l:'Rentas', v:d.RENTAS},
+    ].filter(i => parseFloat(i.v||0) > 0);
     return `
-    <div style="margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;
-        letter-spacing:.5px;margin-bottom:6px">${b.replace('_',' ')}</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
-        ${vals.filter(v => v.val > 0).map(v => `
-        <div style="background:#f0f7ff;border-radius:6px;padding:5px 4px;text-align:center">
-          <div style="font-size:9px;color:#888">${v.mes}</div>
-          <div style="font-size:12px;font-weight:700;color:#1565c0">${fmt$(v.val)}</div>
+    <div class="dep-pago-card">
+      <div class="dep-pago-header">
+        <span class="dep-pago-mes">${d.MES || '—'}</span>
+        <span class="dep-pago-monto">${monto > 0 ? fmt$(monto) : '—'}</span>
+      </div>
+      <div class="dep-pago-meta">${d.FECHA || ''} · ${d.METODO || ''}</div>
+      ${desglose.length > 0 ? `
+      <div class="dep-pago-grid">
+        ${desglose.map(i => `
+        <div class="dep-pago-item">
+          <div class="dep-pago-item-l">${i.l}</div>
+          <div class="dep-pago-item-v">${fmt$(i.v)}</div>
         </div>`).join('')}
+      </div>` : ''}
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+        <span class="dep-conf-badge ${confComite?'dep-conf-ok':'dep-conf-pend'}">
+          ${confComite ? '✅ Registrado' : '⏳ Pendiente comité'}
+        </span>
+        <span class="dep-conf-badge ${confTes?'dep-conf-ok':'dep-conf-pend'}">
+          ${confTes ? '✅ Tesorera' : '⏳ Pendiente tesorera'}
+        </span>
       </div>
     </div>`;
-  }).filter(Boolean).join('');
-
-  return `
-  <div class="dep-card" style="border-top:3px solid ${color}">
-    <div class="dep-header">
-      <div>
-        <div style="font-size:11px;color:#888">Depto ${ad.DEPTO} · Edif. ${ad.EDIFICIO || '—'}</div>
-        <div style="font-size:18px;font-weight:800;color:${color};margin-top:2px">
-          ${adeudoTotal > 0 ? fmt$(adeudoTotal) + ' adeudo' : '✅ Al corriente'}
-        </div>
-      </div>
-      ${expandible ? `<button onclick="toggleDetalle('${id}')"
-        style="background:#f0f0f0;border:none;border-radius:8px;padding:6px 12px;
-               font-size:13px;cursor:pointer" id="btn-${id}">Ver detalle</button>` : ''}
-    </div>
-    <div class="adeudo-grid" style="margin-bottom:${detalleHtml?'10px':'0'}">
-      <div class="adeudo-item" style="background:#f8f9fa"><div class="adeudo-item-l" style="color:#666">Mtto</div><div class="adeudo-item-v" style="color:#333">${fmt$(ad.ADEUDO_MTTO)}</div></div>
-      <div class="adeudo-item" style="background:#f8f9fa"><div class="adeudo-item-l" style="color:#666">Cuotas</div><div class="adeudo-item-v" style="color:#333">${fmt$(ad.ADEUDO_CUOTAS)}</div></div>
-      <div class="adeudo-item" style="background:#f8f9fa"><div class="adeudo-item-l" style="color:#666">Cuota 2026</div><div class="adeudo-item-v" style="color:#333">${fmt$(ad.CUOTA_2026)}</div></div>
-      <div class="adeudo-item" style="background:#f8f9fa"><div class="adeudo-item-l" style="color:#666">Aporte Total</div><div class="adeudo-item-v" style="color:#1565c0">${fmt$(ad.APORTE_TOTAL)}</div></div>
-    </div>
-    ${detalleHtml ? `
-    <div id="${id}" style="display:none;border-top:1px solid #eee;padding-top:12px;margin-top:4px">
-      ${detalleHtml}
-    </div>` : ''}
-  </div>`;
+  }).join('');
 }
 
-function toggleDetalle(id) {
-  const el  = document.getElementById(id);
-  const btn = document.getElementById('btn-' + id);
-  if (!el) return;
-  const abierto = el.style.display !== 'none';
-  el.style.display  = abierto ? 'none' : 'block';
-  if (btn) btn.textContent = abierto ? 'Ver detalle' : 'Ocultar';
-}
-
-// ── FINANZAS COMITÉ ────────────────────────────────────────
+// ── FINANZAS COMITÉ ────────────────────────────────────────────
 
 let comiteFinData    = [];
 let comiteFinMes     = 'todos';
-let comiteFinDep     = 'todos';
 let comiteAdeudos    = [];
-let comiteFinEdificio = 'todos';
+let comiteFinEdificio = null;
 
 async function renderFinanzasComite(el) {
   el.innerHTML = '<div class="loader">Cargando...</div>';
   try {
+    const mesActual = MESES_ES[new Date().getMonth()];
     const [resD, resG, resA] = await Promise.all([
       fetch(`${API}?accion=getDepositos`),
-      fetch(`${API}?accion=getGastos`),
+      fetch(`${API}?accion=getGastos&mes=${encodeURIComponent(mesActual)}`),
       fetch(`${API}?accion=getAdeudos&depto=todos`)
     ]);
     comiteFinData  = await resD.json();
@@ -2455,114 +2781,178 @@ async function renderFinanzasComite(el) {
     comiteAdeudos  = await resA.json();
     if (!Array.isArray(comiteFinData))  comiteFinData  = [];
     if (!Array.isArray(comiteAdeudos))  comiteAdeudos  = [];
+    if (!Array.isArray(gastos))         gastos.length  = 0;
 
-    const totalIng = comiteFinData.reduce((s,d) => s + (parseFloat(d.MONTO)||0), 0);
-    const totalGas = Array.isArray(gastos) ? gastos.reduce((s,g) => s + (parseFloat(g.MONTO)||0), 0) : 0;
-    const mesesU   = [...new Set(comiteFinData.map(d => String(d.MES||'').toUpperCase().trim()).filter(Boolean))];
-    const edificiosU = [...new Set(comiteAdeudos.map(d => String(d.EDIFICIO||'').trim()).filter(Boolean))].sort((a,b) => parseInt(a)-parseInt(b));
+    const totalIng  = comiteFinData.reduce((s,d) => s + (parseFloat(d.MONTO)||0), 0);
+    const totalGas  = gastos.reduce ? gastos.reduce((s,g) => s + (parseFloat(g.MONTO)||0), 0) : 0;
+    const balance   = totalIng - totalGas;
+    const balBg     = balance >= 0 ? 'linear-gradient(135deg,#1b5e20,#2e7d32)' : 'linear-gradient(135deg,#b71c1c,#c62828)';
+    const mesesU    = [...new Set(comiteFinData.map(d => String(d.MES||'').toUpperCase().trim()).filter(Boolean))];
+
+    // Edificios con semáforo
+    const edificiosU = [...new Set(comiteAdeudos.map(d => String(d.EDIFICIO||'').trim()).filter(Boolean))]
+      .sort((a,b) => parseInt(a) - parseInt(b));
+
+    const colorEdif = (edif) => {
+      const deptos = comiteAdeudos.filter(d => String(d.EDIFICIO||'').trim() === edif);
+      const conAdeudo = deptos.filter(d => parseFloat(d.ADEUDO_TOTAL_CAMBIO_COMITE||0) > 0).length;
+      if (conAdeudo === 0) return 'verde';
+      if (conAdeudo < deptos.length) return 'amarillo';
+      return 'rojo';
+    };
 
     el.innerHTML = `
-    <!-- Resumen financiero -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
-      <div style="background:linear-gradient(135deg,#1a237e,#1565c0);border-radius:12px;padding:12px;color:#fff;text-align:center">
-        <div style="font-size:10px;opacity:.8;margin-bottom:4px">INGRESOS</div>
-        <div style="font-size:15px;font-weight:800">${fmt$(totalIng)}</div>
+    <!-- Comparativo -->
+    <p class="seccion-titulo">Balance ${mesActual} ${new Date().getFullYear()}</p>
+    <div class="fin-comparativo">
+      <div class="fin-comp-card" style="background:linear-gradient(135deg,#1a237e,#1565c0)">
+        <div class="fin-comp-label">💰 Ingresos</div>
+        <div class="fin-comp-monto">${fmt$(totalIng)}</div>
+        <div style="font-size:10px;opacity:.7;margin-top:2px">Total depósitos</div>
       </div>
-      <div style="background:linear-gradient(135deg,#b71c1c,#e53935);border-radius:12px;padding:12px;color:#fff;text-align:center">
-        <div style="font-size:10px;opacity:.8;margin-bottom:4px">GASTOS</div>
-        <div style="font-size:15px;font-weight:800">${fmt$(totalGas)}</div>
-      </div>
-      <div style="background:linear-gradient(135deg,${totalIng-totalGas>=0?'#1b5e20,#2e7d32':'#b71c1c,#c62828'});border-radius:12px;padding:12px;color:#fff;text-align:center">
-        <div style="font-size:10px;opacity:.8;margin-bottom:4px">BALANCE</div>
-        <div style="font-size:15px;font-weight:800">${fmt$(totalIng-totalGas)}</div>
+      <div class="fin-comp-card" style="background:linear-gradient(135deg,#b71c1c,#e53935)">
+        <div class="fin-comp-label">💸 Gastos</div>
+        <div class="fin-comp-monto">${fmt$(totalGas)}</div>
+        <div style="font-size:10px;opacity:.7;margin-top:2px">${mesActual}</div>
       </div>
     </div>
-
-    <!-- Tabs: Depósitos | Adeudos -->
-    <div style="display:flex;gap:8px;margin-bottom:14px">
-      <button class="tab-btn activo" id="cf-tab-dep" onclick="cfTab('depositos')">💳 Depósitos</button>
-      <button class="tab-btn" id="cf-tab-ad" onclick="cfTab('adeudos')">📊 Adeudos</button>
+    <div class="fin-balance" style="background:${balBg}">
+      <div class="fin-balance-label">Balance general</div>
+      <div class="fin-balance-monto">${fmt$(balance)}</div>
     </div>
 
-    <!-- Panel Depósitos -->
-    <div id="cf-panel-depositos">
-      <div class="fin-filtros" id="cf-filtros-mes">
-        <span class="fin-filtro activo" onclick="filtrarComiteFin('mes','todos',this)">Todos</span>
-        ${mesesU.map(m=>`<span class="fin-filtro" onclick="filtrarComiteFin('mes','${m}',this)">${m}</span>`).join('')}
-      </div>
-      <div id="cf-lista"></div>
+    <!-- Gastos del mes -->
+    <p class="seccion-titulo" style="margin-top:4px">💸 Gastos de ${mesActual}</p>
+    <div style="background:#fff;border-radius:12px;padding:12px 16px;margin-bottom:14px;
+      box-shadow:0 2px 6px rgba(0,0,0,.06)">
+      ${gastos.length === 0 ? '<p style="color:#888;font-size:13px;text-align:center;padding:8px">Sin gastos registrados</p>' :
+        gastos.map(g => `
+        <div class="gasto-item">
+          <div><div class="gasto-concepto">${g.CONCEPTO || '—'}</div>
+            <div class="gasto-fecha">${g.FECHA || ''} · ${g.METODO || ''}</div></div>
+          <div class="gasto-monto-val">${fmt$(g.MONTO)}</div>
+        </div>`).join('')}
     </div>
 
-    <!-- Panel Adeudos por edificio -->
-    <div id="cf-panel-adeudos" style="display:none">
-      <p style="font-size:13px;color:#666;margin-bottom:10px">Selecciona un edificio:</p>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
-        <div class="edif-btn activo" onclick="selEdificio('todos',this)"
-          style="background:#1565c0;color:#fff;border-radius:10px;padding:10px;
-            text-align:center;cursor:pointer;font-weight:700;font-size:14px">Todos</div>
-        ${edificiosU.map(e => `
-        <div class="edif-btn" onclick="selEdificio('${e}',this)"
-          style="background:#f0f0f0;border-radius:10px;padding:10px;
-            text-align:center;cursor:pointer;font-weight:700;font-size:14px">Edif ${e}</div>`).join('')}
-      </div>
-      <div id="cf-adeudos-lista"></div>
-    </div>`;
+    <!-- Edificios -->
+    <p class="seccion-titulo">🏘️ Estado por Edificio</p>
+    <div style="font-size:11px;display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+      <span>🟢 Al corriente</span><span>🟡 Parcial</span><span>🔴 Adeudo</span>
+    </div>
+    <div class="edif-grid" id="cf-edif-grid">
+      ${edificiosU.map(e => `
+      <div class="edif-card ${colorEdif(e)}" onclick="cfSelEdif('${e}',this)" id="edif-${e}">
+        <div class="edif-num">${e}</div>
+        <div class="edif-sub">Edif.</div>
+      </div>`).join('')}
+    </div>
+
+    <!-- Deptos del edificio seleccionado -->
+    <div id="cf-deptos-wrap" style="display:none">
+      <p class="seccion-titulo" id="cf-deptos-titulo">Departamentos</p>
+      <div id="cf-deptos-lista"></div>
+    </div>
+
+    <!-- Filtro depósitos -->
+    <p class="seccion-titulo" style="margin-top:14px">📋 Depósitos</p>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px" id="cf-filtros-mes">
+      <span class="fin-mes-chip activo" onclick="filtrarComiteDep('todos',this)">Todos</span>
+      ${mesesU.map(m=>`<span class="fin-mes-chip" onclick="filtrarComiteDep('${m}',this)">${m}</span>`).join('')}
+    </div>
+    <div id="cf-lista"></div>`;
 
     renderComiteFinLista();
-    renderAdeudosComite();
   } catch(e) {
-    el.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
+    el.innerHTML = `<p style="color:#c62828;text-align:center;padding:16px">Error: ${e.message}</p>`;
   }
 }
 
-function cfTab(tab) {
-  document.getElementById('cf-panel-depositos').style.display = tab === 'depositos' ? 'block' : 'none';
-  document.getElementById('cf-panel-adeudos').style.display   = tab === 'adeudos'   ? 'block' : 'none';
-  document.getElementById('cf-tab-dep').className = tab === 'depositos' ? 'tab-btn activo' : 'tab-btn';
-  document.getElementById('cf-tab-ad').className  = tab === 'adeudos'   ? 'tab-btn activo' : 'tab-btn';
-}
-
-function selEdificio(edif, el) {
+function cfSelEdif(edif, el) {
   comiteFinEdificio = edif;
-  document.querySelectorAll('.edif-btn').forEach(b => {
-    b.style.background = '#f0f0f0'; b.style.color = '#333';
-  });
-  if (el) { el.style.background = '#1565c0'; el.style.color = '#fff'; }
-  renderAdeudosComite();
+  document.querySelectorAll('.edif-card').forEach(c => c.classList.remove('selec'));
+  if (el) el.classList.add('selec');
+  const wrap   = document.getElementById('cf-deptos-wrap');
+  const titulo = document.getElementById('cf-deptos-titulo');
+  const lista  = document.getElementById('cf-deptos-lista');
+  if (!wrap) return;
+  wrap.style.display = 'block';
+  if (titulo) titulo.textContent = `Edificio ${edif} — Departamentos`;
+  const deptos = comiteAdeudos.filter(d => String(d.EDIFICIO||'').trim() === edif);
+  lista.innerHTML = deptos.map(d => {
+    const adeudo = parseFloat(d.ADEUDO_TOTAL_CAMBIO_COMITE||0);
+    const color  = adeudo > 0 ? '#c62828' : '#2e7d32';
+    return `
+    <div class="fin-adeudo-card" style="border-color:${color};margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:700;font-size:15px">Depto ${d.DEPTO}</div>
+          <div style="font-size:12px;color:${color};font-weight:600;margin-top:2px">
+            ${adeudo > 0 ? '⚠️ ' + fmt$(adeudo) : '✅ Al corriente'}
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:#888">Aporte</div>
+          <div style="font-size:14px;font-weight:700;color:#1565c0">${fmt$(d.APORTE_TOTAL)}</div>
+        </div>
+      </div>
+      <div class="fin-adeudo-grid" style="margin-top:10px">
+        <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Cuota 2026</div><div class="fin-adeudo-item-v">${fmt$(d.CUOTA_2026)}</div></div>
+        <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Recargos</div><div class="fin-adeudo-item-v">${fmt$(d.RECARGOS_2026)}</div></div>
+        <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Adeudo Mtto</div><div class="fin-adeudo-item-v">${fmt$(d.ADEUDO_MTTO_CAMBIO_COMITE)}</div></div>
+        <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Abono Mtto</div><div class="fin-adeudo-item-v">${fmt$(d.ABONO_MTTO_CAMBIO_COMITE)}</div></div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-function renderAdeudosComite() {
-  const lista = document.getElementById('cf-adeudos-lista');
-  if (!lista) return;
-  const items = comiteFinEdificio === 'todos'
-    ? comiteAdeudos
-    : comiteAdeudos.filter(d => String(d.EDIFICIO||'').trim() === comiteFinEdificio);
-  if (items.length === 0) {
-    lista.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin datos</p>';
-    return;
-  }
-  lista.innerHTML = items.map(d => renderAdeudoCard(d, true)).join('');
+function filtrarComiteDep(mes, el) {
+  comiteFinMes = mes;
+  document.querySelectorAll('#cf-filtros-mes .fin-mes-chip').forEach(b => b.classList.remove('activo'));
+  if (el) el.classList.add('activo');
+  renderComiteFinLista();
 }
 
 function renderComiteFinLista() {
   const lista = document.getElementById('cf-lista');
   if (!lista) return;
-  let items = comiteFinData;
-  if (comiteFinMes !== 'todos') items = items.filter(d => String(d.MES||'').toUpperCase().trim() === comiteFinMes);
-  if (comiteFinDep !== 'todos') items = items.filter(d => String(d.DEPTO||'').toUpperCase().trim() === comiteFinDep);
-  if (items.length === 0) { lista.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin depósitos con estos filtros</p>'; return; }
-  lista.innerHTML = items.map((d, idx) => renderDepCard(d, idx, true)).join('');
+  const items = comiteFinMes === 'todos'
+    ? comiteFinData
+    : comiteFinData.filter(d => String(d.MES||'').toUpperCase().trim() === comiteFinMes);
+  if (items.length === 0) {
+    lista.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin depósitos</p>';
+    return;
+  }
+  lista.innerHTML = items.map((d, idx) => {
+    const monto      = parseFloat(d.MONTO) || 0;
+    const confComite = String(d.CONFIRMADO_COMITE||'').toUpperCase() === 'SI';
+    const confTes    = String(d.CONFIRMADO_TESORERA||'').toUpperCase() === 'SI';
+    return `
+    <div class="dep-pago-card">
+      <div class="dep-pago-header">
+        <span class="dep-pago-mes">${d.MES} · Depto ${d.DEPTO}</span>
+        <span class="dep-pago-monto">${fmt$(monto)}</span>
+      </div>
+      <div class="dep-pago-meta">${d.FECHA||''} · ${d.METODO||''}</div>
+      <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+        <span class="dep-conf-badge ${confComite?'dep-conf-ok':'dep-conf-pend'}" style="cursor:${!confComite?'pointer':'default'}"
+          ${!confComite ? `onclick="confirmarPagoComite(${idx+1},'comite')"` : ''}>
+          ${confComite ? '✅ Registrado' : '⏳ Confirmar registro'}
+        </span>
+        <span class="dep-conf-badge ${confTes?'dep-conf-ok':'dep-conf-pend'}">
+          ${confTes ? '✅ Tesorera' : '⏳ Pend. tesorera'}
+        </span>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 async function confirmarPagoComite(fila, tipo) {
   const msg = document.getElementById('msg-comite');
   try {
     const res = await post({ accion:'confirmarPago', fila, tipo });
-    if (res.ok) {
-      showMsg(msg, 'ok', '✅ Confirmación registrada');
-      renderTabComite('finanzas');
-    } else showMsg(msg, 'error', res.error || 'Error');
-  } catch(e) { showMsg(msg, 'error', 'Error de conexión'); }
+    if (res.ok) { showMsg(msg,'ok','✅ Confirmado'); renderTabComite('finanzas'); }
+    else showMsg(msg,'error', res.error || 'Error');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
 }
 
 // ── PANEL COMITÉ ──────────────────────────────────────────────
