@@ -1082,9 +1082,6 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
   <div class="content" style="overflow-y:auto">
     <div id="fin-comparativo-wrap"></div>
     <div id="fin-adeudo-wrap"></div>
-    <button class="btn-submit" style="margin-top:8px" onclick="ir('s-mis-pagos'); cargarMisPagos()">
-      📋 Ver historial de pagos →
-    </button>
   </div>
 </div>
 
@@ -2651,7 +2648,7 @@ async function cargarMisFinanzas() {
       <div class="fin-comp-card" style="background:linear-gradient(135deg,#b71c1c,#e53935)">
         <div class="fin-comp-label">💸 Gastos</div>
         <div class="fin-comp-monto">${fmt$(totalGas)}</div>
-        <div style="font-size:10px;opacity:.7;margin-top:2px">${mesActual}</div>
+        <div style="font-size:10px;opacity:.7;margin-top:2px">Total gastos</div>
       </div>
     </div>
     <div class="fin-balance" style="background:${balBg}">
@@ -2707,16 +2704,28 @@ async function cargarMisGastos() {
   const filtros = document.getElementById('gastos-filtros');
   if (lista) lista.innerHTML = '<div class="loader">Cargando...</div>';
   try {
-    const res = await fetch(`${API}?accion=getGastos`);
-    gastosData = await res.json();
+    const [resG, resD] = await Promise.all([
+      fetch(`${API}?accion=getGastos`),
+      fetch(`${API}?accion=getDepositos`)
+    ]);
+    gastosData = await resG.json();
+    const todosDepositos = await resD.json();
     if (!Array.isArray(gastosData)) gastosData = [];
-    // Construir cache por mes
     gastosCache = {};
+    window._ingCache = {};
     gastosData.forEach(g => {
-      const m = String(g.MES || '').toUpperCase().trim();
+      const m = String(g.MES||'').toUpperCase().trim();
+      if (!m) return;
       if (!gastosCache[m]) gastosCache[m] = [];
       gastosCache[m].push(g);
     });
+    if (Array.isArray(todosDepositos)) {
+      todosDepositos.forEach(d => {
+        const m = String(d.MES||'').toUpperCase().trim();
+        if (!m) return;
+        window._ingCache[m] = (window._ingCache[m]||0) + (parseFloat(d.MONTO)||0);
+      });
+    }
     const meses = Object.keys(gastosCache);
     if (filtros) {
       filtros.innerHTML = meses.map((m,i) =>
@@ -2740,40 +2749,47 @@ function filtrarGastos(mes, el) {
 function renderGastos() {
   const lista = document.getElementById('gastos-lista');
   if (!lista) return;
-  const items = gastosFiltro ? (gastosCache[gastosFiltro] || []) : gastosData;
+  const items = gastosFiltro ? (gastosCache[gastosFiltro]||[]) : gastosData;
+  const ing   = gastosFiltro ? (window._ingCache||{})[gastosFiltro]||0 : 0;
   if (items.length === 0) {
     lista.innerHTML = '<p style="color:#888;text-align:center;padding:24px">Sin gastos en este mes</p>';
     return;
   }
-  lista.innerHTML = renderGastosHTML(items, gastosFiltro || 'Total');
+  lista.innerHTML = renderGastosHTML(items, gastosFiltro||'Total', ing);
 }
 
-function renderGastosHTML(items, mesLabel) {
-  const totalMes = items.reduce((s,g) => s + (parseFloat(g.MONTO)||0), 0);
-  
-  // Totales por sección
+function renderGastosHTML(items, mesLabel, ingresosDelMes) {
+  const totalGas = items.reduce((s,g) => s + (parseFloat(g.MONTO)||0), 0);
+  const ing = parseFloat(ingresosDelMes) || 0;
+
+  // Totales por sección — SIEMPRE mostrar las 5
   const totSec = {};
   SECCIONES_GASTO.forEach(s => {
     const keys = s.key === 'VARIABLES' ? ['VARIABLES','CAJA_CH'] : [s.key];
-    totSec[s.key] = items.reduce((sum,g) => sum + keys.reduce((ss,k) => ss + (parseFloat(g[k])||0), 0), 0);
+    totSec[s.key] = items.reduce((sum,g) => sum + keys.reduce((ss,k) => ss+(parseFloat(g[k])||0),0), 0);
   });
 
-  // Resumen visual por sección
-  const resumenHtml = SECCIONES_GASTO.filter(s => totSec[s.key] > 0).map(s => `
+  // Resumen por sección — todas las 5 siempre visibles
+  const resumenHtml = SECCIONES_GASTO.map(s => {
+    const keys  = s.key === 'VARIABLES' ? ['VARIABLES','CAJA_CH'] : [s.key];
+    const regs  = items.filter(g => keys.some(k => parseFloat(g[k]||0) > 0));
+    const total = totSec[s.key];
+    return `
     <div style="background:${s.bg};border-radius:12px;padding:12px 14px;
       border-left:4px solid ${s.color};margin-bottom:8px;
       display:flex;justify-content:space-between;align-items:center">
       <div>
         <div style="font-size:13px;font-weight:700;color:${s.color}">${s.label}</div>
-        <div style="font-size:11px;color:#888;margin-top:2px">${items.filter(g => {
-          const keys = s.key === 'VARIABLES' ? ['VARIABLES','CAJA_CH'] : [s.key];
-          return keys.some(k => parseFloat(g[k]||0) > 0);
-        }).length} registro(s)</div>
+        <div style="font-size:11px;color:#888;margin-top:2px">${regs.length} registro(s)</div>
       </div>
-      <div style="font-size:18px;font-weight:800;color:${s.color}">${fmt$(totSec[s.key])}</div>
-    </div>`).join('');
+      <div style="font-size:${total>0?'18px':'14px'};font-weight:800;color:${total>0?s.color:'#ccc'}">
+        ${total > 0 ? fmt$(total) : '—'}
+      </div>
+    </div>`;
+  }).join('');
 
-  // Detalle por registro
+  // Detalle de registros (oculto por defecto)
+  const uid = 'det-' + Math.random().toString(36).slice(2,7);
   const detalleHtml = items.map(g => {
     const seccActivas = SECCIONES_GASTO.filter(s => {
       const keys = s.key === 'VARIABLES' ? ['VARIABLES','CAJA_CH'] : [s.key];
@@ -2785,27 +2801,26 @@ function renderGastosHTML(items, mesLabel) {
       ? 'background:#fff3e0;color:#e65100'
       : 'background:#f3e5f5;color:#6a1b9a';
     return `
-    <div style="background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:8px;
+    <div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:8px;
       box-shadow:0 2px 6px rgba(0,0,0,.06)">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-        <div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+        <div style="flex:1">
           <div style="font-size:14px;font-weight:700;color:#333">${g.CONCEPTO || '—'}</div>
-          <div style="font-size:11px;color:#888;margin-top:2px">${g.FECHA || ''}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">${g.FECHA||''}</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:17px;font-weight:800;color:#c62828">${fmt$(g.MONTO)}</div>
-          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;
-            ${metodoBadge}">${g.METODO || ''}</span>
+          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;${metodoBadge}">${g.METODO||''}</span>
         </div>
       </div>
       ${seccActivas.length > 0 ? `
-      <div style="display:grid;grid-template-columns:repeat(${Math.min(seccActivas.length,3)},1fr);gap:5px">
+      <div style="display:grid;grid-template-columns:repeat(${Math.min(seccActivas.length,3)},1fr);gap:5px;margin-top:8px">
         ${seccActivas.map(s => {
           const keys = s.key === 'VARIABLES' ? ['VARIABLES','CAJA_CH'] : [s.key];
-          const val  = keys.reduce((ss,k) => ss + (parseFloat(g[k])||0), 0);
-          return `<div style="background:${s.bg};border-radius:8px;padding:6px 8px;text-align:center">
-            <div style="font-size:9px;color:${s.color};font-weight:700;text-transform:uppercase">${s.label.replace(/^[^ ]+ /,'')}</div>
-            <div style="font-size:12px;font-weight:800;color:${s.color};margin-top:2px">${fmt$(val)}</div>
+          const val  = keys.reduce((ss,k) => ss+(parseFloat(g[k])||0),0);
+          return `<div style="background:${s.bg};border-radius:8px;padding:6px;text-align:center">
+            <div style="font-size:9px;color:${s.color};font-weight:700">${s.label.replace(/^[^ ]+ /,'')}</div>
+            <div style="font-size:12px;font-weight:800;color:${s.color};margin-top:1px">${fmt$(val)}</div>
           </div>`;
         }).join('')}
       </div>` : ''}
@@ -2813,92 +2828,41 @@ function renderGastosHTML(items, mesLabel) {
   }).join('');
 
   return `
-  <div style="background:linear-gradient(135deg,#b71c1c,#e53935);border-radius:14px;
-    padding:16px;color:#fff;margin-bottom:16px;text-align:center">
-    <div style="font-size:12px;opacity:.8;margin-bottom:4px">${mesLabel}</div>
-    <div style="font-size:26px;font-weight:800">${fmt$(totalMes)}</div>
-    <div style="font-size:11px;opacity:.7;margin-top:2px">${items.length} registro(s)</div>
+  <!-- Tarjetas ingreso vs gasto -->
+  <div class="fin-comparativo" style="margin-bottom:10px">
+    <div class="fin-comp-card" style="background:linear-gradient(135deg,#1b5e20,#2e7d32)">
+      <div class="fin-comp-label">💰 Ingresado</div>
+      <div class="fin-comp-monto">${ing > 0 ? fmt$(ing) : '—'}</div>
+      <div style="font-size:9px;opacity:.7;margin-top:2px">${mesLabel}</div>
+    </div>
+    <div class="fin-comp-card" style="background:linear-gradient(135deg,#b71c1c,#e53935)">
+      <div class="fin-comp-label">💸 Gastado</div>
+      <div class="fin-comp-monto">${fmt$(totalGas)}</div>
+      <div style="font-size:9px;opacity:.7;margin-top:2px">${items.length} registro(s)</div>
+    </div>
   </div>
+  ${ing > 0 ? `
+  <div style="background:${ing-totalGas>=0?'linear-gradient(135deg,#1b5e20,#2e7d32)':'linear-gradient(135deg,#b71c1c,#c62828)'};
+    border-radius:12px;padding:12px 16px;color:#fff;text-align:center;margin-bottom:14px">
+    <div style="font-size:11px;opacity:.8">Balance del mes</div>
+    <div style="font-size:20px;font-weight:800">${fmt$(ing-totalGas)}</div>
+  </div>` : ''}
+
+  <!-- Resumen por categoría -->
   <p style="font-size:12px;font-weight:700;color:#888;text-transform:uppercase;
     letter-spacing:.5px;margin-bottom:10px">Resumen por categoría</p>
   ${resumenHtml}
-  <p style="font-size:12px;font-weight:700;color:#888;text-transform:uppercase;
-    letter-spacing:.5px;margin:14px 0 10px">Detalle de registros</p>
-  ${detalleHtml}`;
-}
 
-// ── NIVEL 3: HISTORIAL DE PAGOS ───────────────────────────────
-
-async function cargarMisPagos() {
-  const lista   = document.getElementById('mis-pagos-lista');
-  const filtros = document.getElementById('mis-pagos-filtros');
-  lista.innerHTML = '<div class="loader">Cargando...</div>';
-  try {
-    // Siempre recargar filtrando por depto del usuario
-    const res  = await fetch(`${API}?accion=getDepositos&depto=${encodeURIComponent(sesion.casa)}`);
-    const data = await res.json();
-    finMisPagosData = Array.isArray(data) ? data : [];
-  } catch(e) { finMisPagosData = []; }
-
-  const meses = [...new Set(finMisPagosData.map(d => String(d.MES||'').toUpperCase().trim()).filter(Boolean))];
-  if (filtros) {
-    filtros.innerHTML = `<span class="fin-mes-chip activo" onclick="filtrarPagos('todos',this)">Todos</span>` +
-      meses.map(m => `<span class="fin-mes-chip" onclick="filtrarPagos('${m}',this)">${m}</span>`).join('');
-  }
-  renderMisPagos();
-}
-
-function filtrarPagos(mes, el) {
-  finMisPagosFiltro = mes;
-  document.querySelectorAll('#mis-pagos-filtros .fin-mes-chip').forEach(b => b.classList.remove('activo'));
-  if (el) el.classList.add('activo');
-  renderMisPagos();
-}
-
-function renderMisPagos() {
-  const lista = document.getElementById('mis-pagos-lista');
-  const items = finMisPagosFiltro === 'todos'
-    ? finMisPagosData
-    : finMisPagosData.filter(d => String(d.MES||'').toUpperCase().trim() === finMisPagosFiltro);
-  if (items.length === 0) {
-    lista.innerHTML = '<p style="color:#888;text-align:center;padding:24px">Sin depósitos registrados</p>';
-    return;
-  }
-  lista.innerHTML = items.map((d, idx) => {
-    const monto = parseFloat(d.MONTO) || 0;
-    const confComite = String(d.CONFIRMADO_COMITE||'').toUpperCase() === 'SI';
-    const confTes    = String(d.CONFIRMADO_TESORERA||'').toUpperCase() === 'SI';
-    const desglose   = [
-      {l:'Mtto',    v:d.MANTO},  {l:'Luz',    v:d.LUZ},
-      {l:'CE 2026', v:d.CE_2026},{l:'Adeudo', v:d.ADEUDO},
-      {l:'Chip',    v:d.CHIP},   {l:'Control',v:d.CONTROL},
-      {l:'Multas',  v:d.MULTAS}, {l:'Rentas', v:d.RENTAS},
-    ].filter(i => parseFloat(i.v||0) > 0);
-    return `
-    <div class="dep-pago-card">
-      <div class="dep-pago-header">
-        <span class="dep-pago-mes">${d.MES || '—'}</span>
-        <span class="dep-pago-monto">${monto > 0 ? fmt$(monto) : '—'}</span>
-      </div>
-      <div class="dep-pago-meta">${d.FECHA || ''} · ${d.METODO || ''}</div>
-      ${desglose.length > 0 ? `
-      <div class="dep-pago-grid">
-        ${desglose.map(i => `
-        <div class="dep-pago-item">
-          <div class="dep-pago-item-l">${i.l}</div>
-          <div class="dep-pago-item-v">${fmt$(i.v)}</div>
-        </div>`).join('')}
-      </div>` : ''}
-      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
-        <span class="dep-conf-badge ${confComite?'dep-conf-ok':'dep-conf-pend'}">
-          ${confComite ? '✅ Registrado' : '⏳ Pendiente comité'}
-        </span>
-        <span class="dep-conf-badge ${confTes?'dep-conf-ok':'dep-conf-pend'}">
-          ${confTes ? '✅ Tesorera' : '⏳ Pendiente tesorera'}
-        </span>
-      </div>
-    </div>`;
-  }).join('');
+  <!-- Botón ver detalle -->
+  ${items.length > 0 ? `
+  <button onclick="toggleDetalle('${uid}')" id="btn-${uid}"
+    style="width:100%;margin-top:4px;padding:12px;border:1.5px solid #1976d2;border-radius:10px;
+      background:#fff;color:#1976d2;font-size:14px;font-weight:600;cursor:pointer">
+    📋 Ver ${items.length} registro(s) de gastos
+  </button>
+  <div id="${uid}" style="display:none;margin-top:10px">
+    ${detalleHtml}
+  </div>` : ''}`;
 }
 
 // ── FINANZAS COMITÉ ────────────────────────────────────────────
@@ -2925,11 +2889,18 @@ async function renderFinanzasComite(el) {
 
     // Construir cache de gastos por mes
     gastosCache = {};
+    window._ingCache = {};
     if (Array.isArray(gastosAll)) gastosAll.forEach(g => {
       const m = String(g.MES||'').toUpperCase().trim();
       if (!m) return;
       if (!gastosCache[m]) gastosCache[m] = [];
       gastosCache[m].push(g);
+    });
+    // Cache de ingresos por mes
+    comiteFinData.forEach(d => {
+      const m = String(d.MES||'').toUpperCase().trim();
+      if (!m) return;
+      window._ingCache[m] = (window._ingCache[m]||0) + (parseFloat(d.MONTO)||0);
     });
     const mesesGastos = Object.keys(gastosCache);
     gastosFiltro = mesActual;
@@ -2982,7 +2953,7 @@ async function renderFinanzasComite(el) {
           onclick="cfFiltrarGastos('${m}',this)">${m}</span>`
       ).join('')}
     </div>
-    <div id="cf-gastos-detalle">${renderGastosHTML(gastosActuales, gastosFiltro)}</div>
+    <div id="cf-gastos-detalle">${renderGastosHTML(gastosActuales, gastosFiltro, (window._ingCache||{})[gastosFiltro]||0)}</div>
 
     <!-- Edificios -->
     <p class="seccion-titulo" style="margin-top:14px">🏘️ Estado por Edificio</p>
@@ -3020,7 +2991,8 @@ function cfFiltrarGastos(mes, el) {
   document.querySelectorAll('#cf-filtros-gastos .fin-mes-chip').forEach(b => b.classList.remove('activo'));
   if (el) el.classList.add('activo');
   const det = document.getElementById('cf-gastos-detalle');
-  if (det) det.innerHTML = renderGastosHTML(gastosCache[mes] || [], mes);
+  const ing = (window._ingCache||{})[mes] || 0;
+  if (det) det.innerHTML = renderGastosHTML(gastosCache[mes]||[], mes, ing);
 }
 
 function cfSelEdif(edif, el) {
