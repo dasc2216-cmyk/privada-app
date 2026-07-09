@@ -311,6 +311,38 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 .aviso-seg-linea { width:30px; height:2px; background:rgba(198,40,40,.3);
   border-radius:2px; margin-top:6px; }
 
+/* ── ESTADO DE CUENTA ────────────────────────────────────── */
+.ec-hero { border-radius:18px; padding:22px 20px; color:#fff;
+  margin-bottom:16px; position:relative; overflow:hidden; }
+.ec-hero::before { content:''; position:absolute; top:-20px; right:-20px;
+  width:120px; height:120px; border-radius:50%;
+  background:rgba(255,255,255,.1); }
+.ec-depto    { font-size:13px; opacity:.8; margin-bottom:4px; }
+.ec-monto    { font-size:36px; font-weight:900; line-height:1; }
+.ec-sub      { font-size:12px; opacity:.75; margin-top:4px; }
+.ec-badges   { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+.ec-badge    { font-size:12px; font-weight:700; padding:5px 12px;
+  border-radius:20px; background:rgba(255,255,255,.2); }
+
+.convenio-card { border-radius:14px; padding:16px; margin-bottom:14px;
+  border:2px solid; }
+.convenio-servicios  { border-color:#1565c0; background:#e3f0ff; }
+.convenio-sin-serv   { border-color:#e65100; background:#fff3e0; }
+.convenio-adeudo     { border-color:#c62828; background:#ffebee; }
+.convenio-corriente  { border-color:#2e7d32; background:#e8f5e9; }
+.conv-titulo  { font-size:15px; font-weight:800; margin-bottom:4px; }
+.conv-desc    { font-size:12px; color:#666; line-height:1.5; }
+.conv-barra   { height:8px; border-radius:4px; background:#e0e0e0;
+  margin:10px 0 4px; overflow:hidden; }
+.conv-barra-fill { height:100%; border-radius:4px; transition:width .5s; }
+.conv-pct     { font-size:11px; color:#888; text-align:right; }
+
+.ec-tabs  { display:flex; gap:8px; margin-bottom:14px; }
+.ec-tab   { flex:1; padding:10px; border:1.5px solid #ddd; border-radius:10px;
+  background:#fff; font-size:13px; font-weight:600; cursor:pointer;
+  text-align:center; color:#666; }
+.ec-tab.activo { background:#1565c0; color:#fff; border-color:#1565c0; }
+
 /* ── MÓDULO FINANCIERO ─────────────────────────────────────── */
 .fin-comparativo { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px; }
 .fin-comp-card   { border-radius:14px;padding:16px;color:#fff;text-align:center; }
@@ -745,10 +777,10 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
         <span class="m-title">Mis Multas</span>
         <span class="m-desc">Llamadas de atención y sanciones</span>
       </button>
-      <button class="modulo-btn" id="btn-mis-pagos" style="display:none" onclick="ir('s-mis-finanzas'); cargarMisFinanzas()">
-        <span class="m-icon">💳</span>
-        <span class="m-title">Mis Finanzas</span>
-        <span class="m-desc">Pagos y estado de cuenta</span>
+      <button class="modulo-btn" id="btn-mis-pagos" style="display:none" onclick="ir('s-reportes-fin'); cargarReportesFin()">
+        <span class="m-icon">💰</span>
+        <span class="m-title">Finanzas</span>
+        <span class="m-desc">Reportes financieros</span>
       </button>
       <button class="modulo-btn" onclick="ir('s-bitacora'); cargarBitacoraResidente()">
         <span class="m-icon">📋</span>
@@ -1068,6 +1100,32 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
   <div class="content" style="overflow-y:auto">
     <div id="msg-juntas" class="msg"></div>
     <div id="juntas-lista"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — ESTADO DE CUENTA (depto del usuario)
+═══════════════════════════════════════════════════════════ -->
+<div id="s-estado-cuenta" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title"><h1>Privada Paamul</h1><p id="ec-titulo">Estado de Cuenta</p></div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="ec-contenido"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — REPORTES FINANCIEROS (privada completa)
+═══════════════════════════════════════════════════════════ -->
+<div id="s-reportes-fin" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title"><h1>Privada Paamul</h1><p>Reportes Financieros</p></div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="rf-contenido"><div class="loader">Cargando...</div></div>
   </div>
 </div>
 
@@ -2000,35 +2058,29 @@ function filtrarPorRol(lista, campaNombre) {
 }
 
 function abrirFinanzas() {
-  const rol = String(sesion.rol || '').trim().toLowerCase();
-  if (rol === 'propietario' || rol === 'administrador') {
-    ir('s-finanzas');
-    cargarFinanzas();
-  }
-  // Residente: no hace nada al tocar la tarjeta
+  abrirEstadoCuenta();
 }
 
 async function cargarEstatusHome() {
   const el = document.getElementById('home-estatus');
+  if (!el) return;
   try {
-    const res  = await fetch(`${API}?accion=getFinanzas&casa=${encodeURIComponent(sesion.casa)}`);
+    const res  = await fetch(`${API}?accion=getAdeudos&depto=${encodeURIComponent(sesion.casa)}`);
     const data = await res.json();
-    if (!data) { el.textContent = 'Sin información'; return; }
-
-    const estatus = String(data.Estatus || '').toUpperCase().trim();
-    const config = {
-      'OK':       { txt:'✅ Al corriente',  cls:'ok'       },
-      'ADEUDO':   { txt:'⚠️ Adeudo pendiente', cls:'adeudo' },
-      'CONVENIO': { txt:'🤝 Convenio activo',  cls:'convenio'},
-      'F. LUZ':   { txt:'⚠️ Falla en Luz',     cls:'adeudo' },
-      'F. MANTO': { txt:'⚠️ Falla Mantenimiento', cls:'adeudo'},
+    const ad   = Array.isArray(data) && data.length > 0 ? data[0] : null;
+    if (!ad) { el.textContent = 'Toca para ver tu estado'; return; }
+    const estatus = ad.ESTATUS_CONVENIO_CALC || calcConvenio(ad);
+    const configs = {
+      'AL_CORRIENTE':           { txt:'✅ Al corriente',          color:'#2e7d32' },
+      'CONVENIO_SERVICIOS':     { txt:'🤝 Convenio con servicios', color:'#1565c0' },
+      'CONVENIO_SIN_SERVICIOS': { txt:'🔒 Convenio sin servicios', color:'#e65100' },
+      'ADEUDO_PENDIENTE':       { txt:'⚠️ Adeudo pendiente',       color:'#c62828' },
     };
-    const cfg = config[estatus] || { txt: estatus || 'Sin datos', cls:'ok' };
+    const cfg = configs[estatus] || configs['ADEUDO_PENDIENTE'];
     el.textContent  = cfg.txt;
-    el.className    = 'fh-estatus ' + cfg.cls;
-  } catch(e) {
-    el.textContent = 'No disponible';
-  }
+    el.style.color  = cfg.color;
+    el.style.fontWeight = '700';
+  } catch(e) { el.textContent = 'Consultar estado de cuenta'; }
 }
 
 // ── FINANZAS DETALLE ────────────────────────────────────────
@@ -2603,6 +2655,295 @@ function renderBitacora() {
   }).join('');
 }
 
+
+// ── ESTADO DE CUENTA DEL DEPTO ───────────────────────────────
+
+function calcConvenio(ad) {
+  const estatusManual = String(ad.ESTATUS_CONVENIO || '').trim();
+  if (estatusManual) return estatusManual;
+  const adeudoTotal = parseFloat(ad.ADEUDO_TOTAL_CAMBIO_COMITE || 0);
+  const totalAbonado = parseFloat(ad.TOTAL_ABONADO || 0);
+  const adeudoOriginal = parseFloat(ad.ADEUDO_MTTO_CAMBIO_COMITE || 0) +
+                         parseFloat(ad.ADEUDO_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE || 0);
+  if (adeudoTotal <= 0) return 'AL_CORRIENTE';
+  if (totalAbonado > 0) {
+    const pct = adeudoOriginal > 0 ? totalAbonado / adeudoOriginal : 0;
+    return pct >= 0.5 ? 'CONVENIO_SERVICIOS' : 'CONVENIO_SIN_SERVICIOS';
+  }
+  return 'ADEUDO_PENDIENTE';
+}
+
+function renderConvenioCard(ad, esComite) {
+  const estatus = ad.ESTATUS_CONVENIO_CALC || calcConvenio(ad);
+  const pct     = parseFloat(ad.PCT_ABONADO || 0);
+  const abonado = parseFloat(ad.TOTAL_ABONADO || 0);
+  const adeudo  = parseFloat(ad.ADEUDO_TOTAL_CAMBIO_COMITE || 0);
+
+  const configs = {
+    'AL_CORRIENTE':        { cls:'convenio-corriente', icon:'✅', titulo:'Al corriente',               desc:'No tienes adeudos pendientes.' },
+    'CONVENIO_SERVICIOS':  { cls:'convenio-servicios',  icon:'🤝', titulo:'Convenio con servicios',     desc:`Has abonado el ${pct}% de tu adeudo. Servicios activos.` },
+    'CONVENIO_SIN_SERVICIOS':{ cls:'convenio-sin-serv', icon:'🔒', titulo:'Convenio sin servicios',     desc:`Has abonado el ${pct}% de tu adeudo. Servicios se reactivan al llegar al 50%.` },
+    'ADEUDO_PENDIENTE':    { cls:'convenio-adeudo',     icon:'⚠️', titulo:'Adeudo pendiente',            desc:'Tienes un adeudo sin convenio de pago activo.' },
+  };
+  const cfg = configs[estatus] || configs['ADEUDO_PENDIENTE'];
+
+  const mostrarBarra = estatus === 'CONVENIO_SERVICIOS' || estatus === 'CONVENIO_SIN_SERVICIOS';
+  const colorBarra   = pct >= 50 ? '#1565c0' : '#e65100';
+
+  let btnComite = '';
+  if (esComite) {
+    btnComite = `
+    <div style="margin-top:12px;border-top:1px solid rgba(0,0,0,.1);padding-top:10px">
+      <p style="font-size:11px;color:#888;margin-bottom:8px">Cambiar estatus manualmente:</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button onclick="cambiarConvenio('${ad.DEPTO}','AUTO')"
+          style="font-size:11px;padding:5px 10px;border-radius:8px;border:1.5px solid #888;background:#fff;cursor:pointer">
+          🔄 Automático
+        </button>
+        <button onclick="cambiarConvenio('${ad.DEPTO}','CONVENIO_SERVICIOS')"
+          style="font-size:11px;padding:5px 10px;border-radius:8px;border:1.5px solid #1565c0;background:#e3f0ff;cursor:pointer;color:#1565c0">
+          🤝 Con servicios
+        </button>
+        <button onclick="cambiarConvenio('${ad.DEPTO}','CONVENIO_SIN_SERVICIOS')"
+          style="font-size:11px;padding:5px 10px;border-radius:8px;border:1.5px solid #e65100;background:#fff3e0;cursor:pointer;color:#e65100">
+          🔒 Sin servicios
+        </button>
+        <button onclick="cambiarConvenio('${ad.DEPTO}','ADEUDO_PENDIENTE')"
+          style="font-size:11px;padding:5px 10px;border-radius:8px;border:1.5px solid #c62828;background:#ffebee;cursor:pointer;color:#c62828">
+          ⚠️ Adeudo
+        </button>
+      </div>
+    </div>`;
+  }
+
+  return `
+  <div class="convenio-card ${cfg.cls}">
+    <div class="conv-titulo">${cfg.icon} ${cfg.titulo}</div>
+    <div class="conv-desc">${cfg.desc}</div>
+    ${mostrarBarra ? `
+    <div class="conv-barra">
+      <div class="conv-barra-fill" style="width:${Math.min(pct,100)}%;background:${colorBarra}"></div>
+    </div>
+    <div class="conv-pct">${fmt$(abonado)} abonado de ${fmt$(parseFloat(ad.ADEUDO_MTTO_CAMBIO_COMITE||0) + parseFloat(ad.ADEUDO_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE||0))}</div>
+    ` : ''}
+    ${btnComite}
+  </div>`;
+}
+
+async function abrirEstadoCuenta() {
+  ir('s-estado-cuenta');
+  const titulo = document.getElementById('ec-titulo');
+  if (titulo) titulo.textContent = `Depto ${sesion.casa}`;
+  await cargarEstadoCuenta();
+}
+
+let ecTabActivo = 'resumen';
+let ecAdeudoData = null;
+let ecPagosData  = [];
+
+async function cargarEstadoCuenta() {
+  const el = document.getElementById('ec-contenido');
+  if (!el) return;
+  el.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const [resA, resD] = await Promise.all([
+      fetch(`${API}?accion=getAdeudos&depto=${encodeURIComponent(sesion.casa)}`),
+      fetch(`${API}?accion=getDepositos&depto=${encodeURIComponent(sesion.casa)}`)
+    ]);
+    const adeudos = await resA.json();
+    const pagos   = await resD.json();
+    ecAdeudoData  = Array.isArray(adeudos) && adeudos.length > 0 ? adeudos[0] : null;
+    ecPagosData   = Array.isArray(pagos) ? pagos : [];
+    renderEstadoCuenta();
+  } catch(e) {
+    el.innerHTML = '<p style="color:#c62828;text-align:center;padding:20px">Error al cargar</p>';
+  }
+}
+
+function renderEstadoCuenta() {
+  const el = document.getElementById('ec-contenido');
+  if (!el || !ecAdeudoData) return;
+  const ad = ecAdeudoData;
+  const adeudoTotal = parseFloat(ad.ADEUDO_TOTAL_CAMBIO_COMITE || 0);
+  const aporte      = parseFloat(ad.APORTE_TOTAL || 0);
+  const alCorriente = adeudoTotal <= 0;
+  const heroBg      = alCorriente
+    ? 'linear-gradient(135deg,#1b5e20,#2e7d32)'
+    : 'linear-gradient(135deg,#b71c1c,#c62828)';
+
+  // Meses donde hay movimiento (AT_MES > 0)
+  const meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO',
+                 'JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+  const movMeses = meses.map(m => ({
+    mes: m,
+    at:    parseFloat(ad[`AT_${m}`]    || 0),
+    mtto:  parseFloat(ad[`MTTO_${m}`]  || 0),
+    luz:   parseFloat(ad[`LUZ_${m}`]   || 0),
+    ce26:  parseFloat(ad[`CE2026_${m}`]|| 0),
+    abono: parseFloat(ad[`ABONO_ADEUDO_${m}`]|| 0),
+  })).filter(m => m.at > 0 || m.abono > 0);
+
+  el.innerHTML = `
+  <!-- Hero -->
+  <div class="ec-hero" style="background:${heroBg}">
+    <div class="ec-depto">📍 Depto ${ad.DEPTO} · Edif. ${ad.EDIFICIO || '—'}</div>
+    <div class="ec-monto">${alCorriente ? '✅ Al corriente' : fmt$(adeudoTotal)}</div>
+    <div class="ec-sub">${alCorriente ? 'Sin adeudos pendientes' : 'Adeudo total'}</div>
+    <div class="ec-badges">
+      <span class="ec-badge">💰 Aporte ${fmt$(aporte)}</span>
+      <span class="ec-badge">📋 Cuota 2026: ${fmt$(parseFloat(ad.CUOTA_2026||0))}</span>
+    </div>
+  </div>
+
+  <!-- Convenio -->
+  ${renderConvenioCard(ad, false)}
+
+  <!-- Tabs -->
+  <div class="ec-tabs">
+    <button class="ec-tab ${ecTabActivo==='resumen'?'activo':''}" onclick="ecTab('resumen',this)">📊 Resumen</button>
+    <button class="ec-tab ${ecTabActivo==='pagos'?'activo':''}" onclick="ecTab('pagos',this)">💳 Mis pagos</button>
+    <button class="ec-tab ${ecTabActivo==='detalle'?'activo':''}" onclick="ecTab('detalle',this)">📅 Mes a mes</button>
+  </div>
+  <div id="ec-tab-content"></div>`;
+
+  renderEcTab();
+}
+
+function ecTab(tab, el) {
+  ecTabActivo = tab;
+  document.querySelectorAll('.ec-tab').forEach(b => b.classList.remove('activo'));
+  if (el) el.classList.add('activo');
+  renderEcTab();
+}
+
+function renderEcTab() {
+  const el = document.getElementById('ec-tab-content');
+  if (!el) return;
+  const ad = ecAdeudoData;
+  const meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO',
+                 'JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+
+  if (ecTabActivo === 'resumen') {
+    const campos = [
+      { l:'Adeudo Mtto',       v: ad.ADEUDO_MTTO_CAMBIO_COMITE,              c:'#c62828' },
+      { l:'Adeudo Cuota Ext',  v: ad.ADEUDO_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE, c:'#c62828' },
+      { l:'Abono Mtto',        v: ad.ABONO_MTTO_CAMBIO_COMITE,               c:'#2e7d32' },
+      { l:'Abono Cuota Ext',   v: ad.ABONO_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE, c:'#2e7d32' },
+      { l:'Total Abonado',     v: ad.TOTAL_ABONADO,                          c:'#1565c0' },
+      { l:'Recargos 2026',     v: ad.RECARGOS_2026,                          c:'#e65100' },
+    ].filter(f => parseFloat(f.v||0) !== 0);
+    el.innerHTML = campos.length === 0
+      ? '<p style="color:#888;text-align:center;padding:20px">Sin movimientos registrados</p>'
+      : `<div class="fin-adeudo-grid">${campos.map(f => `
+        <div class="fin-adeudo-item">
+          <div class="fin-adeudo-item-l">${f.l}</div>
+          <div class="fin-adeudo-item-v" style="color:${f.c||'#1a237e'}">${fmt$(f.v)}</div>
+        </div>`).join('')}</div>`;
+  }
+
+  if (ecTabActivo === 'pagos') {
+    if (ecPagosData.length === 0) {
+      el.innerHTML = '<p style="color:#888;text-align:center;padding:20px">Sin depósitos registrados</p>';
+      return;
+    }
+    const mesesU = [...new Set(ecPagosData.map(d => String(d.MES||'').toUpperCase().trim()).filter(Boolean))];
+    el.innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px" id="ec-filtros-pago">
+      <span class="fin-mes-chip activo" onclick="ecFiltrarPagos('todos',this)">Todos</span>
+      ${mesesU.map(m=>`<span class="fin-mes-chip" onclick="ecFiltrarPagos('${m}',this)">${m}</span>`).join('')}
+    </div>
+    <div id="ec-pagos-lista">${renderEcPagos('todos')}</div>`;
+  }
+
+  if (ecTabActivo === 'detalle') {
+    const movMeses = meses.map(m => ({
+      mes: m, at: parseFloat(ad[`AT_${m}`]||0), mtto: parseFloat(ad[`MTTO_${m}`]||0),
+      luz: parseFloat(ad[`LUZ_${m}`]||0), ce26: parseFloat(ad[`CE2026_${m}`]||0),
+      abono: parseFloat(ad[`ABONO_ADEUDO_${m}`]||0),
+    })).filter(m => m.at > 0 || m.abono > 0);
+    if (movMeses.length === 0) {
+      el.innerHTML = '<p style="color:#888;text-align:center;padding:20px">Sin movimientos registrados</p>';
+      return;
+    }
+    el.innerHTML = movMeses.map(m => `
+    <div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:8px;
+      box-shadow:0 2px 6px rgba(0,0,0,.05)">
+      <div style="font-weight:700;font-size:14px;color:#1565c0;margin-bottom:8px">${m.mes}</div>
+      <div class="fin-adeudo-grid">
+        ${m.at    > 0 ? `<div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Aporte Total</div><div class="fin-adeudo-item-v" style="color:#2e7d32">${fmt$(m.at)}</div></div>` : ''}
+        ${m.mtto  > 0 ? `<div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Mantenimiento</div><div class="fin-adeudo-item-v">${fmt$(m.mtto)}</div></div>` : ''}
+        ${m.luz   > 0 ? `<div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Luz</div><div class="fin-adeudo-item-v">${fmt$(m.luz)}</div></div>` : ''}
+        ${m.ce26  > 0 ? `<div class="fin-adeudo-item"><div class="fin-adeudo-item-l">CE 2026</div><div class="fin-adeudo-item-v">${fmt$(m.ce26)}</div></div>` : ''}
+        ${m.abono > 0 ? `<div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Abono adeudo</div><div class="fin-adeudo-item-v" style="color:#1565c0">${fmt$(m.abono)}</div></div>` : ''}
+      </div>
+    </div>`).join('');
+  }
+}
+
+function ecFiltrarPagos(mes, el) {
+  document.querySelectorAll('#ec-filtros-pago .fin-mes-chip').forEach(b => b.classList.remove('activo'));
+  if (el) el.classList.add('activo');
+  const lista = document.getElementById('ec-pagos-lista');
+  if (lista) lista.innerHTML = renderEcPagos(mes);
+}
+
+function renderEcPagos(filtro) {
+  const items = filtro === 'todos'
+    ? ecPagosData
+    : ecPagosData.filter(d => String(d.MES||'').toUpperCase().trim() === filtro);
+  if (items.length === 0) return '<p style="color:#888;text-align:center;padding:16px">Sin depósitos</p>';
+  return items.map(d => {
+    const monto = parseFloat(d.MONTO||0);
+    const desg  = [{l:'Mtto',v:d.MANTO},{l:'Luz',v:d.LUZ},{l:'CE 2026',v:d.CE_2026},
+                   {l:'Adeudo',v:d.ADEUDO},{l:'Chip',v:d.CHIP}].filter(i => parseFloat(i.v||0)>0);
+    const confComite = String(d.CONFIRMADO_COMITE||'').toUpperCase() === 'SI';
+    const confTes    = String(d.CONFIRMADO_TESORERA||'').toUpperCase() === 'SI';
+    return `
+    <div class="dep-pago-card">
+      <div class="dep-pago-header">
+        <span class="dep-pago-mes">${d.MES||'—'}</span>
+        <span class="dep-pago-monto">${monto>0?fmt$(monto):'—'}</span>
+      </div>
+      <div class="dep-pago-meta">${d.FECHA||''} · ${d.METODO||''}</div>
+      ${desg.length>0?`<div class="dep-pago-grid">${desg.map(i=>`
+        <div class="dep-pago-item">
+          <div class="dep-pago-item-l">${i.l}</div>
+          <div class="dep-pago-item-v">${fmt$(i.v)}</div>
+        </div>`).join('')}</div>`:''}
+      <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+        <span class="dep-conf-badge ${confComite?'dep-conf-ok':'dep-conf-pend'}">
+          ${confComite?'✅ Registrado':'⏳ Pendiente comité'}
+        </span>
+        <span class="dep-conf-badge ${confTes?'dep-conf-ok':'dep-conf-pend'}">
+          ${confTes?'✅ Tesorera':'⏳ Pend. tesorera'}
+        </span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function cambiarConvenio(depto, estatus) {
+  const msg = document.getElementById('msg-comite') || document.getElementById('msg-seg');
+  try {
+    const res = await post({ accion:'setEstatusConvenio', depto, estatus });
+    if (res.ok) {
+      if (msg) showMsg(msg,'ok','✅ Estatus actualizado');
+      // Recargar según pantalla activa
+      if (depto === sesion.casa) await cargarEstadoCuenta();
+      else renderTabComite('propietarios');
+    }
+  } catch(e) { if (msg) showMsg(msg,'error','Error al actualizar'); }
+}
+
+// ── REPORTES FINANCIEROS (privada completa) ───────────────────
+
+async function cargarReportesFin() {
+  const el = document.getElementById('rf-contenido');
+  if (!el) return;
+  el.innerHTML = '<div class="loader">Cargando...</div>';
+  // Reutilizar renderFinanzasComite pero en la pantalla de reportes
+  await renderFinanzasComite(el);
+}
 
 // ── MÓDULO FINANCIERO ─────────────────────────────────────────
 
