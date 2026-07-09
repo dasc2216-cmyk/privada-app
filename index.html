@@ -789,6 +789,11 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
         <span class="m-title">Mis Multas</span>
         <span class="m-desc">Llamadas de atención y sanciones</span>
       </button>
+      <button class="modulo-btn" id="btn-documentos" style="display:none" onclick="ir('s-documentos'); cargarDocumentos()">
+        <span class="m-icon">📁</span>
+        <span class="m-title">Documentos</span>
+        <span class="m-desc">Circulares y presentaciones</span>
+      </button>
       <button class="modulo-btn" id="btn-mis-pagos" style="display:none" onclick="ir('s-reportes-fin'); cargarReportesFin()">
         <span class="m-icon">💰</span>
         <span class="m-title">Finanzas</span>
@@ -1798,8 +1803,21 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — DOCUMENTOS
+═══════════════════════════════════════════════════════════ -->
+<div id="s-documentos" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title"><h1>Privada Paamul</h1><p>Documentos</p></div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="docs-lista"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbxYnO1B9pZ_3qLsUZD-cQSKJv_IIWsBc3v6pfrxGShN-vHnKDgN6QWJidvISjW4Hdc2Kw/exec';
+const API = 'https://script.google.com/macros/s/AKfycbxl9uJ1M0PejAb3QQQVJX0JJ5iAdAF5gf__QUQBpC6qdsrNF7FlFbOHbHqHTMaV1gOUhQ/exec';
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -2040,6 +2058,8 @@ async function cargarMenuPrincipal() {
   if (btnMultas) btnMultas.style.display = prop ? '' : 'none';
   const btnPagos = document.getElementById('btn-mis-pagos');
   if (btnPagos) btnPagos.style.display = prop ? '' : 'none';
+  const btnDocs = document.getElementById('btn-documentos');
+  if (btnDocs) btnDocs.style.display = prop ? '' : 'none';
 
   // Finanzas: Residente solo ve estatus en home, no entra al detalle
   const chevron = document.getElementById('finanzas-chevron');
@@ -3669,46 +3689,80 @@ async function cfSelDepto(depto) {
   const lista  = document.getElementById('cf-depto-detalle-lista');
   if (!wrap) return;
   wrap.style.display = 'block';
-  if (titulo) titulo.textContent = `Depto ${depto} — Detalle completo`;
+  if (titulo) titulo.textContent = `Depto ${depto}`;
   if (lista)  lista.innerHTML = '<div class="loader">Cargando...</div>';
   try {
-    const [resA, resD] = await Promise.all([
-      fetch(`${API}?accion=getAdeudos&depto=${encodeURIComponent(depto)}`),
-      fetch(`${API}?accion=getDepositos&depto=${encodeURIComponent(depto)}`)
-    ]);
+    const resA = await fetch(`${API}?accion=getAdeudos&depto=${encodeURIComponent(depto)}`);
     const adeudos = await resA.json();
-    const pagos   = await resD.json();
-    const ad      = Array.isArray(adeudos) && adeudos.length > 0 ? adeudos[0] : null;
-    const pags    = Array.isArray(pagos) ? pagos : [];
+    const ad = Array.isArray(adeudos) && adeudos.length > 0 ? adeudos[0] : null;
     if (!ad) { lista.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin datos</p>'; return; }
+
     const adeudoTotal = parseFloat(ad.ADEUDO_TOTAL_CAMBIO_COMITE||0);
     const aporte      = parseFloat(ad.APORTE_TOTAL||0);
+
     lista.innerHTML = `
     ${renderConvenioCard(ad, true)}
     <div class="fin-adeudo-grid" style="margin-bottom:14px">
-      <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Aporte Total</div><div class="fin-adeudo-item-v" style="color:#2e7d32">${fmt$(aporte)}</div></div>
-      <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Cuota 2026</div><div class="fin-adeudo-item-v">${fmt$(ad.CUOTA_2026||0)}</div></div>
+      <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Aporte Total</div>
+        <div class="fin-adeudo-item-v" style="color:#2e7d32">${fmt$(aporte)}</div></div>
+      <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Cuota 2026</div>
+        <div class="fin-adeudo-item-v">${fmt$(ad.CUOTA_2026||0)}</div></div>
       ${adeudoTotal>0?`
-      <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Adeudo Mtto</div><div class="fin-adeudo-item-v" style="color:#c62828">${fmt$(ad.ADEUDO_HOY_MTTO_CAMBIO_COMITE||0)}</div></div>
-      <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Adeudo Cuota</div><div class="fin-adeudo-item-v" style="color:#c62828">${fmt$(ad.TOTAL_HOY_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE||0)}</div></div>`:''}
+      <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Adeudo Mtto</div>
+        <div class="fin-adeudo-item-v" style="color:#c62828">${fmt$(ad.ADEUDO_HOY_MTTO_CAMBIO_COMITE||0)}</div></div>
+      <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Adeudo Cuota</div>
+        <div class="fin-adeudo-item-v" style="color:#c62828">${fmt$(ad.TOTAL_HOY_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE||0)}</div></div>`:''}
     </div>
-    ${pags.length>0?`
-    <p style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px;text-transform:uppercase">Historial de pagos</p>
-    ${pags.map(p=>{
-      const m=parseFloat(p.MONTO||0);
-      const chk=m>=1000?'✅✅':m>=500?'✅':'';
+    <button onclick="cfCargarPagosDepto('${depto}',this)"
+      style="width:100%;padding:13px;border-radius:12px;border:1.5px solid #1565c0;
+        background:#fff;color:#1565c0;font-size:14px;font-weight:700;cursor:pointer">
+      💳 Ver pagos registrados
+    </button>
+    <div id="cf-pagos-${depto.replace(/\s/g,'')}"></div>`;
+
+    setTimeout(() => wrap.scrollIntoView({behavior:'smooth', block:'start'}), 100);
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
+  }
+}
+
+async function cfCargarPagosDepto(depto, btn) {
+  const idEl = document.getElementById(`cf-pagos-${depto.replace(/\s/g,'')}`);
+  if (!idEl) return;
+  if (idEl.innerHTML !== '') { idEl.innerHTML = ''; btn.textContent = '💳 Ver pagos registrados'; return; }
+  btn.textContent = 'Cargando...'; btn.disabled = true;
+  try {
+    const res  = await fetch(`${API}?accion=getDepositos&depto=${encodeURIComponent(depto)}`);
+    const pags = await res.json();
+    const items = Array.isArray(pags) ? pags : [];
+    btn.textContent = '🔼 Ocultar pagos'; btn.disabled = false;
+    if (items.length === 0) {
+      idEl.innerHTML = '<p style="color:#888;text-align:center;padding:12px">Sin depósitos</p>';
+      return;
+    }
+    idEl.innerHTML = `<div style="margin-top:10px">` + items.map(p => {
+      const m = parseFloat(p.MONTO||0);
+      const chk = m>=1000?'✅✅':m>=500?'✅':'';
+      const confC = String(p.CONFIRMADO_COMITE||'').toUpperCase()==='SI';
+      const confT = String(p.CONFIRMADO_TESORERA||'').toUpperCase()==='SI';
       return `<div class="dep-pago-card">
         <div class="dep-pago-header">
           <span class="dep-pago-mes">${p.MES||'—'} ${chk}</span>
           <span class="dep-pago-monto">${fmt$(m)}</span>
         </div>
         <div class="dep-pago-meta">${p.FECHA||''} · ${p.METODO||''}</div>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="dep-conf-badge ${confC?'dep-conf-ok':'dep-conf-pend'}"
+            ${!confC?`onclick="confirmarPagoComite(${items.indexOf(p)+1},'comite')" style="cursor:pointer"`:''}>
+            ${confC?'✅ Registrado':'⏳ Confirmar'}
+          </span>
+          <span class="dep-conf-badge ${confT?'dep-conf-ok':'dep-conf-pend'}">
+            ${confT?'✅ Tesorera':'⏳ Pend. tesorera'}
+          </span>
+        </div>
       </div>`;
-    }).join('')}`:'<p style="color:#888;text-align:center;padding:12px">Sin depósitos</p>'}`;
-    setTimeout(() => wrap.scrollIntoView({behavior:'smooth', block:'start'}), 100);
-  } catch(e) {
-    lista.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
-  }
+    }).join('') + '</div>';
+  } catch(e) { btn.textContent = '💳 Ver pagos registrados'; btn.disabled = false; }
 }
 
 function cfFiltroSemaforo(tipo, el) {
@@ -4062,6 +4116,65 @@ async function registrarRiegoComite() {
       cargarBitacoraHoy();
     } else showMsg(msg,'error', res.error || 'Error al registrar');
   } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
+// ── DOCUMENTOS ────────────────────────────────────────────────
+
+async function cargarDocumentos() {
+  const el = document.getElementById('docs-lista');
+  if (!el) return;
+  el.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res  = await fetch(`${API}?accion=getDocumentos`);
+    const data = await res.json();
+    const docs = Array.isArray(data) ? data : [];
+    if (docs.length === 0) {
+      el.innerHTML = '<p style="color:#888;text-align:center;padding:24px">Sin documentos disponibles</p>';
+      return;
+    }
+
+    // Agrupar por TIPO
+    const grupos = {};
+    docs.forEach(d => {
+      const tipo = String(d.TIPO || 'Otro').trim();
+      if (!grupos[tipo]) grupos[tipo] = [];
+      grupos[tipo].push(d);
+    });
+
+    const iconTipo = {
+      'Presentación': '📊', 'Reglamento': '📋', 'Circular': '📢',
+      'Acta': '📝', 'Reporte': '📈', 'Otro': '📄'
+    };
+
+    el.innerHTML = Object.entries(grupos).map(([tipo, items]) => `
+    <div style="margin-bottom:20px">
+      <p style="font-size:12px;font-weight:700;color:#888;text-transform:uppercase;
+        letter-spacing:.5px;margin-bottom:10px">${iconTipo[tipo]||'📄'} ${tipo}</p>
+      ${items.map(d => `
+      <div style="background:#fff;border-radius:14px;padding:16px;margin-bottom:8px;
+        box-shadow:0 2px 8px rgba(0,0,0,.07);display:flex;align-items:center;gap:14px">
+        <div style="background:#e3f0ff;border-radius:10px;width:44px;height:44px;
+          display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
+          ${iconTipo[d.TIPO]||'📄'}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;color:#1a237e;
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.TITULO||'Sin título'}</div>
+          <div style="font-size:11px;color:#888;margin-top:3px">
+            ${d.FECHA||''} · ${d.SUBIDO_POR||''}
+          </div>
+        </div>
+        <a href="${d.URL||'#'}" target="_blank" rel="noopener"
+          style="background:linear-gradient(135deg,#1a237e,#1565c0);color:#fff;
+            border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;
+            text-decoration:none;white-space:nowrap;flex-shrink:0">
+          Ver →
+        </a>
+      </div>`).join('')}
+    </div>`).join('');
+  } catch(e) {
+    el.innerHTML = '<p style="color:#c62828;text-align:center;padding:20px">Error al cargar</p>';
+  }
 }
 
 // ── PANEL COMITÉ ──────────────────────────────────────────────
