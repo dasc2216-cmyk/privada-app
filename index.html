@@ -2802,7 +2802,6 @@ function renderEstadoCuenta() {
   <div class="ec-tabs">
     <button class="ec-tab ${ecTabActivo==='resumen'?'activo':''}" onclick="ecTab('resumen',this)">📊 Resumen</button>
     <button class="ec-tab ${ecTabActivo==='pagos'?'activo':''}" onclick="ecTab('pagos',this)">💳 Mis pagos</button>
-    <button class="ec-tab ${ecTabActivo==='detalle'?'activo':''}" onclick="ecTab('detalle',this)">📅 Mes a mes</button>
   </div>
   <div id="ec-tab-content"></div>`;
 
@@ -2824,21 +2823,66 @@ function renderEcTab() {
                  'JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
 
   if (ecTabActivo === 'resumen') {
-    const campos = [
-      { l:'Adeudo Mtto',       v: ad.ADEUDO_MTTO_CAMBIO_COMITE,              c:'#c62828' },
-      { l:'Adeudo Cuota Ext',  v: ad.ADEUDO_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE, c:'#c62828' },
-      { l:'Abono Mtto',        v: ad.ABONO_MTTO_CAMBIO_COMITE,               c:'#2e7d32' },
-      { l:'Abono Cuota Ext',   v: ad.ABONO_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE, c:'#2e7d32' },
-      { l:'Total Abonado',     v: ad.TOTAL_ABONADO,                          c:'#1565c0' },
-      { l:'Recargos 2026',     v: ad.RECARGOS_2026,                          c:'#e65100' },
-    ].filter(f => parseFloat(f.v||0) !== 0);
-    el.innerHTML = campos.length === 0
-      ? '<p style="color:#888;text-align:center;padding:20px">Sin movimientos registrados</p>'
-      : `<div class="fin-adeudo-grid">${campos.map(f => `
-        <div class="fin-adeudo-item">
-          <div class="fin-adeudo-item-l">${f.l}</div>
-          <div class="fin-adeudo-item-v" style="color:${f.c||'#1a237e'}">${fmt$(f.v)}</div>
-        </div>`).join('')}</div>`;
+    // Aporte total mes a mes (columnas AA-AL = AT_MES)
+    const atMeses = meses.map(m => ({ mes: m.substring(0,3), v: parseFloat(ad[`AT_${m}`]||0) }))
+                         .filter(m => m.v > 0);
+    const totalAt = atMeses.reduce((s,m) => s+m.v, 0);
+    // Desglose de adeudo
+    const adeudoMtto  = parseFloat(ad.ADEUDO_HOY_MTTO_CAMBIO_COMITE||0);
+    const adeudoCuota = parseFloat(ad.TOTAL_HOY_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE||0);
+    const recargos    = parseFloat(ad.RECARGOS_2026||0);
+    const abonoMtto   = parseFloat(ad.ABONO_MTTO_CAMBIO_COMITE||0);
+    const totalAbonado= parseFloat(ad.TOTAL_ABONADO||0);
+
+    el.innerHTML = `
+    ${atMeses.length > 0 ? `
+    <p style="font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">
+      💰 Aporte Total por Mes
+    </p>
+    <div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 2px 6px rgba(0,0,0,.05)">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px">
+        ${atMeses.map(m => `
+        <div style="background:#e8f5e9;border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:10px;color:#2e7d32;font-weight:700">${m.mes}</div>
+          <div style="font-size:13px;font-weight:800;color:#1b5e20;margin-top:2px">${fmt$(m.v)}</div>
+        </div>`).join('')}
+      </div>
+      <div style="border-top:1px solid #f0f0f0;padding-top:8px;display:flex;justify-content:space-between">
+        <span style="font-size:12px;color:#666">Total aportado 2026</span>
+        <span style="font-size:15px;font-weight:800;color:#2e7d32">${fmt$(totalAt)}</span>
+      </div>
+    </div>` : ''}
+
+    ${(adeudoMtto > 0 || adeudoCuota > 0 || recargos > 0) ? `
+    <p style="font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">
+      ⚠️ Desglose de Adeudo
+    </p>
+    <div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 2px 6px rgba(0,0,0,.05)">
+      ${adeudoMtto > 0 ? `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5">
+        <div><div style="font-size:13px;font-weight:600">Adeudo Mantenimiento</div>
+          <div style="font-size:11px;color:#888">Comité anterior pendiente</div></div>
+        <span style="font-size:15px;font-weight:800;color:#c62828">${fmt$(adeudoMtto)}</span>
+      </div>` : ''}
+      ${adeudoCuota > 0 ? `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5">
+        <div><div style="font-size:13px;font-weight:600">Adeudo Cuota Ext.</div>
+          <div style="font-size:11px;color:#888">Comité anterior pendiente</div></div>
+        <span style="font-size:15px;font-weight:800;color:#c62828">${fmt$(adeudoCuota)}</span>
+      </div>` : ''}
+      ${recargos > 0 ? `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5">
+        <div><div style="font-size:13px;font-weight:600">Recargos 2026</div>
+          <div style="font-size:11px;color:#888">Cargos año en curso</div></div>
+        <span style="font-size:15px;font-weight:800;color:#e65100">${fmt$(recargos)}</span>
+      </div>` : ''}
+      ${totalAbonado > 0 ? `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;background:#e8f5e9;border-radius:8px;padding:10px;margin-top:6px">
+        <div><div style="font-size:13px;font-weight:700;color:#2e7d32">Total abonado</div>
+          <div style="font-size:11px;color:#388e3c">Abonos a adeudo del comité anterior</div></div>
+        <span style="font-size:15px;font-weight:800;color:#2e7d32">${fmt$(totalAbonado)}</span>
+      </div>` : ''}
+    </div>` : '<p style="color:#888;text-align:center;padding:20px">Sin adeudos registrados</p>'}`;
   }
 
   if (ecTabActivo === 'pagos') {
@@ -3110,22 +3154,46 @@ function renderGastosHTML(items, mesLabel, ingresosDelMes) {
     totSec[s.key] = items.reduce((sum,g) => sum + keys.reduce((ss,k) => ss+(parseFloat(g[k])||0),0), 0);
   });
 
-  // Resumen por sección — todas las 5 siempre visibles
-  const resumenHtml = SECCIONES_GASTO.map(s => {
+  // Resumen por sección — interactivo al tocar
+  const secUid = 'sec-' + Math.random().toString(36).slice(2,6);
+  const resumenHtml = SECCIONES_GASTO.map((s,si) => {
     const keys  = s.key === 'VARIABLES' ? ['VARIABLES','CAJA_CH'] : [s.key];
     const regs  = items.filter(g => keys.some(k => parseFloat(g[k]||0) > 0));
     const total = totSec[s.key];
+    const detId = `${secUid}-${si}`;
+    const detHtml = regs.map(g => {
+      const val = keys.reduce((ss,k) => ss+(parseFloat(g[k])||0),0);
+      const metodoBadge = g.METODO==='TRANSFER'?`background:#e3f0ff;color:#1565c0`
+        :g.METODO==='CAJA CHICA'?`background:#fff3e0;color:#e65100`:`background:#f3e5f5;color:#6a1b9a`;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;
+        padding:10px 0;border-bottom:1px solid rgba(0,0,0,.06)">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#333">${g.CONCEPTO||'—'}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">${g.FECHA||''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:14px;font-weight:800;color:${s.color}">${fmt$(val)}</div>
+          <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;${metodoBadge}">${g.METODO||''}</span>
+        </div>
+      </div>`;
+    }).join('');
     return `
-    <div style="background:${s.bg};border-radius:12px;padding:12px 14px;
-      border-left:4px solid ${s.color};margin-bottom:8px;
-      display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <div style="font-size:13px;font-weight:700;color:${s.color}">${s.label}</div>
-        <div style="font-size:11px;color:#888;margin-top:2px">${regs.length} registro(s)</div>
+    <div style="background:${s.bg};border-radius:12px;border-left:4px solid ${s.color};
+      margin-bottom:8px;overflow:hidden">
+      <div onclick="toggleSecGasto('${detId}',this)"
+        style="padding:12px 14px;display:flex;justify-content:space-between;align-items:center;cursor:${regs.length>0?'pointer':'default'}">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:${s.color}">${s.label}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">${regs.length} registro(s)</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:${total>0?'18px':'14px'};font-weight:800;color:${total>0?s.color:'#ccc'}">
+            ${total > 0 ? fmt$(total) : '—'}
+          </span>
+          ${regs.length>0?`<span id="arr-${detId}" style="color:${s.color};font-size:16px;transition:.2s">▸</span>`:''}
+        </div>
       </div>
-      <div style="font-size:${total>0?'18px':'14px'};font-weight:800;color:${total>0?s.color:'#ccc'}">
-        ${total > 0 ? fmt$(total) : '—'}
-      </div>
+      ${regs.length>0?`<div id="${detId}" style="display:none;padding:0 14px 12px;border-top:1px solid rgba(0,0,0,.08)">${detHtml}</div>`:''}
     </div>`;
   }).join('');
 
@@ -3194,16 +3262,7 @@ function renderGastosHTML(items, mesLabel, ingresosDelMes) {
     letter-spacing:.5px;margin-bottom:10px">Resumen por categoría</p>
   ${resumenHtml}
 
-  <!-- Botón ver detalle -->
-  ${items.length > 0 ? `
-  <button onclick="toggleDetalle('${uid}')" id="btn-${uid}"
-    style="width:100%;margin-top:4px;padding:12px;border:1.5px solid #1976d2;border-radius:10px;
-      background:#fff;color:#1976d2;font-size:14px;font-weight:600;cursor:pointer">
-    📋 Ver ${items.length} registro(s) de gastos
-  </button>
-  <div id="${uid}" style="display:none;margin-top:10px">
-    ${detalleHtml}
-  </div>` : ''}`;
+`;
 }
 
 // ── FINANZAS COMITÉ ────────────────────────────────────────────
@@ -3259,7 +3318,7 @@ async function renderFinanzasComite(el) {
                       .sort((a,b) => parseInt(a)-parseInt(b));
 
     const colorEdif = (edif) => {
-      const deps = comiteAdeudos.filter(d => String(d.EDIFICIO||'').trim() === edif);
+      const deps = comiteAdeudos.filter(d => String(d.EDIFICIO||'').trim() === String(edif));
       const conAd = deps.filter(d => parseFloat(d.ADEUDO_TOTAL_CAMBIO_COMITE||0) > 0).length;
       if (conAd === 0) return 'verde';
       if (conAd < deps.length) return 'amarillo';
@@ -3298,7 +3357,7 @@ async function renderFinanzasComite(el) {
     </div>
     <div class="edif-grid" id="cf-edif-grid">
       ${edificiosU.map(e => `
-      <div class="edif-card ${colorEdif(e)}" onclick="cfSelEdif('${e}',this)" id="edif-${e}">
+      <div class="edif-card ${colorEdif(e)}" data-edif="${e}" onclick="cfSelEdifBtn(this)" id="edif-${e}">
         <div class="edif-num">${e}</div>
         <div class="edif-sub">Edif.</div>
       </div>`).join('')}
@@ -3330,6 +3389,11 @@ function cfFiltrarGastos(mes, el) {
   if (det) det.innerHTML = renderGastosHTML(gastosCache[mes]||[], mes, ing);
 }
 
+function cfSelEdifBtn(el) {
+  const edif = el.getAttribute('data-edif');
+  cfSelEdif(edif, el);
+}
+
 function cfSelEdif(edif, el) {
   comiteFinEdificio = edif;
   document.querySelectorAll('.edif-card').forEach(c => c.classList.remove('selec'));
@@ -3341,7 +3405,7 @@ function cfSelEdif(edif, el) {
   wrap.style.display = 'block';
   if (titulo) titulo.textContent = `Edificio ${edif} — Departamentos`;
 
-  const deptos = comiteAdeudos.filter(d => String(d.EDIFICIO||'').trim() === edif);
+  const deptos = comiteAdeudos.filter(d => String(d.EDIFICIO||'').trim() === String(edif).trim());
   lista.innerHTML = deptos.map(d => {
     const adeudo = parseFloat(d.ADEUDO_TOTAL_CAMBIO_COMITE||0);
     const color  = adeudo > 0 ? '#c62828' : '#2e7d32';
@@ -3410,7 +3474,7 @@ function renderComiteFinLista() {
   // Si hay un edificio seleccionado, filtrar por sus deptos
   if (comiteFinEdificio) {
     const deptosEdif = comiteAdeudos
-      .filter(d => String(d.EDIFICIO||'').trim() === comiteFinEdificio)
+      .filter(d => String(d.EDIFICIO||'').trim() === String(comiteFinEdificio).trim())
       .map(d => String(d.DEPTO||'').toUpperCase().trim());
     if (deptosEdif.length > 0)
       items = items.filter(d => deptosEdif.includes(String(d.DEPTO||'').toUpperCase().trim()));
@@ -3454,6 +3518,15 @@ async function confirmarPagoComite(fila, tipo) {
 }
 
 // ── TOGGLE DETALLE ────────────────────────────────────────────
+
+function toggleSecGasto(id, headerEl) {
+  const el  = document.getElementById(id);
+  const arr = document.getElementById('arr-' + id);
+  if (!el) return;
+  const abierto = el.style.display !== 'none';
+  el.style.display  = abierto ? 'none' : 'block';
+  if (arr) arr.textContent = abierto ? '▸' : '▾';
+}
 
 function toggleDetalle(id) {
   const el  = document.getElementById(id);
