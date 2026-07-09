@@ -727,12 +727,19 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
     </div>
 
     <!-- Finanzas en home -->
-    <div class="finanzas-home" id="finanzas-home-card" onclick="abrirFinanzas()">
+    <div id="finanzas-home-card" onclick="abrirFinanzas()"
+      style="border-radius:16px;padding:16px 18px;margin-bottom:14px;cursor:pointer;
+        background:linear-gradient(135deg,#1b5e20,#2e7d32);color:#fff;
+        display:flex;align-items:center;justify-content:space-between;
+        box-shadow:0 4px 14px rgba(27,94,32,.25);transition:transform .15s"
+      onmousedown="this.style.transform='scale(.98)'" onmouseup="this.style.transform=''">
       <div>
-        <div class="fh-label">💳 Consultar estado de cuenta</div>
-        <div class="fh-estatus" id="home-estatus">Cargando...</div>
+        <div style="font-size:12px;opacity:.8;margin-bottom:4px;font-weight:600;letter-spacing:.3px">
+          💳 CONSULTAR ESTADO DE CUENTA
+        </div>
+        <div id="home-estatus" style="font-size:18px;font-weight:800">Cargando...</div>
       </div>
-      <span class="fh-chevron" id="finanzas-chevron">›</span>
+      <span style="font-size:28px;opacity:.8">›</span>
     </div>
 
     <!-- Grid de módulos -->
@@ -1228,16 +1235,16 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
       <button class="tab-btn" onclick="tabComite('mudanzas',this)">📦 Mudanzas</button>
       <button class="tab-btn" onclick="tabComite('multas',this)">⚠️ Multas</button>
       <button class="tab-btn" onclick="tabComite('prestamos',this)">🔑 Préstamos</button>
-      <button class="tab-btn" onclick="tabComite('riego',this)">🌿 Riego</button>
+      <button class="tab-btn" onclick="tabComite('bitacora',this)">📋 Bitácora</button>
       <button class="tab-btn" onclick="tabComite('finanzas',this)">💰 Finanzas</button>
       <button class="tab-btn" onclick="tabComite('propietarios',this)">👤 Verificar</button>
     </div>
-    <div id="cp-reportes"    class="panel-seccion activa"><div class="loader">Cargando...</div></div>
-    <div id="cp-mudanzas"    class="panel-seccion"><div class="loader">Cargando...</div></div>
-    <div id="cp-multas"      class="panel-seccion"><div class="loader">Cargando...</div></div>
-    <div id="cp-prestamos"   class="panel-seccion"><div class="loader">Cargando...</div></div>
-    <div id="cp-riego"       class="panel-seccion"><div class="loader">Cargando...</div></div>
-    <div id="cp-finanzas"    class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-reportes"     class="panel-seccion activa"><div class="loader">Cargando...</div></div>
+    <div id="cp-mudanzas"     class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-multas"       class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-prestamos"    class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-bitacora"     class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-finanzas"     class="panel-seccion"><div class="loader">Cargando...</div></div>
     <div id="cp-propietarios" class="panel-seccion"><div class="loader">Cargando...</div></div>
   </div>
 </div>
@@ -1526,16 +1533,16 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
       <button class="tab-btn" onclick="tabComite('mudanzas',this)">📦 Mudanzas</button>
       <button class="tab-btn" onclick="tabComite('multas',this)">⚠️ Multas</button>
       <button class="tab-btn" onclick="tabComite('prestamos',this)">🔑 Préstamos</button>
-      <button class="tab-btn" onclick="tabComite('riego',this)">🌿 Riego</button>
+      <button class="tab-btn" onclick="tabComite('bitacora',this)">📋 Bitácora</button>
       <button class="tab-btn" onclick="tabComite('finanzas',this)">💰 Finanzas</button>
       <button class="tab-btn" onclick="tabComite('propietarios',this)">👤 Verificar</button>
     </div>
-    <div id="cp-reportes"    class="panel-seccion activa"><div class="loader">Cargando...</div></div>
-    <div id="cp-mudanzas"    class="panel-seccion"><div class="loader">Cargando...</div></div>
-    <div id="cp-multas"      class="panel-seccion"><div class="loader">Cargando...</div></div>
-    <div id="cp-prestamos"   class="panel-seccion"><div class="loader">Cargando...</div></div>
-    <div id="cp-riego"       class="panel-seccion"><div class="loader">Cargando...</div></div>
-    <div id="cp-finanzas"    class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-reportes"     class="panel-seccion activa"><div class="loader">Cargando...</div></div>
+    <div id="cp-mudanzas"     class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-multas"       class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-prestamos"    class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-bitacora"     class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-finanzas"     class="panel-seccion"><div class="loader">Cargando...</div></div>
     <div id="cp-propietarios" class="panel-seccion"><div class="loader">Cargando...</div></div>
   </div>
 </div>
@@ -2788,11 +2795,11 @@ function renderEstadoCuenta() {
   el.innerHTML = `
   <!-- Hero -->
   <div class="ec-hero" style="background:${heroBg}">
-    <div class="ec-depto">📍 Depto ${ad.DEPTO} · Edif. ${ad.EDIFICIO || '—'}</div>
+    <div class="ec-depto">📍 Depto ${ad.DEPTO}</div>
     <div class="ec-monto">${alCorriente ? '✅ Al corriente' : fmt$(adeudoTotal)}</div>
     <div class="ec-sub">${alCorriente ? 'Sin adeudos pendientes' : 'Adeudo total'}</div>
     <div class="ec-badges">
-      <span class="ec-badge">💰 Aporte ${fmt$(aporte)}</span>
+      <span class="ec-badge">💰 Aporte ${fmt$(aporte)}${aporte>=1000?'✅✅':aporte>=500?'✅':''}</span>
       <span class="ec-badge">📋 Cuota 2026: ${fmt$(parseFloat(ad.CUOTA_2026||0))}</span>
     </div>
   </div>
@@ -3155,7 +3162,7 @@ async function cargarMisFinanzas() {
       const borderColor = alCorriente ? '#43a047' : '#e53935';
       adeudoWrap.innerHTML = `
       <div class="fin-adeudo-card" style="border-color:${borderColor}">
-        <div class="fin-adeudo-depto">📍 Depto ${ad.DEPTO} · Edif. ${ad.EDIFICIO || '—'}</div>
+        <div class="fin-adeudo-depto">📍 Depto ${ad.DEPTO}</div>
         <div class="fin-adeudo-estatus" style="color:${borderColor}">
           ${alCorriente ? '✅ Al corriente' : '⚠️ Adeudo: ' + fmt$(adeudoTotal)}
         </div>
@@ -3383,68 +3390,76 @@ let comiteFinEdificio = null;
 async function renderFinanzasComite(el) {
   el.innerHTML = '<div class="loader">Cargando...</div>';
   try {
-    const mesActual = MESES_ES[new Date().getMonth()];
-    const [resD, resG, resA] = await Promise.all([
+    const [resD, resG, resA, resCfg] = await Promise.all([
       fetch(`${API}?accion=getDepositos`),
       fetch(`${API}?accion=getGastos`),
-      fetch(`${API}?accion=getAdeudos&depto=todos`)
+      fetch(`${API}?accion=getAdeudos&depto=todos`),
+      fetch(`${API}?accion=getConfig`)
     ]);
     comiteFinData  = await resD.json();
     const gastosAll = await resG.json();
     comiteAdeudos  = await resA.json();
+    const cfg      = await resCfg.json();
+    const ingAnterior = parseFloat(cfg.ingresoAnterior || 28552);
+
     if (!Array.isArray(comiteFinData))  comiteFinData  = [];
     if (!Array.isArray(comiteAdeudos))  comiteAdeudos  = [];
 
-    // Construir cache de gastos por mes
+    // Cache gastos e ingresos por mes
     gastosCache = {};
     window._ingCache = {};
     if (Array.isArray(gastosAll)) gastosAll.forEach(g => {
-      const m = String(g.MES||'').toUpperCase().trim();
-      if (!m) return;
+      const m = String(g.MES||'').toUpperCase().trim(); if (!m) return;
       if (!gastosCache[m]) gastosCache[m] = [];
       gastosCache[m].push(g);
     });
-    // Cache de ingresos por mes
     comiteFinData.forEach(d => {
-      const m = String(d.MES||'').toUpperCase().trim();
-      if (!m) return;
+      const m = String(d.MES||'').toUpperCase().trim(); if (!m) return;
       window._ingCache[m] = (window._ingCache[m]||0) + (parseFloat(d.MONTO)||0);
     });
-    const mesesGastos = Object.keys(gastosCache);
-    gastosFiltro = mesActual;
-    if (!gastosCache[mesActual] && mesesGastos.length > 0)
-      gastosFiltro = mesesGastos[mesesGastos.length - 1];
 
-    const totalIngBruto = comiteFinData.reduce((s,d) => s + (parseFloat(d.MONTO)||0), 0);
-    const totalIng  = totalIngBruto + INGRESO_INICIAL_COMITE;
+    const mesesGastos = Object.keys(gastosCache);
+    const mesActual   = MESES_ES[new Date().getMonth()];
+    gastosFiltro = gastosCache[mesActual] ? mesActual : (mesesGastos[mesesGastos.length-1] || '');
     const gastosActuales = gastosCache[gastosFiltro] || [];
-    const totalGas  = gastosActuales.reduce((s,g) => s + (parseFloat(g.MONTO)||0), 0);
-    const balance   = totalIng - totalGas;
-    const balBg     = balance >= 0 ? 'linear-gradient(135deg,#1b5e20,#2e7d32)' : 'linear-gradient(135deg,#b71c1c,#c62828)';
-    const mesesDep  = [...new Set(comiteFinData.map(d => String(d.MES||'').toUpperCase().trim()).filter(Boolean))];
-    const edificiosU= [...new Set(comiteAdeudos.map(d => String(d.EDIFICIO||'').trim()).filter(Boolean))]
-                      .sort((a,b) => parseInt(a)-parseInt(b));
+
+    // Totales CORRECTOS: ingresos totales vs gastos totales
+    const totalIngBruto = comiteFinData.reduce((s,d) => s + (parseFloat(d.MONTO)||0), 0);
+    const totalIng      = totalIngBruto + ingAnterior;
+    const totalGasTodos = Array.isArray(gastosAll) ? gastosAll.reduce((s,g) => s + (parseFloat(g.MONTO)||0), 0) : 0;
+    const balance       = totalIng - totalGasTodos;
+    const balBg         = balance >= 0 ? 'linear-gradient(135deg,#1b5e20,#2e7d32)' : 'linear-gradient(135deg,#b71c1c,#c62828)';
+    const mesesDep      = [...new Set(comiteFinData.map(d => String(d.MES||'').toUpperCase().trim()).filter(Boolean))];
+
+    // Edificios — agrupar deptos por edificio
+    const edificioMap = {}; // { '1': [{...depto...}], '2': [...] }
+    comiteAdeudos.forEach(d => {
+      const edif = String(d.EDIFICIO !== null && d.EDIFICIO !== undefined && d.EDIFICIO !== '' ? d.EDIFICIO : '').trim();
+      if (!edif) return;
+      if (!edificioMap[edif]) edificioMap[edif] = [];
+      edificioMap[edif].push(d);
+    });
+    const edificiosU = Object.keys(edificioMap).sort((a,b) => parseInt(a)-parseInt(b));
 
     const colorEdif = (edif) => {
-      const deps = comiteAdeudos.filter(d => String(d.EDIFICIO||'').trim() === String(edif));
+      const deps  = edificioMap[edif] || [];
       const conAd = deps.filter(d => parseFloat(d.ADEUDO_TOTAL_CAMBIO_COMITE||0) > 0).length;
-      if (conAd === 0) return 'verde';
-      if (conAd < deps.length) return 'amarillo';
+      if (conAd === 0)           return 'verde';
+      if (conAd < deps.length)   return 'amarillo';
       return 'rojo';
     };
 
     el.innerHTML = `
-    <!-- Balance -->
     <p class="seccion-titulo">Balance — ${new Date().getFullYear()}</p>
     <div class="fin-comparativo">
       <div class="fin-comp-card" style="background:linear-gradient(135deg,#1a237e,#1565c0)">
         <div class="fin-comp-label">💰 Ingresos</div>
         <div class="fin-comp-monto">${fmt$(totalIng)}</div>
-        <div style="font-size:9px;opacity:.7;margin-top:2px">Incl. $${INGRESO_INICIAL_COMITE.toLocaleString()} comité anterior</div>
+        <div style="font-size:9px;opacity:.7;margin-top:2px">Incl. ${fmt$(ingAnterior)} comité anterior</div>
       </div>
       <div class="fin-comp-card" style="background:linear-gradient(135deg,#b71c1c,#e53935)">
         <div class="fin-comp-label">💸 Gastos</div>
-        <div class="fin-comp-monto">${fmt$(Object.values(gastosCache).flat().reduce((s,g)=>s+(parseFloat(g.MONTO)||0),0))}</div>
+        <div class="fin-comp-monto">${fmt$(totalGasTodos)}</div>
         <div style="font-size:9px;opacity:.7;margin-top:2px">Total gastos</div>
       </div>
     </div>
@@ -3452,28 +3467,39 @@ async function renderFinanzasComite(el) {
       <div class="fin-balance-label">Balance general</div>
       <div class="fin-balance-monto">${fmt$(balance)}</div>
     </div>
+
     <p class="seccion-titulo" style="margin-top:4px">💸 Gastos por Mes</p>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px" id="cf-filtros-gastos">
-      ${mesesGastos.map(m =>
+      ${mesesGastos.map(m=>
         `<span class="fin-mes-chip ${m===gastosFiltro?'activo':''}" onclick="cfFiltrarGastos('${m}',this)">${m}</span>`
       ).join('')}
     </div>
-    <div id="cf-gastos-detalle">${renderGastosHTML(gastosActuales, gastosFiltro, (window._ingCache||{})[gastosFiltro]||0)}</div>
+    <div id="cf-gastos-detalle">${renderGastosHTML(gastosActuales, gastosFiltro, window._ingCache[gastosFiltro]||0)}</div>
+
     <p class="seccion-titulo" style="margin-top:14px">🏘️ Estado por Edificio</p>
-    <div style="font-size:11px;display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap">
-      <span>🟢 Al corriente</span><span>🟡 Parcial</span><span>🔴 Adeudo</span>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      <span class="fin-mes-chip activo" onclick="cfFiltroSemaforo('todos',this)">Todos</span>
+      <span class="fin-mes-chip" onclick="cfFiltroSemaforo('verde',this)">🟢 Al corriente</span>
+      <span class="fin-mes-chip" onclick="cfFiltroSemaforo('amarillo',this)">🟡 Parcial</span>
+      <span class="fin-mes-chip" onclick="cfFiltroSemaforo('rojo',this)">🔴 Adeudo</span>
     </div>
     <div class="edif-grid" id="cf-edif-grid">
       ${edificiosU.map(e => `
       <div class="edif-card ${colorEdif(e)}" data-edif="${e}" onclick="cfSelEdifBtn(this)" id="edif-${e}">
         <div class="edif-num">${e}</div>
-        <div class="edif-sub">Edif.</div>
+        <div class="edif-sub">Edif. (${(edificioMap[e]||[]).length})</div>
       </div>`).join('')}
     </div>
+
     <div id="cf-deptos-wrap" style="display:none">
-      <p class="seccion-titulo" id="cf-deptos-titulo">Departamentos</p>
+      <p class="seccion-titulo" id="cf-deptos-titulo"></p>
       <div id="cf-deptos-lista"></div>
     </div>
+    <div id="cf-depto-detalle-wrap" style="display:none">
+      <p class="seccion-titulo" id="cf-depto-detalle-titulo"></p>
+      <div id="cf-depto-detalle-lista"></div>
+    </div>
+
     <p class="seccion-titulo" style="margin-top:14px">📋 Depósitos</p>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px" id="cf-filtros-mes">
       ${mesesDep.map(m=>`<span class="fin-mes-chip" onclick="filtrarComiteDep('${m}',this)">${m}</span>`).join('')}
@@ -3481,20 +3507,14 @@ async function renderFinanzasComite(el) {
     <p style="font-size:13px;color:#888;text-align:center;padding:12px;background:#f8f9fa;border-radius:10px" id="cf-dep-hint">
       Selecciona un mes o edificio para ver los depósitos
     </p>
-    <div id="cf-lista" style="display:none"></div>`
-    renderComiteFinLista();
+    <div id="cf-lista" style="display:none"></div>`;
+
+    // Guardar mapa para uso en filtros
+    window._edificioMap = edificioMap;
+
   } catch(e) {
     el.innerHTML = `<p style="color:#c62828;text-align:center;padding:16px">Error: ${e.message}</p>`;
   }
-}
-
-function cfFiltrarGastos(mes, el) {
-  gastosFiltro = mes;
-  document.querySelectorAll('#cf-filtros-gastos .fin-mes-chip').forEach(b => b.classList.remove('activo'));
-  if (el) el.classList.add('activo');
-  const det = document.getElementById('cf-gastos-detalle');
-  const ing = (window._ingCache||{})[mes] || 0;
-  if (det) det.innerHTML = renderGastosHTML(gastosCache[mes]||[], mes, ing);
 }
 
 function cfSelEdifBtn(el) {
@@ -3506,60 +3526,117 @@ function cfSelEdif(edif, el) {
   comiteFinEdificio = edif;
   document.querySelectorAll('.edif-card').forEach(c => c.classList.remove('selec'));
   if (el) el.classList.add('selec');
-  const wrap   = document.getElementById('cf-deptos-wrap');
-  const titulo = document.getElementById('cf-deptos-titulo');
-  const lista  = document.getElementById('cf-deptos-lista');
+
+  const wrap    = document.getElementById('cf-deptos-wrap');
+  const titulo  = document.getElementById('cf-deptos-titulo');
+  const lista   = document.getElementById('cf-deptos-lista');
+  const detWrap = document.getElementById('cf-depto-detalle-wrap');
+  if (!wrap) return;
+  if (detWrap) detWrap.style.display = 'none';
+
+  // Usar mapa preconstruido — la clave
+  const edifMap = window._edificioMap || {};
+  const deptos  = edifMap[String(edif).trim()] || [];
+
+  if (titulo) titulo.textContent = `Edificio ${edif} — ${deptos.length} dpto(s)`;
+  wrap.style.display = 'block';
+
+  lista.innerHTML = deptos.map(d => {
+    const adeudo  = parseFloat(d.ADEUDO_TOTAL_CAMBIO_COMITE||0);
+    const aporte  = parseFloat(d.APORTE_TOTAL||0);
+    const estatus = calcConvenio(d);
+    const cfgs = {
+      'AL_CORRIENTE':           {icon:'✅',color:'#2e7d32',bg:'#e8f5e9',txt:'Al corriente'},
+      'CONVENIO_SERVICIOS':     {icon:'🤝',color:'#1565c0',bg:'#e3f0ff',txt:'Conv. servicios'},
+      'CONVENIO_SIN_SERVICIOS': {icon:'🔒',color:'#e65100',bg:'#fff3e0',txt:'Sin servicios'},
+      'ADEUDO_PENDIENTE':       {icon:'⚠️',color:'#c62828',bg:'#ffebee',txt:'Adeudo'},
+    };
+    const cfg = cfgs[estatus] || cfgs['ADEUDO_PENDIENTE'];
+    return `
+    <div onclick="cfSelDepto('${d.DEPTO}')"
+      style="background:#fff;border-radius:12px;padding:14px;margin-bottom:8px;
+        box-shadow:0 2px 6px rgba(0,0,0,.06);cursor:pointer;
+        border-left:4px solid ${cfg.color};display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:16px;font-weight:800">Depto ${d.DEPTO}</div>
+        <span style="background:${cfg.bg};color:${cfg.color};font-size:11px;font-weight:700;
+          padding:3px 10px;border-radius:12px;display:inline-block;margin-top:4px">
+          ${cfg.icon} ${cfg.txt}
+        </span>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;color:#888">Aporte</div>
+        <div style="font-size:15px;font-weight:800;color:#1565c0">${fmt$(aporte)}</div>
+        ${adeudo>0?`<div style="font-size:11px;color:#c62828;font-weight:600">⚠️ ${fmt$(adeudo)}</div>`:''}
+      </div>
+    </div>`;
+  }).join('') || '<p style="color:#888;text-align:center;padding:16px">Sin deptos en este edificio</p>';
+
+  // Mostrar/ocultar depósitos
+  const hintEl  = document.getElementById('cf-dep-hint');
+  const listaEl = document.getElementById('cf-lista');
+  if (hintEl)  hintEl.style.display  = 'none';
+  if (listaEl) listaEl.style.display = 'block';
+  renderComiteFinLista();
+  setTimeout(() => wrap.scrollIntoView({behavior:'smooth', block:'start'}), 100);
+}
+
+async function cfSelDepto(depto) {
+  const wrap   = document.getElementById('cf-depto-detalle-wrap');
+  const titulo = document.getElementById('cf-depto-detalle-titulo');
+  const lista  = document.getElementById('cf-depto-detalle-lista');
   if (!wrap) return;
   wrap.style.display = 'block';
-  if (titulo) titulo.textContent = `Edificio ${edif} — Departamentos`;
-
-  const deptos = comiteAdeudos.filter(d => String(d.EDIFICIO||'').trim() === String(edif).trim());
-  lista.innerHTML = deptos.map(d => {
-    const adeudo = parseFloat(d.ADEUDO_TOTAL_CAMBIO_COMITE||0);
-    const color  = adeudo > 0 ? '#c62828' : '#2e7d32';
-    // Solo mostrar campos con valor > 0
-    const campos = [
-      {l:'Cuota 2026',    v:d.CUOTA_2026},
-      {l:'Aporte Total',  v:d.APORTE_TOTAL,           c:'#2e7d32'},
-      {l:'Adeudo Mtto',   v:d.ADEUDO_MTTO_CAMBIO_COMITE},
-      {l:'Recargos',      v:d.RECARGOS_2026},
-      {l:'Abono Mtto',    v:d.ABONO_MTTO_CAMBIO_COMITE},
-      {l:'Adeudo Cuota',  v:d.ADEUDO_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE},
-    ].filter(f => parseFloat(f.v||0) > 0);
-    return `
-    <div class="fin-adeudo-card" style="border-color:${color};margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${campos.length?'10px':'0'}">
-        <div>
-          <div style="font-weight:700;font-size:15px">Depto ${d.DEPTO}</div>
-          <div style="font-size:12px;color:${color};font-weight:600;margin-top:2px">
-            ${adeudo > 0 ? '⚠️ ' + fmt$(adeudo) : '✅ Al corriente'}
-          </div>
+  if (titulo) titulo.textContent = `Depto ${depto} — Detalle completo`;
+  if (lista)  lista.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const [resA, resD] = await Promise.all([
+      fetch(`${API}?accion=getAdeudos&depto=${encodeURIComponent(depto)}`),
+      fetch(`${API}?accion=getDepositos&depto=${encodeURIComponent(depto)}`)
+    ]);
+    const adeudos = await resA.json();
+    const pagos   = await resD.json();
+    const ad      = Array.isArray(adeudos) && adeudos.length > 0 ? adeudos[0] : null;
+    const pags    = Array.isArray(pagos) ? pagos : [];
+    if (!ad) { lista.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin datos</p>'; return; }
+    const adeudoTotal = parseFloat(ad.ADEUDO_TOTAL_CAMBIO_COMITE||0);
+    const aporte      = parseFloat(ad.APORTE_TOTAL||0);
+    lista.innerHTML = `
+    ${renderConvenioCard(ad, true)}
+    <div class="fin-adeudo-grid" style="margin-bottom:14px">
+      <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Aporte Total</div><div class="fin-adeudo-item-v" style="color:#2e7d32">${fmt$(aporte)}</div></div>
+      <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Cuota 2026</div><div class="fin-adeudo-item-v">${fmt$(ad.CUOTA_2026||0)}</div></div>
+      ${adeudoTotal>0?`
+      <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Adeudo Mtto</div><div class="fin-adeudo-item-v" style="color:#c62828">${fmt$(ad.ADEUDO_HOY_MTTO_CAMBIO_COMITE||0)}</div></div>
+      <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Adeudo Cuota</div><div class="fin-adeudo-item-v" style="color:#c62828">${fmt$(ad.TOTAL_HOY_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE||0)}</div></div>`:''}
+    </div>
+    ${pags.length>0?`
+    <p style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px;text-transform:uppercase">Historial de pagos</p>
+    ${pags.map(p=>{
+      const m=parseFloat(p.MONTO||0);
+      const chk=m>=1000?'✅✅':m>=500?'✅':'';
+      return `<div class="dep-pago-card">
+        <div class="dep-pago-header">
+          <span class="dep-pago-mes">${p.MES||'—'} ${chk}</span>
+          <span class="dep-pago-monto">${fmt$(m)}</span>
         </div>
-        <div style="text-align:right">
-          <div style="font-size:11px;color:#888">Aporte</div>
-          <div style="font-size:14px;font-weight:700;color:#1565c0">${fmt$(d.APORTE_TOTAL)}</div>
-        </div>
-      </div>
-      ${campos.length > 0 ? `
-      <div class="fin-adeudo-grid">
-        ${campos.map(f => `
-        <div class="fin-adeudo-item">
-          <div class="fin-adeudo-item-l">${f.l}</div>
-          <div class="fin-adeudo-item-v" style="color:${f.c||'#1a237e'}">${fmt$(f.v)}</div>
-        </div>`).join('')}
-      </div>` : ''}
-    </div>`;
-  }).join('');
+        <div class="dep-pago-meta">${p.FECHA||''} · ${p.METODO||''}</div>
+      </div>`;
+    }).join('')}`:'<p style="color:#888;text-align:center;padding:12px">Sin depósitos</p>'}`;
+    setTimeout(() => wrap.scrollIntoView({behavior:'smooth', block:'start'}), 100);
+  } catch(e) {
+    lista.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>';
+  }
+}
 
-  // Mostrar depósitos del edificio
-  const hint  = document.getElementById('cf-dep-hint');
-  const listaEl3 = document.getElementById('cf-lista');
-  if (hint)  hint.style.display = 'none';
-  if (listaEl3) listaEl3.style.display = 'block';
-  renderComiteFinLista();
-
-  // Scroll suave al detalle
-  setTimeout(() => wrap.scrollIntoView({behavior:'smooth', block:'start'}), 100);
+function cfFiltroSemaforo(tipo, el) {
+  document.querySelectorAll('#cp-finanzas .fin-mes-chip').forEach(b => b.classList.remove('activo'));
+  if (el) el.classList.add('activo');
+  document.querySelectorAll('#cf-edif-grid .edif-card').forEach(card => {
+    const color = card.classList.contains('verde') ? 'verde'
+                : card.classList.contains('amarillo') ? 'amarillo' : 'rojo';
+    card.style.display = (tipo === 'todos' || tipo === color) ? '' : 'none';
+  });
 }
 
 function filtrarComiteDep(mes, el) {
@@ -3730,6 +3807,181 @@ function renderMisPagos() {
   }).join('');
 }
 
+// ── BITÁCORA COMITÉ ────────────────────────────────────────────
+
+async function renderBitacoraComite(el) {
+  el.innerHTML = `
+  <div id="msg-bitacora-comite" class="msg"></div>
+
+  <!-- Sub-tabs -->
+  <div style="display:flex;gap:8px;margin-bottom:16px">
+    <button class="ec-tab activo" id="btab-trab" onclick="bitacoraSubTab('trabajadores',this)">👷 Trabajadores</button>
+    <button class="ec-tab" id="btab-riego" onclick="bitacoraSubTab('riego',this)">🌿 Riego</button>
+  </div>
+
+  <!-- Panel Trabajadores -->
+  <div id="btab-panel-trabajadores">
+    <div class="card">
+      <p class="card-title">➕ Registrar trabajador</p>
+      <div class="fg"><label>Nombre del trabajador</label>
+        <input type="text" id="bit-nombre" placeholder="Nombre completo"></div>
+      <div class="fg"><label>Tipo de actividad</label>
+        <select id="bit-tipo">
+          <option>Limpieza</option><option>Poda</option><option>Riego</option>
+          <option>Mantenimiento</option><option>Fumigación</option>
+          <option>Pintura</option><option>Plomería</option><option>Electricidad</option>
+          <option>Otro</option>
+        </select></div>
+      <div class="fg"><label>Zona / Área</label>
+        <select id="bit-zona">
+          <option>Jardín</option><option>Deck</option><option>Áreas Comunes</option>
+          <option>Alberca</option><option>Estacionamiento</option>
+          <option>Fachada</option><option>Azotea</option><option>Interior</option>
+          <option>General</option>
+        </select></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fg"><label>Hora entrada</label>
+          <input type="time" id="bit-entrada"></div>
+        <div class="fg"><label>Hora salida</label>
+          <input type="time" id="bit-salida"></div>
+      </div>
+      <div class="fg"><label>Notas (opcional)</label>
+        <input type="text" id="bit-notas" placeholder="Observaciones..."></div>
+      <button class="btn-submit" onclick="registrarTrabajadorComite()">📋 Registrar en Bitácora</button>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <p class="card-title">📋 Registros de hoy</p>
+      <div id="bit-lista-hoy"><div class="loader">Cargando...</div></div>
+    </div>
+  </div>
+
+  <!-- Panel Riego -->
+  <div id="btab-panel-riego" style="display:none">
+    <div class="card">
+      <p class="card-title">🌿 Registrar Riego</p>
+      <div class="fg"><label>Zona</label>
+        <select id="riego-zona">
+          <option>Jardín General</option><option>Área Deck</option>
+          <option>Macetas Entrada</option><option>Área Alberca</option>
+          <option>Banquetas</option><option>Todo el complejo</option>
+        </select></div>
+      <div class="fg"><label>Tipo</label>
+        <select id="riego-tipo">
+          <option>Riego</option><option>Poda</option>
+          <option>Fumigación</option><option>Limpieza jardín</option>
+        </select></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fg"><label>Hora entrada</label>
+          <input type="time" id="riego-entrada"></div>
+        <div class="fg"><label>Hora salida</label>
+          <input type="time" id="riego-salida"></div>
+      </div>
+      <div class="fg"><label>Trabajador</label>
+        <input type="text" id="riego-trabajador" placeholder="Nombre del trabajador"></div>
+      <div class="fg"><label>Notas (opcional)</label>
+        <input type="text" id="riego-notas" placeholder="Observaciones..."></div>
+      <button class="btn-submit" onclick="registrarRiegoComite()">🌿 Registrar Riego</button>
+    </div>
+  </div>`;
+
+  // Poner hora actual como default
+  const ahora = new Date().toLocaleTimeString('es-MX', {hour:'2-digit',minute:'2-digit',hour12:false});
+  const entradaEl = document.getElementById('bit-entrada');
+  if (entradaEl) entradaEl.value = ahora;
+  const rEntrada = document.getElementById('riego-entrada');
+  if (rEntrada) rEntrada.value = ahora;
+
+  cargarBitacoraHoy();
+}
+
+function bitacoraSubTab(tab, el) {
+  document.querySelectorAll('#cp-bitacora .ec-tab').forEach(b => b.classList.remove('activo'));
+  if (el) el.classList.add('activo');
+  document.getElementById('btab-panel-trabajadores').style.display = tab === 'trabajadores' ? 'block' : 'none';
+  document.getElementById('btab-panel-riego').style.display        = tab === 'riego'        ? 'block' : 'none';
+}
+
+async function cargarBitacoraHoy() {
+  const el = document.getElementById('bit-lista-hoy');
+  if (!el) return;
+  try {
+    const res  = await fetch(`${API}?accion=getBitacora`);
+    const data = await res.json();
+    const hoy  = hoyCanun();
+    const hoyReg = Array.isArray(data)
+      ? data.filter(r => limpiarFecha(r.Fecha) === hoy).reverse()
+      : [];
+    if (hoyReg.length === 0) {
+      el.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin registros hoy</p>';
+      return;
+    }
+    el.innerHTML = hoyReg.map(r => `
+    <div style="background:#f8f9fa;border-radius:10px;padding:12px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:700;font-size:14px">${r.Trabajador||'—'}</div>
+        <div style="font-size:12px;color:#666">${r.Hora_Entrada||'—'} → ${r.Hora_Salida||'—'}</div>
+      </div>
+      <div style="font-size:12px;color:#888;margin-top:4px">${r.Tipo_Actividad||''} · ${r.Zona_Area||''}</div>
+      ${r.Notas?`<div style="font-size:12px;color:#555;margin-top:2px;font-style:italic">${r.Notas}</div>`:''}
+    </div>`).join('');
+  } catch(e) { el.innerHTML = '<p style="color:#c62828;text-align:center;padding:12px">Error al cargar</p>'; }
+}
+
+async function registrarTrabajadorComite() {
+  const msg      = document.getElementById('msg-bitacora-comite');
+  const nombre   = document.getElementById('bit-nombre')?.value.trim();
+  const tipo     = document.getElementById('bit-tipo')?.value;
+  const zona     = document.getElementById('bit-zona')?.value;
+  const entrada  = document.getElementById('bit-entrada')?.value;
+  const salida   = document.getElementById('bit-salida')?.value;
+  const notas    = document.getElementById('bit-notas')?.value.trim();
+  if (!nombre) { showMsg(msg,'error','Escribe el nombre del trabajador'); return; }
+  if (!entrada) { showMsg(msg,'error','Indica la hora de entrada'); return; }
+  try {
+    const res = await post({
+      accion: 'registrarBitacora',
+      tipo_actividad: tipo, zona_area: zona,
+      trabajador: nombre, hora_entrada: entrada,
+      hora_salida: salida || '', notas: notas || '',
+      registrado_por: sesion.nombre,
+      estatus: salida ? 'Completado' : 'En curso'
+    });
+    if (res.ok) {
+      showMsg(msg,'ok','✅ Trabajador registrado en bitácora');
+      document.getElementById('bit-nombre').value = '';
+      document.getElementById('bit-notas').value  = '';
+      cargarBitacoraHoy();
+    } else showMsg(msg,'error', res.error || 'Error al registrar');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
+async function registrarRiegoComite() {
+  const msg      = document.getElementById('msg-bitacora-comite');
+  const zona     = document.getElementById('riego-zona')?.value;
+  const tipo     = document.getElementById('riego-tipo')?.value;
+  const entrada  = document.getElementById('riego-entrada')?.value;
+  const salida   = document.getElementById('riego-salida')?.value;
+  const trab     = document.getElementById('riego-trabajador')?.value.trim();
+  const notas    = document.getElementById('riego-notas')?.value.trim();
+  if (!entrada) { showMsg(msg,'error','Indica la hora de entrada'); return; }
+  try {
+    const res = await post({
+      accion: 'registrarBitacora',
+      tipo_actividad: tipo, zona_area: zona,
+      trabajador: trab || 'Jardinero', hora_entrada: entrada,
+      hora_salida: salida || '', notas: notas || '',
+      registrado_por: sesion.nombre,
+      estatus: salida ? 'Completado' : 'En curso'
+    });
+    if (res.ok) {
+      showMsg(msg,'ok','✅ Riego registrado en bitácora');
+      document.getElementById('riego-trabajador').value = '';
+      document.getElementById('riego-notas').value      = '';
+      cargarBitacoraHoy();
+    } else showMsg(msg,'error', res.error || 'Error al registrar');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
 // ── PANEL COMITÉ ──────────────────────────────────────────────
 
 let tabComiteActual = 'reportes';
@@ -3762,7 +4014,7 @@ async function renderTabComite(tab) {
     if (tab === 'mudanzas')     await renderMudanzasComite(el);
     if (tab === 'multas')       await renderMultasComite(el);
     if (tab === 'prestamos')    await renderPrestamosComite(el);
-    if (tab === 'riego')        await renderRiegoComite(el);
+    if (tab === 'bitacora')     await renderBitacoraComite(el);
     if (tab === 'finanzas')     await renderFinanzasComite(el);
     if (tab === 'propietarios') await renderPropietariosComite(el);
   } catch(e) { el.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>'; }
