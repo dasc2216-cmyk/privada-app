@@ -2101,24 +2101,23 @@ async function cargarEstatusHome() {
     const data = await res.json();
     const ad   = Array.isArray(data) && data.length > 0 ? data[0] : null;
     if (!ad) { el.textContent = 'Toca para ver tu estado'; return; }
-    // Usar columna ESTATUS (FA) directo del Sheet
     const estatusSheet = String(ad.ESTATUS || ad.ESTATUS_CONVENIO || '').trim();
     const estatus = estatusSheet || calcConvenio(ad);
+    const gracia  = enPeriodoGracia();
     const configs = {
-      'AL_CORRIENTE':           { txt:'✅ Al corriente',           color:'#2e7d32' },
-      'CONVENIO_SERVICIOS':     { txt:'🤝 Convenio con servicios',  color:'#1565c0' },
-      'CONVENIO_SIN_SERVICIOS': { txt:'🔒 Convenio sin servicios',  color:'#e65100' },
-      'ADEUDO_PENDIENTE':       { txt:'⚠️ Adeudo pendiente',        color:'#c62828' },
-      // Valores que puede devolver la fórmula de Sheets
-      'CON SERVICIOS':          { txt:'✅ Al corriente',            color:'#2e7d32' },
-      'CONVENIO CON SERVICIOS': { txt:'🤝 Convenio con servicios',  color:'#1565c0' },
-      'SIN SERVICIO':           { txt:'🔒 Sin servicio',            color:'#e65100' },
+      'AL_CORRIENTE':           { txt:'✅ Al corriente',           },
+      'CONVENIO_SERVICIOS':     { txt:'🤝 Convenio con servicios', },
+      'CONVENIO_SIN_SERVICIOS': { txt: gracia ? '🕐 Periodo de gracia' : '🔒 Convenio sin servicios' },
+      'ADEUDO_PENDIENTE':       { txt: gracia ? '🕐 Periodo de gracia' : '⚠️ Adeudo pendiente' },
+      'CON SERVICIOS':          { txt:'✅ Al corriente',           },
+      'CONVENIO CON SERVICIOS': { txt:'🤝 Convenio con servicios', },
+      'SIN SERVICIO':           { txt: gracia ? '🕐 Periodo de gracia' : '🔒 Sin servicio' },
     };
-    const cfg = configs[estatus] || { txt:'Toca para ver tu estado', color:'#888' };
+    const cfg = configs[estatus] || { txt:'Toca para ver tu estado' };
     el.textContent      = cfg.txt;
     el.style.color      = '#f1f8e9';
     el.style.fontWeight = '800';
-  } catch(e) { el.textContent = 'Consultar estado de cuenta'; el.style.color = '#888'; }
+  } catch(e) { el.textContent = 'Consultar estado de cuenta'; el.style.color = '#f1f8e9'; }
 }
 
 // ── FINANZAS DETALLE ────────────────────────────────────────
@@ -2696,10 +2695,18 @@ function renderBitacora() {
 
 // ── ESTADO DE CUENTA DEL DEPTO ───────────────────────────────
 
+function enPeriodoGracia() {
+  return new Date().getDate() <= 10;
+}
+
 function calcConvenio(ad) {
   // Primero: usar campo ESTATUS de columna FA del Sheet
   const estatusSheet = String(ad.ESTATUS || ad.ESTATUS_CONVENIO || '').trim();
-  if (estatusSheet) return estatusSheet;
+  if (estatusSheet) {
+    // Si estamos en periodo de gracia y el estatus indica adeudo pendiente,
+    // mantener el estatus pero la app mostrará el aviso de gracia
+    return estatusSheet;
+  }
   // Fallback: calcular en frontend
   const adeudoTotal    = parseFloat(ad.ADEUDO_TOTAL_CAMBIO_COMITE || 0);
   const totalAbonado   = parseFloat(ad.TOTAL_ABONADO || 0);
@@ -2756,7 +2763,24 @@ function renderConvenioCard(ad, esComite) {
     </div>`;
   }
 
+  // Aviso de periodo de gracia
+  const gracia = enPeriodoGracia();
+  const diasRestantes = 10 - new Date().getDate();
+  const avisoGracia = gracia && (estatus === 'ADEUDO_PENDIENTE' || estatus === 'CONVENIO_SIN_SERVICIOS') ? `
+  <div style="background:#fff8e1;border:1.5px solid #fdd835;border-radius:10px;
+    padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+    <span style="font-size:18px">🕐</span>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:#f57f17">Periodo de gracia activo</div>
+      <div style="font-size:12px;color:#795548;margin-top:2px">
+        Te quedan ${diasRestantes} día${diasRestantes!==1?'s':''} para pagar sin recargo.
+        Después del día 10 aplica recargo de $50.
+      </div>
+    </div>
+  </div>` : '';
+
   return `
+  ${avisoGracia}
   <div class="convenio-card ${cfg.cls}">
     <div class="conv-titulo">${cfg.icon} ${cfg.titulo}</div>
     <div class="conv-desc">${cfg.desc}</div>
