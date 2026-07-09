@@ -2659,10 +2659,12 @@ function renderBitacora() {
 // ── ESTADO DE CUENTA DEL DEPTO ───────────────────────────────
 
 function calcConvenio(ad) {
-  const estatusManual = String(ad.ESTATUS_CONVENIO || '').trim();
-  if (estatusManual) return estatusManual;
-  const adeudoTotal = parseFloat(ad.ADEUDO_TOTAL_CAMBIO_COMITE || 0);
-  const totalAbonado = parseFloat(ad.TOTAL_ABONADO || 0);
+  // Primero: usar el estatus calculado en Sheets (fórmula FA)
+  const estatusSheet = String(ad.ESTATUS_CONVENIO || ad.ESTATUS_CONVENIO_CALC || '').trim();
+  if (estatusSheet) return estatusSheet;
+  // Fallback: calcular en frontend
+  const adeudoTotal    = parseFloat(ad.ADEUDO_TOTAL_CAMBIO_COMITE || 0);
+  const totalAbonado   = parseFloat(ad.TOTAL_ABONADO || 0);
   const adeudoOriginal = parseFloat(ad.ADEUDO_MTTO_CAMBIO_COMITE || 0) +
                          parseFloat(ad.ADEUDO_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE || 0);
   if (adeudoTotal <= 0) return 'AL_CORRIENTE';
@@ -2824,8 +2826,9 @@ function renderEcTab() {
 
   if (ecTabActivo === 'resumen') {
     // Aporte total mes a mes (columnas AA-AL = AT_MES)
-    const atMeses = meses.map(m => ({ mes: m.substring(0,3), v: parseFloat(ad[`AT_${m}`]||0) }))
-                         .filter(m => m.v > 0);
+    const atMeses = meses.map(m => ({
+      mes3: m, mesLabel: m.substring(0,3), v: parseFloat(ad[`AT_${m}`]||0)
+    })).filter(m => m.v > 0);
     const totalAt = atMeses.reduce((s,m) => s+m.v, 0);
     // Desglose de adeudo
     const adeudoMtto  = parseFloat(ad.ADEUDO_HOY_MTTO_CAMBIO_COMITE||0);
@@ -2840,16 +2843,49 @@ function renderEcTab() {
       💰 Aporte Total por Mes
     </p>
     <div style="background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 2px 6px rgba(0,0,0,.05)">
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px">
-        ${atMeses.map(m => `
-        <div style="background:#e8f5e9;border-radius:8px;padding:8px;text-align:center">
-          <div style="font-size:10px;color:#2e7d32;font-weight:700">${m.mes}</div>
-          <div style="font-size:13px;font-weight:800;color:#1b5e20;margin-top:2px">${fmt$(m.v)}</div>
-        </div>`).join('')}
-      </div>
-      <div style="border-top:1px solid #f0f0f0;padding-top:8px;display:flex;justify-content:space-between">
-        <span style="font-size:12px;color:#666">Total aportado 2026</span>
-        <span style="font-size:15px;font-weight:800;color:#2e7d32">${fmt$(totalAt)}</span>
+      ${atMeses.map((m,mi) => {
+        // Desglose del mes: MTTO, LUZ, CE2026, ABONO, CHIP, CONTROL, MULTAS, RENTAS
+        const campos = [
+          {l:'Mantenimiento', v: parseFloat(ad['MTTO_'+m.mes3]||0),  c:'#1565c0'},
+          {l:'Luz',           v: parseFloat(ad['LUZ_'+m.mes3]||0),   c:'#f57f17'},
+          {l:'CE 2026',       v: parseFloat(ad['CE2026_'+m.mes3]||0),c:'#7b1fa2'},
+          {l:'Abono adeudo',  v: parseFloat(ad['ABONO_ADEUDO_'+m.mes3]||0), c:'#2e7d32'},
+          {l:'Chip',          v: parseFloat(ad['CHIP_'+m.mes3]||0),  c:'#0277bd'},
+          {l:'Control',       v: parseFloat(ad['CONTROL_'+m.mes3]||0),c:'#4e342e'},
+          {l:'Multas',        v: parseFloat(ad['MULTAS_'+m.mes3]||0),c:'#c62828'},
+          {l:'Rentas',        v: parseFloat(ad['RENTAS_'+m.mes3]||0),c:'#e65100'},
+        ].filter(c => c.v > 0);
+        const detId = 'at-mes-' + mi;
+        const chk = m.v >= 1000 ? '✅✅' : m.v >= 500 ? '✅' : '○';
+        return `
+        <div style="border-bottom:1px solid #f0f0f0;overflow:hidden">
+          <div onclick="toggleSecGasto('${detId}',this)"
+            style="display:flex;justify-content:space-between;align-items:center;
+              padding:10px 4px;cursor:pointer">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:18px">${chk}</span>
+              <span style="font-size:14px;font-weight:700;color:#1565c0">${m.mesLabel}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:15px;font-weight:800;color:#1b5e20">${fmt$(m.v)}</span>
+              ${campos.length>0?`<span id="arr-${detId}" style="color:#1565c0;font-size:14px">▸</span>`:''}
+            </div>
+          </div>
+          ${campos.length>0?`
+          <div id="${detId}" style="display:none;padding:8px 12px;background:#f8fffe;border-radius:8px;margin-bottom:8px">
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px">
+              ${campos.map(c=>`
+              <div style="background:#fff;border-radius:8px;padding:8px 10px;border-left:3px solid ${c.c}">
+                <div style="font-size:10px;color:#888;font-weight:600">${c.l}</div>
+                <div style="font-size:14px;font-weight:800;color:${c.c};margin-top:2px">${fmt$(c.v)}</div>
+              </div>`).join('')}
+            </div>
+          </div>`:''}
+        </div>`;
+      }).join('')}
+      <div style="padding-top:10px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:#666;font-weight:600">Total aportado 2026</span>
+        <span style="font-size:16px;font-weight:900;color:#2e7d32">${fmt$(totalAt)}</span>
       </div>
     </div>` : ''}
 
@@ -2942,10 +2978,11 @@ function renderEcPagos(filtro) {
                    {l:'Adeudo',v:d.ADEUDO},{l:'Chip',v:d.CHIP}].filter(i => parseFloat(i.v||0)>0);
     const confComite = String(d.CONFIRMADO_COMITE||'').toUpperCase() === 'SI';
     const confTes    = String(d.CONFIRMADO_TESORERA||'').toUpperCase() === 'SI';
+    const checkmark = monto >= 1000 ? '✅✅' : monto >= 500 ? '✅' : '';
     return `
     <div class="dep-pago-card">
       <div class="dep-pago-header">
-        <span class="dep-pago-mes">${d.MES||'—'}</span>
+        <span class="dep-pago-mes">${d.MES||'—'} ${checkmark}</span>
         <span class="dep-pago-monto">${monto>0?fmt$(monto):'—'}</span>
       </div>
       <div class="dep-pago-meta">${d.FECHA||''} · ${d.METODO||''}</div>
@@ -2985,8 +3022,77 @@ async function cargarReportesFin() {
   const el = document.getElementById('rf-contenido');
   if (!el) return;
   el.innerHTML = '<div class="loader">Cargando...</div>';
-  // Reutilizar renderFinanzasComite pero en la pantalla de reportes
-  await renderFinanzasComite(el);
+  try {
+    const mesActual = MESES_ES[new Date().getMonth()];
+    const [resD, resG] = await Promise.all([
+      fetch(`${API}?accion=getDepositos`),
+      fetch(`${API}?accion=getGastos`)
+    ]);
+    const todos  = await resD.json();
+    const gastosAll = await resG.json();
+    const config = await (await fetch(`${API}?accion=getConfig`)).json();
+    const ingAnterior = parseFloat(config.ingresoAnterior || 28552);
+
+    const totalIngBruto = Array.isArray(todos) ? todos.reduce((s,d)=>s+(parseFloat(d.MONTO)||0),0) : 0;
+    const totalIng = totalIngBruto + ingAnterior;
+    const totalGas = Array.isArray(gastosAll) ? gastosAll.reduce((s,g)=>s+(parseFloat(g.MONTO)||0),0) : 0;
+    const balance  = totalIng - totalGas;
+    const balBg    = balance >= 0 ? 'linear-gradient(135deg,#1b5e20,#2e7d32)' : 'linear-gradient(135deg,#b71c1c,#c62828)';
+
+    // Cache gastos e ingresos por mes
+    const gCache = {}; const iCache = {};
+    if (Array.isArray(gastosAll)) gastosAll.forEach(g => {
+      const m = String(g.MES||'').toUpperCase().trim(); if(!m) return;
+      if(!gCache[m]) gCache[m]=[];
+      gCache[m].push(g);
+    });
+    if (Array.isArray(todos)) todos.forEach(d => {
+      const m = String(d.MES||'').toUpperCase().trim(); if(!m) return;
+      iCache[m] = (iCache[m]||0) + (parseFloat(d.MONTO)||0);
+    });
+    window._ingCache = iCache;
+    Object.assign(gastosCache, gCache);
+
+    const mesesGastos = Object.keys(gCache);
+    const gasFiltro = MESES_ES[new Date().getMonth()];
+    const gasActuales = gCache[gasFiltro] || gCache[mesesGastos[mesesGastos.length-1]] || [];
+    const gasFiltroActual = gCache[gasFiltro] ? gasFiltro : mesesGastos[mesesGastos.length-1];
+
+    el.innerHTML = `
+    <p class="seccion-titulo">Balance — ${new Date().getFullYear()}</p>
+    <div class="fin-comparativo">
+      <div class="fin-comp-card" style="background:linear-gradient(135deg,#1a237e,#1565c0)">
+        <div class="fin-comp-label">💰 Ingresos</div>
+        <div class="fin-comp-monto">${fmt$(totalIng)}</div>
+        <div style="font-size:9px;opacity:.7;margin-top:2px">Incl. ${fmt$(ingAnterior)} comité anterior</div>
+      </div>
+      <div class="fin-comp-card" style="background:linear-gradient(135deg,#b71c1c,#e53935)">
+        <div class="fin-comp-label">💸 Gastos</div>
+        <div class="fin-comp-monto">${fmt$(totalGas)}</div>
+        <div style="font-size:9px;opacity:.7;margin-top:2px">Total gastos</div>
+      </div>
+    </div>
+    <div class="fin-balance" style="background:${balBg}">
+      <div class="fin-balance-label">Balance general</div>
+      <div class="fin-balance-monto">${fmt$(balance)}</div>
+    </div>
+    <p class="seccion-titulo" style="margin-top:4px">💸 Gastos por Mes</p>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px" id="rf-filtros-gastos">
+      ${mesesGastos.map(m=>`<span class="fin-mes-chip ${m===gasFiltroActual?'activo':''}"
+        onclick="rfFiltrarGastos('${m}',this)">${m}</span>`).join('')}
+    </div>
+    <div id="rf-gastos-detalle">${renderGastosHTML(gasActuales, gasFiltroActual, iCache[gasFiltroActual]||0)}</div>`;
+  } catch(e) {
+    el.innerHTML = `<p style="color:#c62828;text-align:center;padding:16px">Error: ${e.message}</p>`;
+  }
+}
+
+function rfFiltrarGastos(mes, el) {
+  document.querySelectorAll('#rf-filtros-gastos .fin-mes-chip').forEach(b => b.classList.remove('activo'));
+  if (el) el.classList.add('activo');
+  const det = document.getElementById('rf-gastos-detalle');
+  const ing = (window._ingCache||{})[mes]||0;
+  if (det) det.innerHTML = renderGastosHTML(gastosCache[mes]||[], mes, ing);
 }
 
 // ── MÓDULO FINANCIERO ─────────────────────────────────────────
@@ -3017,8 +3123,10 @@ async function cargarMisFinanzas() {
     const adeudos   = await resA.json();
     if (!Array.isArray(finMisPagosData)) finMisPagosData = [];
     const totalIngBruto = finMisPagosData.reduce((s,d) => s + (parseFloat(d.MONTO)||0), 0);
-    // NOTA: finMisPagosData aquí es ALL deposits para el comparativo de la privada
-    const totalIng = totalIngBruto + INGRESO_INICIAL_COMITE;
+    // Leer ingreso anterior desde CONFIG del Sheet
+    let ingAnteriorHome = 28552;
+    try { const cfgR = await fetch(`${API}?accion=getConfig`); const cfgD = await cfgR.json(); ingAnteriorHome = parseFloat(cfgD.ingresoAnterior||28552); } catch(e){}
+    const totalIng = totalIngBruto + ingAnteriorHome;
     const totalGas = Array.isArray(gastos) ? gastos.reduce((s,g) => s + (parseFloat(g.MONTO)||0), 0) : 0;
     const balance  = totalIng - totalGas;
     const balBg    = balance >= 0 ? 'linear-gradient(135deg,#1b5e20,#2e7d32)' : 'linear-gradient(135deg,#b71c1c,#c62828)';
@@ -3028,7 +3136,7 @@ async function cargarMisFinanzas() {
       <div class="fin-comp-card" style="background:linear-gradient(135deg,#1a237e,#1565c0)">
         <div class="fin-comp-label">💰 Ingresos Privada</div>
         <div class="fin-comp-monto">${fmt$(totalIng)}</div>
-        <div style="font-size:9px;opacity:.7;margin-top:2px">Incl. $28,552 comité anterior</div>
+        <div style="font-size:9px;opacity:.7;margin-top:2px">Incl. ${fmt$(ingAnteriorHome)} comité anterior</div>
       </div>
       <div class="fin-comp-card" style="background:linear-gradient(135deg,#b71c1c,#e53935)">
         <div class="fin-comp-label">💸 Gastos</div>
@@ -3594,10 +3702,11 @@ function renderMisPagos() {
       {l:'Chip',    v:d.CHIP},    {l:'Control',v:d.CONTROL},
       {l:'Multas',  v:d.MULTAS},  {l:'Rentas', v:d.RENTAS},
     ].filter(i => parseFloat(i.v||0) > 0);
+    const checkmark = monto >= 1000 ? '✅✅' : monto >= 500 ? '✅' : '';
     return `
     <div class="dep-pago-card">
       <div class="dep-pago-header">
-        <span class="dep-pago-mes">${d.MES||'—'}</span>
+        <span class="dep-pago-mes">${d.MES||'—'} ${checkmark}</span>
         <span class="dep-pago-monto">${monto>0?fmt$(monto):'—'}</span>
       </div>
       <div class="dep-pago-meta">${d.FECHA||''} · ${d.METODO||''}</div>
