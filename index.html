@@ -399,10 +399,13 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 .gasto-monto-val { font-size:15px;font-weight:800;color:#c62828; }
 
 /* ── PANEL COMITÉ ──────────────────────────────────────────── */
-.tabs-comite { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
-.tab-btn { padding:8px 14px; border:1.5px solid #ddd; border-radius:20px;
-  background:#fff; font-size:13px; cursor:pointer; font-weight:500; }
-.tab-btn.activo { background:#1565c0; color:#fff; border-color:#1565c0; }
+.tabs-comite { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px; }
+.tab-btn { padding:10px 16px; border:1.5px solid #e0e0e0; border-radius:12px;
+  background:#fff; font-size:13px; font-weight:600; cursor:pointer; color:#555;
+  transition:all .2s; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.tab-btn:active { transform:scale(.96); }
+.tab-btn.activo { background:linear-gradient(135deg,#1a237e,#1565c0); color:#fff;
+  border-color:transparent; box-shadow:0 4px 12px rgba(21,101,192,.3); }
 .panel-seccion { display:none; }
 .panel-seccion.activa { display:block; }
 .item-comite { background:#fff; border-radius:12px; padding:14px 16px;
@@ -2799,8 +2802,8 @@ function renderEstadoCuenta() {
     <div class="ec-monto">${alCorriente ? '✅ Al corriente' : fmt$(adeudoTotal)}</div>
     <div class="ec-sub">${alCorriente ? 'Sin adeudos pendientes' : 'Adeudo total'}</div>
     <div class="ec-badges">
-      <span class="ec-badge">💰 Aporte ${fmt$(aporte)}${aporte>=1000?'✅✅':aporte>=500?'✅':''}</span>
-      <span class="ec-badge">📋 Cuota 2026: ${fmt$(parseFloat(ad.CUOTA_2026||0))}</span>
+      <span class="ec-badge">💰 Aporte ${fmt$(aporte)}</span>
+      <span class="ec-badge">📋 Cuota 2026: ${fmt$(parseFloat(ad.CUOTA_2026||0))}${parseFloat(ad.CUOTA_2026||0)>=1000?'✅✅':parseFloat(ad.CUOTA_2026||0)>=500?'✅':''}</span>
     </div>
   </div>
 
@@ -2833,15 +2836,15 @@ function renderEcTab() {
 
   if (ecTabActivo === 'resumen') {
     // Aporte total mes a mes (columnas AA-AL = AT_MES)
+    // AT_MES usa nombre completo: AT_ENERO, AT_FEBRERO, etc.
     const atMeses = meses.map(m => ({
       mes3: m, mesLabel: m.substring(0,3), v: parseFloat(ad[`AT_${m}`]||0)
     })).filter(m => m.v > 0);
     const totalAt = atMeses.reduce((s,m) => s+m.v, 0);
-    // Desglose de adeudo
+    // Adeudo desglosado — usar columnas E y F (adeudo HOY)
     const adeudoMtto  = parseFloat(ad.ADEUDO_HOY_MTTO_CAMBIO_COMITE||0);
     const adeudoCuota = parseFloat(ad.TOTAL_HOY_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE||0);
     const recargos    = parseFloat(ad.RECARGOS_2026||0);
-    const abonoMtto   = parseFloat(ad.ABONO_MTTO_CAMBIO_COMITE||0);
     const totalAbonado= parseFloat(ad.TOTAL_ABONADO||0);
 
     el.innerHTML = `
@@ -2853,14 +2856,14 @@ function renderEcTab() {
       ${atMeses.map((m,mi) => {
         // Desglose del mes: MTTO, LUZ, CE2026, ABONO, CHIP, CONTROL, MULTAS, RENTAS
         const campos = [
-          {l:'Mantenimiento', v: parseFloat(ad['MTTO_'+m.mes3]||0),  c:'#1565c0'},
-          {l:'Luz',           v: parseFloat(ad['LUZ_'+m.mes3]||0),   c:'#f57f17'},
-          {l:'CE 2026',       v: parseFloat(ad['CE2026_'+m.mes3]||0),c:'#7b1fa2'},
+          {l:'Mantenimiento', v: parseFloat(ad['MTTO_'+m.mes3]||0),        c:'#1565c0'},
+          {l:'Luz',           v: parseFloat(ad['LUZ_'+m.mes3]||0),          c:'#f57f17'},
+          {l:'CE 2026',       v: parseFloat(ad['CE2026_'+m.mes3]||0),       c:'#7b1fa2'},
           {l:'Abono adeudo',  v: parseFloat(ad['ABONO_ADEUDO_'+m.mes3]||0), c:'#2e7d32'},
-          {l:'Chip',          v: parseFloat(ad['CHIP_'+m.mes3]||0),  c:'#0277bd'},
-          {l:'Control',       v: parseFloat(ad['CONTROL_'+m.mes3]||0),c:'#4e342e'},
-          {l:'Multas',        v: parseFloat(ad['MULTAS_'+m.mes3]||0),c:'#c62828'},
-          {l:'Rentas',        v: parseFloat(ad['RENTAS_'+m.mes3]||0),c:'#e65100'},
+          {l:'Chip',          v: parseFloat(ad['CHIP_'+m.mes3]||0),         c:'#0277bd'},
+          {l:'Control',       v: parseFloat(ad['CONTROL_'+m.mes3]||0),      c:'#4e342e'},
+          {l:'Multas',        v: parseFloat(ad['MULTAS_'+m.mes3]||0),       c:'#c62828'},
+          {l:'Rentas',        v: parseFloat(ad['RENTAS_'+m.mes3]||0),       c:'#e65100'},
         ].filter(c => c.v > 0);
         const detId = 'at-mes-' + mi;
         const chk = m.v >= 1000 ? '✅✅' : m.v >= 500 ? '✅' : '○';
@@ -3390,20 +3393,26 @@ let comiteFinEdificio = null;
 async function renderFinanzasComite(el) {
   el.innerHTML = '<div class="loader">Cargando...</div>';
   try {
-    const [resD, resG, resA, resCfg] = await Promise.all([
+    // Cargar por separado para que un fallo de CONFIG no rompa los adeudos
+    const [resD, resG, resA] = await Promise.all([
       fetch(`${API}?accion=getDepositos`),
       fetch(`${API}?accion=getGastos`),
-      fetch(`${API}?accion=getAdeudos&depto=todos`),
-      fetch(`${API}?accion=getConfig`)
+      fetch(`${API}?accion=getAdeudos&depto=todos`)
     ]);
-    comiteFinData  = await resD.json();
+    comiteFinData = await resD.json();
     const gastosAll = await resG.json();
-    comiteAdeudos  = await resA.json();
-    const cfg      = await resCfg.json();
-    const ingAnterior = parseFloat(cfg.ingresoAnterior || 28552);
+    comiteAdeudos = await resA.json();
 
-    if (!Array.isArray(comiteFinData))  comiteFinData  = [];
-    if (!Array.isArray(comiteAdeudos))  comiteAdeudos  = [];
+    // CONFIG por separado — si falla usa default
+    let ingAnterior = 28552;
+    try {
+      const cfgR = await fetch(`${API}?accion=getConfig`);
+      const cfg  = await cfgR.json();
+      ingAnterior = parseFloat(cfg.ingresoAnterior || 28552);
+    } catch(e) {}
+
+    if (!Array.isArray(comiteFinData)) comiteFinData = [];
+    if (!Array.isArray(comiteAdeudos)) comiteAdeudos = [];
 
     // Cache gastos e ingresos por mes
     gastosCache = {};
@@ -3423,29 +3432,30 @@ async function renderFinanzasComite(el) {
     gastosFiltro = gastosCache[mesActual] ? mesActual : (mesesGastos[mesesGastos.length-1] || '');
     const gastosActuales = gastosCache[gastosFiltro] || [];
 
-    // Totales CORRECTOS: ingresos totales vs gastos totales
-    const totalIngBruto = comiteFinData.reduce((s,d) => s + (parseFloat(d.MONTO)||0), 0);
+    const totalIngBruto = comiteFinData.reduce((s,d) => s+(parseFloat(d.MONTO)||0), 0);
     const totalIng      = totalIngBruto + ingAnterior;
-    const totalGasTodos = Array.isArray(gastosAll) ? gastosAll.reduce((s,g) => s + (parseFloat(g.MONTO)||0), 0) : 0;
+    const totalGasTodos = Array.isArray(gastosAll) ? gastosAll.reduce((s,g) => s+(parseFloat(g.MONTO)||0), 0) : 0;
     const balance       = totalIng - totalGasTodos;
     const balBg         = balance >= 0 ? 'linear-gradient(135deg,#1b5e20,#2e7d32)' : 'linear-gradient(135deg,#b71c1c,#c62828)';
     const mesesDep      = [...new Set(comiteFinData.map(d => String(d.MES||'').toUpperCase().trim()).filter(Boolean))];
 
-    // Edificios — agrupar deptos por edificio
-    const edificioMap = {}; // { '1': [{...depto...}], '2': [...] }
+    // Construir mapa de edificios AQUÍ, antes del template
+    const edificioMap = {};
     comiteAdeudos.forEach(d => {
-      const edif = String(d.EDIFICIO !== null && d.EDIFICIO !== undefined && d.EDIFICIO !== '' ? d.EDIFICIO : '').trim();
-      if (!edif) return;
+      const edif = String(d.EDIFICIO).trim();
+      if (!edif || edif === 'undefined' || edif === 'null') return;
       if (!edificioMap[edif]) edificioMap[edif] = [];
       edificioMap[edif].push(d);
     });
+    window._edificioMap = edificioMap;
     const edificiosU = Object.keys(edificioMap).sort((a,b) => parseInt(a)-parseInt(b));
 
     const colorEdif = (edif) => {
       const deps  = edificioMap[edif] || [];
+      if (deps.length === 0) return 'amarillo';
       const conAd = deps.filter(d => parseFloat(d.ADEUDO_TOTAL_CAMBIO_COMITE||0) > 0).length;
-      if (conAd === 0)           return 'verde';
-      if (conAd < deps.length)   return 'amarillo';
+      if (conAd === 0) return 'verde';
+      if (conAd < deps.length) return 'amarillo';
       return 'rojo';
     };
 
@@ -3470,32 +3480,30 @@ async function renderFinanzasComite(el) {
 
     <p class="seccion-titulo" style="margin-top:4px">💸 Gastos por Mes</p>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px" id="cf-filtros-gastos">
-      ${mesesGastos.map(m=>
-        `<span class="fin-mes-chip ${m===gastosFiltro?'activo':''}" onclick="cfFiltrarGastos('${m}',this)">${m}</span>`
-      ).join('')}
+      ${mesesGastos.map(m => `<span class="fin-mes-chip ${m===gastosFiltro?'activo':''}" onclick="cfFiltrarGastos('${m}',this)">${m}</span>`).join('')}
     </div>
     <div id="cf-gastos-detalle">${renderGastosHTML(gastosActuales, gastosFiltro, window._ingCache[gastosFiltro]||0)}</div>
 
     <p class="seccion-titulo" style="margin-top:14px">🏘️ Estado por Edificio</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+    <p style="font-size:11px;color:#888;margin-bottom:10px">${comiteAdeudos.length} deptos cargados · ${edificiosU.length} edificios</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px" id="cf-filtros-semaforo">
       <span class="fin-mes-chip activo" onclick="cfFiltroSemaforo('todos',this)">Todos</span>
-      <span class="fin-mes-chip" onclick="cfFiltroSemaforo('verde',this)">🟢 Al corriente</span>
+      <span class="fin-mes-chip" onclick="cfFiltroSemaforo('verde',this)">🟢 Corriente</span>
       <span class="fin-mes-chip" onclick="cfFiltroSemaforo('amarillo',this)">🟡 Parcial</span>
       <span class="fin-mes-chip" onclick="cfFiltroSemaforo('rojo',this)">🔴 Adeudo</span>
     </div>
     <div class="edif-grid" id="cf-edif-grid">
       ${edificiosU.map(e => `
-      <div class="edif-card ${colorEdif(e)}" data-edif="${e}" onclick="cfSelEdifBtn(this)" id="edif-${e}">
+      <div class="edif-card ${colorEdif(e)}" data-edif="${e}" onclick="cfSelEdifBtn(this)">
         <div class="edif-num">${e}</div>
-        <div class="edif-sub">Edif. (${(edificioMap[e]||[]).length})</div>
       </div>`).join('')}
     </div>
 
-    <div id="cf-deptos-wrap" style="display:none">
+    <div id="cf-deptos-wrap" style="display:none;margin-top:8px">
       <p class="seccion-titulo" id="cf-deptos-titulo"></p>
       <div id="cf-deptos-lista"></div>
     </div>
-    <div id="cf-depto-detalle-wrap" style="display:none">
+    <div id="cf-depto-detalle-wrap" style="display:none;margin-top:8px">
       <p class="seccion-titulo" id="cf-depto-detalle-titulo"></p>
       <div id="cf-depto-detalle-lista"></div>
     </div>
@@ -3508,9 +3516,6 @@ async function renderFinanzasComite(el) {
       Selecciona un mes o edificio para ver los depósitos
     </p>
     <div id="cf-lista" style="display:none"></div>`;
-
-    // Guardar mapa para uso en filtros
-    window._edificioMap = edificioMap;
 
   } catch(e) {
     el.innerHTML = `<p style="color:#c62828;text-align:center;padding:16px">Error: ${e.message}</p>`;
