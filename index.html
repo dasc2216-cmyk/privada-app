@@ -2675,8 +2675,8 @@ function renderBitacora() {
 // ── ESTADO DE CUENTA DEL DEPTO ───────────────────────────────
 
 function calcConvenio(ad) {
-  // Primero: usar el estatus calculado en Sheets (fórmula FA)
-  const estatusSheet = String(ad.ESTATUS_CONVENIO || ad.ESTATUS_CONVENIO_CALC || '').trim();
+  // Primero: usar campo ESTATUS de columna FA del Sheet
+  const estatusSheet = String(ad.ESTATUS || ad.ESTATUS_CONVENIO || '').trim();
   if (estatusSheet) return estatusSheet;
   // Fallback: calcular en frontend
   const adeudoTotal    = parseFloat(ad.ADEUDO_TOTAL_CAMBIO_COMITE || 0);
@@ -2784,9 +2784,13 @@ function renderEstadoCuenta() {
   const ad = ecAdeudoData;
   const adeudoTotal = parseFloat(ad.ADEUDO_TOTAL_CAMBIO_COMITE || 0);
   const aporte      = parseFloat(ad.APORTE_TOTAL || 0);
+  const estatus     = calcConvenio(ad);
   const alCorriente = adeudoTotal <= 0;
-  const heroBg      = alCorriente
+  const tieneConvenio = estatus === 'CONVENIO_SERVICIOS' || estatus === 'CONVENIO_SIN_SERVICIOS';
+  const heroBg = alCorriente
     ? 'linear-gradient(135deg,#1b5e20,#2e7d32)'
+    : tieneConvenio
+    ? 'linear-gradient(135deg,#1a237e,#1565c0)'
     : 'linear-gradient(135deg,#b71c1c,#c62828)';
 
   // Meses donde hay movimiento (AT_MES > 0)
@@ -2805,8 +2809,8 @@ function renderEstadoCuenta() {
   <!-- Hero -->
   <div class="ec-hero" style="background:${heroBg}">
     <div class="ec-depto">📍 Depto ${ad.DEPTO}</div>
-    <div class="ec-monto">${alCorriente ? '✅ Al corriente' : fmt$(adeudoTotal)}</div>
-    <div class="ec-sub">${alCorriente ? 'Sin adeudos pendientes' : 'Adeudo total'}</div>
+    <div class="ec-monto">${alCorriente ? '✅ Al corriente' : tieneConvenio ? '🤝 Convenio activo' : '⚠️ ' + fmt$(adeudoTotal)}</div>
+    <div class="ec-sub">${alCorriente ? 'Sin adeudos pendientes' : tieneConvenio ? fmt$(adeudoTotal) + ' pendiente de liquidar' : 'Adeudo total'}</div>
     <div class="ec-badges">
       <span class="ec-badge">💰 Aporte ${fmt$(aporte)}</span>
       <span class="ec-badge">📋 Cuota 2026: ${fmt$(parseFloat(ad.CUOTA_2026||0))}${parseFloat(ad.CUOTA_2026||0)>=1000?'✅✅':parseFloat(ad.CUOTA_2026||0)>=500?'✅':''}</span>
@@ -2842,12 +2846,22 @@ function renderEcTab() {
 
   // ── TAB ABONO (AA-AL = AT_MES) ─────────────────────────────
   if (ecTabActivo === 'abono') {
-    const atMeses = meses.map(m => ({
+    // Debug: verificar que los campos AT lleguen
+    const mesesConAt = meses.filter(m => {
+      const v = ad['AT_' + m];
+      return v !== undefined && v !== null && v !== 0 && v !== '' && v !== 'NA' && parseFloat(v) > 0;
+    });
+
+    const atMeses = mesesConAt.map(m => ({
       mes: m, v: parseFloat(ad['AT_'+m]||0)
-    })).filter(m => m.v > 0);
+    }));
 
     if (atMeses.length === 0) {
-      el.innerHTML = '<p style="color:#888;text-align:center;padding:24px;font-size:14px">Sin abonos registrados este año</p>';
+      const keysAt = Object.keys(ad).filter(k => k.startsWith('AT_'));
+      el.innerHTML = `<p style="color:#888;text-align:center;padding:24px;font-size:14px">
+        Sin abonos registrados<br>
+        <span style="font-size:11px;color:#aaa">Campos AT encontrados: ${keysAt.length > 0 ? keysAt.join(', ') : 'ninguno'}</span>
+      </p>`;
       return;
     }
 
