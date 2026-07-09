@@ -731,18 +731,20 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 
     <!-- Finanzas en home -->
     <div id="finanzas-home-card" onclick="abrirFinanzas()"
-      style="border-radius:16px;padding:16px 18px;margin-bottom:14px;cursor:pointer;
-        background:#f8f9fa;border:1.5px solid #e8e8e8;
+      style="border-radius:16px;padding:18px 20px;margin-bottom:14px;cursor:pointer;
+        background:linear-gradient(135deg,#1b5e20,#2e7d32);
         display:flex;align-items:center;justify-content:space-between;
-        box-shadow:0 2px 10px rgba(0,0,0,.06);transition:transform .15s"
-      onmousedown="this.style.transform='scale(.98)'" onmouseup="this.style.transform=''">
+        box-shadow:0 4px 16px rgba(27,94,32,.30);transition:transform .15s"
+      onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform=''">
       <div>
-        <div style="font-size:11px;color:#888;margin-bottom:4px;font-weight:600;letter-spacing:.5px">
-          💳 CONSULTAR ESTADO DE CUENTA
+        <div style="font-size:11px;color:rgba(255,255,255,.75);margin-bottom:5px;
+          font-weight:700;letter-spacing:.8px">
+          💼 CONSULTAR ESTADO DE CUENTA
         </div>
-        <div id="home-estatus" style="font-size:18px;font-weight:800;color:#1b5e20">Cargando...</div>
+        <div id="home-estatus" style="font-size:19px;font-weight:800;
+          color:#f1f8e9;letter-spacing:.2px">Cargando...</div>
       </div>
-      <span style="font-size:24px;color:#bbb">›</span>
+      <span style="font-size:26px;color:rgba(255,255,255,.6);font-weight:300">›</span>
     </div>
 
     <!-- Grid de módulos -->
@@ -2094,7 +2096,7 @@ async function cargarEstatusHome() {
     };
     const cfg = configs[estatus] || { txt:'Toca para ver tu estado', color:'#888' };
     el.textContent      = cfg.txt;
-    el.style.color      = cfg.color;
+    el.style.color      = '#f1f8e9';
     el.style.fontWeight = '800';
   } catch(e) { el.textContent = 'Consultar estado de cuenta'; el.style.color = '#888'; }
 }
@@ -2900,7 +2902,7 @@ function renderEcTab() {
       // Depósitos reales del mes
       const depositos = pagosPorMes[m.mes] || [];
 
-      const chk = m.v >= 1000 ? '✅✅' : m.v >= 500 ? '✅' : '○';
+      const chk = '';
 
       return `
       <div style="background:#fff;border-radius:12px;margin-bottom:8px;
@@ -3107,10 +3109,13 @@ async function cargarReportesFin() {
       fetch(`${API}?accion=getDepositos`),
       fetch(`${API}?accion=getGastos`)
     ]);
-    const todos  = await resD.json();
+    const todos     = await resD.json();
     const gastosAll = await resG.json();
-    const config = await (await fetch(`${API}?accion=getConfig`)).json();
-    const ingAnterior = parseFloat(config.ingresoAnterior || 28552);
+    let ingAnterior = 28552;
+    try {
+      const cfgR = await fetch(`${API}?accion=getConfig`);
+      if (cfgR.ok) { const cfg = await cfgR.json(); ingAnterior = parseFloat(cfg.ingresoAnterior||28552); }
+    } catch(e){}
 
     const totalIngBruto = Array.isArray(todos) ? todos.reduce((s,d)=>s+(parseFloat(d.MONTO)||0),0) : 0;
     const totalIng = totalIngBruto + ingAnterior;
@@ -3204,7 +3209,10 @@ async function cargarMisFinanzas() {
     const totalIngBruto = finMisPagosData.reduce((s,d) => s + (parseFloat(d.MONTO)||0), 0);
     // Leer ingreso anterior desde CONFIG del Sheet
     let ingAnteriorHome = 28552;
-    try { const cfgR = await fetch(`${API}?accion=getConfig`); const cfgD = await cfgR.json(); ingAnteriorHome = parseFloat(cfgD.ingresoAnterior||28552); } catch(e){}
+    try {
+      const cfgR = await fetch(`${API}?accion=getConfig`);
+      if (cfgR.ok) { const cfgD = await cfgR.json(); ingAnteriorHome = parseFloat(cfgD.ingresoAnterior||28552); }
+    } catch(e){}
     const totalIng = totalIngBruto + ingAnteriorHome;
     const totalGas = Array.isArray(gastos) ? gastos.reduce((s,g) => s + (parseFloat(g.MONTO)||0), 0) : 0;
     const balance  = totalIng - totalGas;
