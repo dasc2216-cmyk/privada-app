@@ -1817,7 +1817,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbxl9uJ1M0PejAb3QQQVJX0JJ5iAdAF5gf__QUQBpC6qdsrNF7FlFbOHbHqHTMaV1gOUhQ/exec';
+const API = 'https://script.google.com/macros/s/AKfycbxYnO1B9pZ_3qLsUZD-cQSKJv_IIWsBc3v6pfrxGShN-vHnKDgN6QWJidvISjW4Hdc2Kw/exec';
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -3735,7 +3735,16 @@ async function cfSelDepto(depto) {
       <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Adeudo Mtto</div>
         <div class="fin-adeudo-item-v" style="color:#c62828">${fmt$(ad.ADEUDO_HOY_MTTO_CAMBIO_COMITE||0)}</div></div>
       <div class="fin-adeudo-item"><div class="fin-adeudo-item-l">Adeudo Cuota</div>
-        <div class="fin-adeudo-item-v" style="color:#c62828">${fmt$(ad.TOTAL_HOY_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE||0)}</div></div>`:''}
+        <div class="fin-adeudo-item-v" style="color:#c62828">${fmt$(ad.TOTAL_HOY_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE||0)}</div></div>
+      ${parseFloat(ad.RECARGOS_2026||0)>0?`
+      <div class="fin-adeudo-item" style="grid-column:span 2">
+        <div class="fin-adeudo-item-l">Recargos 2026</div>
+        <div class="fin-adeudo-item-v" style="color:#e65100">${fmt$(ad.RECARGOS_2026)}</div>
+      </div>`:''}
+      <div class="fin-adeudo-item" style="grid-column:span 2;background:#ffebee">
+        <div class="fin-adeudo-item-l">Total adeudo actual</div>
+        <div class="fin-adeudo-item-v" style="color:#c62828;font-size:18px">${fmt$(adeudoTotal)}</div>
+      </div>`:''}
     </div>
     <button onclick="cfCargarPagosDepto('${depto}',this)"
       style="width:100%;padding:13px;border-radius:12px;border:1.5px solid #1565c0;
