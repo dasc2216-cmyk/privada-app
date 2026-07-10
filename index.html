@@ -4,10 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Privada Paamul</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <style>
+/* ── PALETA PREMIUM ────────────────────────────────────────── */
+:root {
+  --azul-deep:   #0b1e3d;
+  --azul-mid:    #0d2347;
+  --azul-light:  #1a3f7a;
+  --dorado:      #d4af37;
+  --dorado-b:    rgba(212,175,55,.65);
+  --dorado-glow: rgba(212,175,55,.12);
+  --perla:       #f5f0e8;
+  --perla-soft:  rgba(245,240,232,.55);
+}
+
 /* ── Reset & Base ─────────────────────────────────────────── */
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
+body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); color:#222;
        min-height:100vh; }
 
 /* ── Utilidades ───────────────────────────────────────────── */
@@ -17,48 +31,114 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 
 /* ── PANTALLA INICIO ──────────────────────────────────────── */
 #s-inicio {
-  background: linear-gradient(160deg,#0d47a1 0%,#1565c0 50%,#1976d2 100%);
+  background:radial-gradient(ellipse at 30% 10%,#1a3f7a 0%,#0b1e3d 65%);
   align-items:center; justify-content:center; gap:0; padding:32px 24px;
+  position:relative; overflow:hidden;
 }
-.inicio-logo { text-align:center; margin-bottom:48px; }
-.inicio-logo .emoji { font-size:60px; display:block; margin-bottom:12px;
-  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.3)); letter-spacing:4px; }
-.inicio-logo h1 { color:#fff; font-size:28px; font-weight:700;
-  letter-spacing:0.5px; text-shadow:0 2px 8px rgba(0,0,0,0.3); }
-.inicio-logo p  { color:rgba(255,255,255,0.8); font-size:14px; margin-top:6px; }
-.inicio-btns { display:flex; flex-direction:column; gap:14px; width:100%; max-width:340px; }
-.btn-primary { background:#fff; color:#1565c0; border:none; border-radius:14px;
-  padding:16px; font-size:17px; font-weight:700; cursor:pointer;
-  box-shadow:0 4px 16px rgba(0,0,0,0.2); transition:transform .15s; }
+#s-inicio::before {
+  content:''; position:absolute; top:-60px; right:-60px;
+  width:200px; height:200px;
+  background:radial-gradient(circle,rgba(212,175,55,.08) 0%,transparent 70%);
+}
+#s-inicio::after {
+  content:''; position:absolute; bottom:-40px; left:-40px;
+  width:160px; height:160px;
+  background:radial-gradient(circle,rgba(26,63,122,.6) 0%,transparent 70%);
+}
+.inicio-logo { text-align:center; margin-bottom:40px; position:relative; z-index:1; }
+.inicio-logo .logo-img {
+  width:96px; height:96px; border-radius:50%;
+  border:2.5px solid rgba(212,175,55,.5);
+  object-fit:cover; display:block; margin:0 auto 16px;
+  box-shadow:0 0 30px rgba(212,175,55,.2), 0 8px 24px rgba(0,0,0,.4);
+}
+.inicio-logo h1 {
+  font-family:'Playfair Display',serif;
+  color:#f5f0e8; font-size:26px; font-weight:700;
+  letter-spacing:.5px; }
+.inicio-logo .sub {
+  font-size:9px; color:#d4af37; letter-spacing:2.5px;
+  text-transform:uppercase; font-weight:700; margin-top:5px; }
+.inicio-logo .admin-txt {
+  font-size:11px; color:rgba(245,240,232,.35);
+  margin-top:8px; letter-spacing:.3px; }
+.inicio-btns {
+  display:flex; flex-direction:column; gap:10px;
+  width:100%; max-width:340px; position:relative; z-index:1; }
+.btn-primary {
+  background:linear-gradient(135deg,rgba(180,145,35,.5),rgba(150,118,20,.4));
+  border:1.5px solid rgba(212,175,55,.45);
+  color:#f5f0e8; border-radius:13px;
+  padding:15px; font-size:15px; font-weight:700;
+  cursor:pointer; letter-spacing:.6px;
+  box-shadow:0 4px 16px rgba(180,145,35,.2);
+  transition:transform .15s; }
 .btn-primary:active { transform:scale(0.97); }
-.btn-secondary { background:rgba(255,255,255,0.15); color:#fff; border:2px solid rgba(255,255,255,0.5);
-  border-radius:14px; padding:16px; font-size:17px; font-weight:600;
-  cursor:pointer; backdrop-filter:blur(4px); transition:transform .15s; }
+.btn-secondary {
+  background:rgba(212,175,55,.07);
+  border:1.5px solid rgba(212,175,55,.3);
+  color:#d4af37; border-radius:13px;
+  padding:14px; font-size:15px; font-weight:700;
+  cursor:pointer; letter-spacing:.8px;
+  transition:transform .15s; }
 .btn-secondary:active { transform:scale(0.97); }
+.btn-seg-inicio {
+  background:linear-gradient(135deg,rgba(10,22,40,.8),rgba(13,35,71,.9));
+  border:1.5px solid rgba(212,175,55,.3);
+  border-radius:13px; padding:12px 16px;
+  display:flex; align-items:center; gap:10px;
+  cursor:pointer; width:100%; transition:transform .15s; }
+.btn-seg-inicio:active { transform:scale(0.97); }
+.seg-inicio-badge {
+  background:rgba(212,175,55,.12); border:1px solid rgba(212,175,55,.25);
+  border-radius:8px; padding:6px 8px; font-size:18px; }
+.seg-inicio-txt { font-size:11px; font-weight:700; color:rgba(212,175,55,.8); letter-spacing:.5px; }
+.seg-inicio-sub { font-size:9px; color:rgba(245,240,232,.3); margin-top:1px; }
+.inicio-sep {
+  display:flex; align-items:center; gap:8px; }
+.inicio-sep div { flex:1; height:1px; background:rgba(212,175,55,.12); }
+.inicio-sep span { font-size:9px; color:rgba(212,175,55,.35); }
 
 /* ── HEADER GENERAL ───────────────────────────────────────── */
-.app-header { background:linear-gradient(135deg,#1565c0,#1976d2);
-  color:#fff; padding:16px 20px 14px; display:flex;
-  align-items:center; gap:12px; box-shadow:0 2px 8px rgba(0,0,0,0.15); }
-.app-header .back { background:none; border:none; color:#fff; font-size:22px;
-  cursor:pointer; padding:4px; line-height:1; }
+.app-header {
+  background:radial-gradient(ellipse at 30% 0%,#1a3f7a 0%,var(--azul-deep) 70%);
+  color:var(--perla); padding:14px 18px;
+  display:flex; align-items:center; gap:12px;
+  border-bottom:1px solid rgba(212,175,55,.18);
+  box-shadow:0 2px 16px rgba(0,0,0,.3); }
+.app-header .back {
+  background:none; border:none; color:var(--dorado); font-size:22px;
+  cursor:pointer; padding:4px; line-height:1; opacity:.8; }
 .app-header .header-title { flex:1; }
-.app-header .header-title h1 { font-size:17px; font-weight:700; }
-.app-header .header-title p  { font-size:12px; opacity:.85; margin-top:2px; }
+.app-header .header-title h1 {
+  font-family:'Playfair Display',serif;
+  font-size:17px; font-weight:700; color:var(--perla); }
+.app-header .header-title p { font-size:11px; color:var(--dorado); margin-top:2px; letter-spacing:.3px; }
 
 /* ── CONTENIDO ────────────────────────────────────────────── */
-.content { flex:1; padding:16px; max-width:480px; width:100%; margin:0 auto; }
+.content {
+  flex:1; padding:14px 16px;
+  max-width:480px; width:100%; margin:0 auto;
+  background:linear-gradient(180deg,#0d2347 0%,#0e2550 100%);
+  min-height:calc(100vh - 60px); }
 
 /* ── FORMS ─────────────────────────────────────────────────── */
-.card { background:#fff; border-radius:16px; padding:20px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.08); margin-bottom:16px; }
-.card-title { font-size:16px; font-weight:700; color:#1565c0; margin-bottom:16px; }
+.card {
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(212,175,55,.2);
+  border-radius:16px; padding:18px;
+  box-shadow:0 4px 16px rgba(0,0,0,.2); margin-bottom:14px; }
+.card-title { font-size:15px; font-weight:700; color:var(--dorado); margin-bottom:14px; letter-spacing:.3px; }
 .fg { margin-bottom:14px; }
-.fg label { display:block; font-size:13px; color:#666; margin-bottom:6px; font-weight:500; }
+.fg label { display:block; font-size:12px; color:rgba(212,175,55,.7); margin-bottom:5px; font-weight:600; letter-spacing:.3px; }
 .fg input, .fg select {
-  width:100%; padding:13px 14px; border:1.5px solid #ddd; border-radius:10px;
-  font-size:15px; background:#fff; transition:border-color .2s; outline:none; }
-.fg input:focus, .fg select:focus { border-color:#1976d2; }
+  width:100%; padding:12px 14px;
+  border:1.5px solid rgba(212,175,55,.25); border-radius:10px;
+  font-size:14px; background:rgba(255,255,255,.07); color:var(--perla);
+  transition:border-color .2s; outline:none; }
+.fg input:focus, .fg select:focus { border-color:rgba(212,175,55,.6); }
+.fg input::placeholder { color:rgba(245,240,232,.3); }
+.fg select option { background:#0d2347; color:var(--perla); }
 .fg input.error { border-color:#e53935; }
 .err-msg { color:#e53935; font-size:12px; margin-top:5px; display:none; }
 .err-msg.show { display:block; }
@@ -163,14 +243,18 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 
 /* Grid de módulos */
 .modulos-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.modulo-btn { background:#fff; border:none; border-radius:14px; padding:18px 12px;
-  text-align:center; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.08);
+.modulo-btn {
+  background:rgba(212,175,55,.1);
+  border:1.5px solid rgba(212,175,55,.55);
+  border-radius:14px; padding:14px 8px 12px;
+  text-align:center; cursor:pointer;
+  box-shadow:0 0 8px rgba(212,175,55,.08);
   transition:transform .15s; }
 .modulo-btn:active { transform:scale(0.96); }
-.modulo-btn .m-icon  { font-size:30px; display:block; margin-bottom:8px; }
-.modulo-btn .m-title { font-size:13px; font-weight:700; color:#333;
-  display:block; margin-bottom:3px; }
-.modulo-btn .m-desc  { font-size:11px; color:#888; }
+.modulo-btn .m-icon  { font-size:24px; display:block; margin-bottom:6px; filter:saturate(.5) brightness(.85); }
+.modulo-btn .m-title { font-size:11px; font-weight:700; color:var(--perla);
+  display:block; margin-bottom:2px; }
+.modulo-btn .m-desc  { font-size:9px; color:rgba(212,175,55,.6); }
 .modulo-btn.full-width { grid-column:span 2; }
 
 /* ── PANTALLA FINANZAS ────────────────────────────────────── */
@@ -513,13 +597,27 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-inicio" class="screen active">
   <div class="inicio-logo">
-    <span class="emoji">🏘️🌴</span>
+    <img src="logoadministraciontransparente.png" alt="Logo Privada Paamul" class="logo-img">
     <h1>Privada Paamul</h1>
-    <p>Residencial Paseos de Xcacel</p>
+    <div class="sub">Paseos de Xcacel</div>
+    <div class="admin-txt">Administración Residencial</div>
   </div>
   <div class="inicio-btns">
-    <button class="btn-primary" onclick="ir('s-login')">Entrar</button>
-    <button class="btn-secondary" onclick="ir('s-registro')">Registrarse</button>
+    <div style="font-size:8.5px;font-weight:800;color:rgba(212,175,55,.45);
+      letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:4px">
+      Acceso al portal
+    </div>
+    <button class="btn-primary" onclick="ir('s-login')">INGRESAR</button>
+    <button class="btn-secondary" onclick="ir('s-registro')">✦ REGISTRARME</button>
+    <div class="inicio-sep"><div></div><span>personal autorizado</span><div></div></div>
+    <button class="btn-seg-inicio" onclick="ir('s-login-seg')">
+      <div class="seg-inicio-badge">🛡️</div>
+      <div>
+        <div class="seg-inicio-txt">ACCESO SEGURIDAD</div>
+        <div class="seg-inicio-sub">Solo personal autorizado</div>
+      </div>
+      <span style="margin-left:auto;font-size:16px;color:rgba(212,175,55,.35)">›</span>
+    </button>
   </div>
 </div>
 
@@ -587,7 +685,9 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
       <p class="card-title">📝 Tus datos</p>
       <div class="fg">
         <label>Número de departamento</label>
-        <input type="text" id="reg-casa" placeholder="Ej: 4A" style="text-transform:uppercase">
+        <input type="text" id="reg-casa" placeholder="Ej: 4A"
+          style="text-transform:uppercase"
+          oninput="this.value=this.value.replace(/\s/g,'').toUpperCase()">
         <span class="err-msg" id="err-casa">Ingresa tu número de depto</span>
       </div>
       <div class="fg">
@@ -623,31 +723,40 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
      PANTALLA 3 — LOGIN
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-login" class="screen">
-  <div class="app-header">
-    <button class="back" onclick="ir('s-inicio')">←</button>
-    <div class="header-title">
-      <h1>Privada Paamul</h1>
-      <p>Ingresa a tu cuenta</p>
-    </div>
+  <div style="background:radial-gradient(ellipse at 30% 0%,#1a3f7a 0%,#0b1e3d 70%);
+    padding:20px 16px 22px;text-align:center;border-bottom:1px solid rgba(212,175,55,.15)">
+    <img src="logoadministraciontransparente.png" alt="Logo"
+      style="width:56px;height:56px;border-radius:50%;border:2px solid rgba(212,175,55,.45);
+        object-fit:cover;box-shadow:0 0 16px rgba(212,175,55,.15);margin-bottom:10px">
+    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#f5f0e8">Privada Paamul</div>
+    <div style="font-size:8.5px;color:#d4af37;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;margin-top:3px">Paseos de Xcacel</div>
   </div>
   <div class="content">
     <div class="msg" id="login-msg"></div>
+    <div style="font-size:8.5px;font-weight:800;color:rgba(212,175,55,.5);
+      letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:14px;margin-top:4px">
+      Acceso al portal
+    </div>
     <div class="card">
-      <p class="card-title">🔐 Acceso</p>
       <div class="fg">
         <label>Número de departamento</label>
-        <input type="text" id="login-casa" placeholder="Ej: 4A" style="text-transform:uppercase">
+        <input type="text" id="login-casa" placeholder="Ej: 4A"
+          style="text-transform:uppercase"
+          oninput="this.value=this.value.replace(/\s/g,'').toUpperCase()">
       </div>
       <div class="fg">
-        <label>Tu clave de acceso</label>
+        <label>Clave de acceso</label>
         <input type="text" id="login-clave" placeholder="Ej: 123A" maxlength="4"
-          style="text-transform:uppercase; letter-spacing:4px; font-size:20px;
-                 font-weight:700; text-align:center;">
+          style="text-transform:uppercase;letter-spacing:4px;font-size:20px;font-weight:700;text-align:center"
+          oninput="this.value=this.value.replace(/\s/g,'').toUpperCase()">
       </div>
-      <button class="btn-submit" onclick="login()">Entrar</button>
+      <button class="btn-submit" onclick="login()">INGRESAR</button>
     </div>
-    <div style="text-align:center">
-      <button class="btn-link" onclick="ir('s-registro')">¿Primera vez? Regístrate</button>
+    <div style="text-align:center;margin-top:4px">
+      <button class="btn-link" onclick="ir('s-registro')" style="color:rgba(212,175,55,.6);font-size:12px">¿Primera vez? ✦ Registrarme</button>
+    </div>
+    <div style="margin-top:10px;text-align:center">
+      <button onclick="ir('s-inicio')" style="background:none;border:none;color:rgba(245,240,232,.3);font-size:12px;cursor:pointer">← Volver</button>
     </div>
   </div>
 </div>
@@ -688,145 +797,182 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
      PANTALLA 5 — MENÚ PRINCIPAL
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-menu" class="screen">
-  <div class="app-header">
-    <div class="header-title">
-      <h1>Privada Paamul</h1>
-      <p id="menu-depto">Departamento —</p>
+  <!-- Header premium con logo -->
+  <div style="background:radial-gradient(ellipse at 30% 0%,#1a3f7a 0%,#0b1e3d 70%);
+    padding:18px 16px 20px;text-align:center;position:relative;overflow:hidden;
+    border-bottom:1px solid rgba(212,175,55,.18);">
+    <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;
+      background:radial-gradient(circle,rgba(212,175,55,.07) 0%,transparent 70%)"></div>
+    <img src="logoadministraciontransparente.png" alt="Logo"
+      style="width:64px;height:64px;border-radius:50%;border:2px solid rgba(212,175,55,.5);
+        object-fit:cover;box-shadow:0 0 20px rgba(212,175,55,.18),0 4px 12px rgba(0,0,0,.3);
+        margin-bottom:10px">
+    <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;
+      color:#f5f0e8;letter-spacing:.5px">Privada Paamul</div>
+    <div style="font-size:9px;color:#d4af37;letter-spacing:2.5px;text-transform:uppercase;
+      font-weight:700;margin-top:3px">Paseos de Xcacel</div>
+    <div style="display:inline-flex;align-items:center;gap:5px;
+      background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.2);
+      border-radius:20px;padding:3px 10px;margin-top:8px">
+      <div style="width:5px;height:5px;background:#d4af37;border-radius:50%"></div>
+      <span id="menu-depto" style="font-size:10px;color:rgba(245,240,232,.7)">Departamento —</span>
     </div>
+    <div id="menu-depto2" style="display:none"></div>
+    <div id="menu-nombre" style="display:none"></div>
+    <div id="menu-badges" style="display:none"></div>
   </div>
+
   <div class="content" style="overflow-y:auto">
 
-    <!-- Banner de Anuncios -->
+    <!-- Banner anuncios -->
     <div id="banner-anuncios" style="display:none"></div>
 
-    <!-- Bienvenida -->
-    <div class="bienvenida-card">
-      <div class="depto" id="menu-depto2">Departamento —</div>
-      <div class="nombre" id="menu-nombre">—</div>
-      <div id="menu-badges"></div>
-    </div>
-
-    <!-- Banner junta (se oculta si no hay) -->
+    <!-- Banner junta -->
     <div class="banner-junta hidden" id="banner-junta">
       <h3 id="bj-tipo">🏛️ Próxima Junta</h3>
-      <p id="bj-fecha"></p>
-      <p id="bj-orden"></p>
+      <p id="bj-fecha"></p><p id="bj-orden"></p>
     </div>
 
-    <!-- Banner paquete pendiente -->
+    <!-- Banner paquete -->
     <div class="hidden" id="banner-paquete"
-      style="background:linear-gradient(135deg,#e65100,#fb8c00);border-radius:14px;
-             padding:14px 16px;color:#fff;margin-bottom:16px;cursor:pointer;
-             box-shadow:0 3px 10px rgba(230,81,0,.3);"
+      style="background:linear-gradient(135deg,rgba(230,81,0,.3),rgba(251,140,0,.25));
+        border:1.5px solid rgba(251,140,0,.4);border-radius:14px;
+        padding:12px 14px;color:var(--perla);margin-bottom:12px;cursor:pointer"
       onclick="abrirPaqueteria()">
       <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:28px">📦</span>
+        <span style="font-size:24px;filter:saturate(.5)">📦</span>
         <div>
-          <div style="font-weight:700;font-size:15px">¡Tienes paquetes en caseta!</div>
-          <div id="banner-paq-texto" style="font-size:13px;opacity:.9;margin-top:2px"></div>
+          <div style="font-weight:700;font-size:14px">¡Tienes paquetes en caseta!</div>
+          <div id="banner-paq-texto" style="font-size:12px;opacity:.8;margin-top:1px"></div>
         </div>
-        <span style="margin-left:auto;font-size:20px;opacity:.8">›</span>
+        <span style="margin-left:auto;font-size:18px;color:rgba(212,175,55,.6)">›</span>
       </div>
     </div>
 
-    <!-- Finanzas en home -->
+    <!-- Estado de cuenta -->
     <div id="finanzas-home-card" onclick="abrirFinanzas()"
-      style="border-radius:16px;padding:18px 20px;margin-bottom:14px;cursor:pointer;
-        background:linear-gradient(135deg,#1b5e20,#2e7d32);
+      style="border-radius:16px;padding:14px 16px;margin-bottom:10px;cursor:pointer;
+        background:linear-gradient(135deg,#1a3f7a,#0d2347);
+        border:1.5px solid rgba(212,175,55,.35);
         display:flex;align-items:center;justify-content:space-between;
-        box-shadow:0 4px 16px rgba(27,94,32,.30);transition:transform .15s"
+        box-shadow:0 4px 16px rgba(0,0,0,.3);transition:transform .15s"
       onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform=''">
       <div>
-        <div style="font-size:11px;color:rgba(255,255,255,.75);margin-bottom:5px;
-          font-weight:700;letter-spacing:.8px">
+        <div style="font-size:8.5px;color:rgba(212,175,55,.65);margin-bottom:4px;
+          font-weight:800;letter-spacing:1.5px;text-transform:uppercase">
           💼 CONSULTAR ESTADO DE CUENTA
         </div>
-        <div id="home-estatus" style="font-size:19px;font-weight:800;
-          color:#f1f8e9;letter-spacing:.2px">Cargando...</div>
+        <div id="home-estatus" style="font-size:17px;font-weight:800;
+          color:#f5f0e8;letter-spacing:.2px">Cargando...</div>
+        <div style="font-size:9px;color:rgba(245,240,232,.4);margin-top:2px">Toca para ver tu resumen</div>
       </div>
-      <span style="font-size:26px;color:rgba(255,255,255,.6);font-weight:300">›</span>
+      <span style="font-size:22px;color:rgba(212,175,55,.45)">›</span>
     </div>
 
-    <!-- Grid de módulos -->
+    <!-- Banner periodo de gracia -->
+    <div id="banner-gracia" style="display:none;background:rgba(212,175,55,.06);
+      border:1px solid rgba(212,175,55,.2);border-radius:12px;padding:10px 12px;
+      margin-bottom:10px;display:none">
+      <div style="display:flex;gap:8px;align-items:flex-start">
+        <span style="font-size:14px">🕐</span>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#d4af37;margin-bottom:2px"
+            id="gracia-titulo">Periodo de gracia</div>
+          <div style="font-size:10px;color:rgba(212,175,55,.7);line-height:1.4"
+            id="gracia-texto">Paga antes del día 10 para evitar recargos de $50</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SERVICIOS (todos los roles) -->
+    <div style="font-size:8.5px;font-weight:800;color:rgba(212,175,55,.6);
+      letter-spacing:2.5px;text-transform:uppercase;margin:10px 0 7px">Servicios</div>
     <div class="modulos-grid">
-      <button class="modulo-btn" onclick="ir('s-visitas'); cargarVisitas(); cargarHistorialVisitas()">
-        <span class="m-icon">🚗</span>
-        <span class="m-title">Visitas</span>
-        <span class="m-desc">Registra accesos</span>
-      </button>
       <button class="modulo-btn" onclick="ir('s-amenidades'); cargarAmenidades()">
         <span class="m-icon">🏊</span>
         <span class="m-title">Amenidades</span>
-        <span class="m-desc">Piscina, palapa y más</span>
-      </button>
-      <button class="modulo-btn" onclick="ir('s-reportes'); cargarReportes()">
-        <span class="m-icon">📝</span>
-        <span class="m-title">Reportes</span>
-        <span class="m-desc">Quejas y sugerencias</span>
-      </button>
-      <button class="modulo-btn" onclick="ir('s-mudanzas'); cargarMudanzas()">
-        <span class="m-icon">🚛</span>
-        <span class="m-title">Mudanzas</span>
-        <span class="m-desc">Control de acceso</span>
-      </button>
-      <button class="modulo-btn" onclick="ir('s-juntas'); cargarJuntas()">
-        <span class="m-icon">🏛️</span>
-        <span class="m-title">Juntas</span>
-        <span class="m-desc">Asambleas y minutas</span>
-      </button>
-      <button class="modulo-btn" onclick="ir('s-servicios'); cargarServicios()">
-        <span class="m-icon">🔑</span>
-        <span class="m-title">Servicios</span>
-        <span class="m-desc">Llave azotea y escalera</span>
-      </button>
-      <button class="modulo-btn" onclick="abrirPaqueteria()" id="btn-paqueteria">
-        <span class="m-icon">📦</span>
-        <span class="m-title">Paquetería</span>
-        <span class="m-desc">Paquetes en caseta</span>
-      </button>
-      <button class="modulo-btn" id="btn-mis-multas" style="display:none" onclick="ir('s-multas-res'); cargarMultasResidente()">
-        <span class="m-icon">⚠️</span>
-        <span class="m-title">Mis Multas</span>
-        <span class="m-desc">Llamadas de atención y sanciones</span>
-      </button>
-      <button class="modulo-btn" id="btn-documentos" style="display:none" onclick="ir('s-documentos'); cargarDocumentos()">
-        <span class="m-icon">📁</span>
-        <span class="m-title">Documentos</span>
-        <span class="m-desc">Circulares y presentaciones</span>
-      </button>
-      <button class="modulo-btn" id="btn-mis-pagos" style="display:none" onclick="ir('s-reportes-fin'); cargarReportesFin()">
-        <span class="m-icon">💰</span>
-        <span class="m-title">Finanzas</span>
-        <span class="m-desc">Reportes financieros</span>
       </button>
       <button class="modulo-btn" onclick="ir('s-bitacora'); cargarBitacoraResidente()">
         <span class="m-icon">📋</span>
         <span class="m-title">Bitácora</span>
-        <span class="m-desc">Mantenimiento de áreas</span>
       </button>
+      <button class="modulo-btn" onclick="ir('s-mudanzas'); cargarMudanzas()">
+        <span class="m-icon">🚛</span>
+        <span class="m-title">Mudanzas</span>
+      </button>
+      <button class="modulo-btn" onclick="abrirPaqueteria()" id="btn-paqueteria">
+        <span class="m-icon">📦</span>
+        <span class="m-title">Paquetería</span>
+      </button>
+      <button class="modulo-btn" onclick="ir('s-visitas'); cargarVisitas(); cargarHistorialVisitas()">
+        <span class="m-icon">🚗</span>
+        <span class="m-title">Registrar</span>
+      </button>
+      <button class="modulo-btn" onclick="ir('s-reportes'); cargarReportes()">
+        <span class="m-icon">💡</span>
+        <span class="m-title">Sugerencias</span>
+      </button>
+    </div>
+
+    <!-- DEPARTAMENTO (todos los roles) -->
+    <div style="font-size:8.5px;font-weight:800;color:rgba(212,175,55,.6);
+      letter-spacing:2.5px;text-transform:uppercase;margin:10px 0 7px">Departamento</div>
+    <div class="modulos-grid">
       <button class="modulo-btn" onclick="ir('s-directorio'); cargarDirectorio()">
         <span class="m-icon">📞</span>
-        <span class="m-title">Contactos</span>
-        <span class="m-desc">Directorio Paamul</span>
+        <span class="m-title">Directorio</span>
+      </button>
+      <button class="modulo-btn" onclick="ir('s-juntas'); cargarJuntas()">
+        <span class="m-icon">🏛️</span>
+        <span class="m-title">Juntas</span>
       </button>
       <button class="modulo-btn" onclick="ir('s-reglamento-ver'); cargarReglamentoVer()">
         <span class="m-icon">📜</span>
         <span class="m-title">Reglamento</span>
-        <span class="m-desc">Consultar normativa</span>
       </button>
     </div>
 
-    <!-- Botones especiales: solo visibles según rol -->
-    <div id="btn-comite-wrap" style="display:none; margin-top:8px">
-      <button class="modulo-btn" style="width:100%; background:#fff8e1; border:2px solid #ffd600"
-        onclick="ir('s-comite'); cargarComite()">
-        <span class="m-icon">⭐</span>
-        <span class="m-title" style="color:#e65100">Panel del Comité</span>
-        <span class="m-desc">Gestión y administración</span>
+    <!-- PROPIETARIOS (solo propietario/admin) -->
+    <div id="seccion-propietarios" style="display:none">
+      <div style="font-size:8.5px;font-weight:800;color:rgba(212,175,55,.6);
+        letter-spacing:2.5px;text-transform:uppercase;margin:10px 0 7px">Propietarios</div>
+      <div class="modulos-grid">
+        <button class="modulo-btn" id="btn-documentos" onclick="ir('s-documentos'); cargarDocumentos()">
+          <span class="m-icon">📁</span>
+          <span class="m-title">Documentos</span>
+        </button>
+        <button class="modulo-btn" id="btn-mis-pagos" onclick="ir('s-reportes-fin'); cargarReportesFin()">
+          <span class="m-icon">💰</span>
+          <span class="m-title">Finanzas</span>
+        </button>
+        <button class="modulo-btn" id="btn-mis-multas" onclick="ir('s-multas-res'); cargarMultasResidente()">
+          <span class="m-icon">⚠️</span>
+          <span class="m-title">Multas</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PANEL COMITÉ -->
+    <div id="btn-comite-wrap" style="display:none;margin-top:6px">
+      <button onclick="ir('s-comite'); cargarComite()"
+        style="width:100%;padding:13px 16px;
+          background:rgba(212,175,55,.1);
+          border:1.5px solid rgba(212,175,55,.55);
+          border-radius:14px;cursor:pointer;
+          display:flex;align-items:center;justify-content:space-between;
+          box-shadow:0 0 12px rgba(212,175,55,.1)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px;filter:saturate(.5)">⭐</span>
+          <div style="text-align:left">
+            <div style="font-size:13px;font-weight:700;color:#d4af37;letter-spacing:.3px">Panel del Comité</div>
+            <div id="cargo-label" style="font-size:9px;color:rgba(212,175,55,.5);margin-top:1px">Gestión y administración</div>
+          </div>
+        </div>
+        <span style="font-size:18px;color:rgba(212,175,55,.4)">›</span>
       </button>
     </div>
 
-    <button class="btn-cerrar" onclick="cerrarSesion()">Cerrar sesión</button>
+    <button class="btn-cerrar" onclick="cerrarSesion()" style="margin-top:14px">Cerrar sesión</button>
   </div>
 </div>
 
@@ -1241,20 +1387,20 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
   <div class="content" style="overflow-y:auto">
     <div id="msg-comite" class="msg"></div>
     <div class="tabs-comite">
-      <button class="tab-btn activo" onclick="tabComite('reportes',this)">📝 Reportes</button>
-      <button class="tab-btn" onclick="tabComite('mudanzas',this)">📦 Mudanzas</button>
-      <button class="tab-btn" onclick="tabComite('multas',this)">⚠️ Multas</button>
-      <button class="tab-btn" onclick="tabComite('prestamos',this)">🔑 Préstamos</button>
-      <button class="tab-btn" onclick="tabComite('bitacora',this)">📋 Bitácora</button>
-      <button class="tab-btn" onclick="tabComite('finanzas',this)">💰 Finanzas</button>
-      <button class="tab-btn" onclick="tabComite('propietarios',this)">👤 Verificar</button>
+      <button class="tab-btn activo" data-tab="bitacora"     onclick="tabComite('bitacora',this)">📋 Bitácora</button>
+      <button class="tab-btn"        data-tab="finanzas"     onclick="tabComite('finanzas',this)">💰 Finanzas</button>
+      <button class="tab-btn"        data-tab="mudanzas"     onclick="tabComite('mudanzas',this)">📦 Mudanzas</button>
+      <button class="tab-btn"        data-tab="multas"       onclick="tabComite('multas',this)">⚠️ Multas</button>
+      <button class="tab-btn"        data-tab="prestamos"    onclick="tabComite('prestamos',this)">🔑 Préstamos</button>
+      <button class="tab-btn"        data-tab="reportes"     onclick="tabComite('reportes',this)">📝 Reportes</button>
+      <button class="tab-btn"        data-tab="propietarios" onclick="tabComite('propietarios',this)">👤 Verificar</button>
     </div>
-    <div id="cp-reportes"     class="panel-seccion activa"><div class="loader">Cargando...</div></div>
+    <div id="cp-bitacora"     class="panel-seccion activa"><div class="loader">Cargando...</div></div>
+    <div id="cp-finanzas"     class="panel-seccion"><div class="loader">Cargando...</div></div>
     <div id="cp-mudanzas"     class="panel-seccion"><div class="loader">Cargando...</div></div>
     <div id="cp-multas"       class="panel-seccion"><div class="loader">Cargando...</div></div>
     <div id="cp-prestamos"    class="panel-seccion"><div class="loader">Cargando...</div></div>
-    <div id="cp-bitacora"     class="panel-seccion"><div class="loader">Cargando...</div></div>
-    <div id="cp-finanzas"     class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-reportes"     class="panel-seccion"><div class="loader">Cargando...</div></div>
     <div id="cp-propietarios" class="panel-seccion"><div class="loader">Cargando...</div></div>
   </div>
 </div>
@@ -1539,20 +1685,20 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#222;
   <div class="content" style="overflow-y:auto">
     <div id="msg-comite" class="msg"></div>
     <div class="tabs-comite">
-      <button class="tab-btn activo" onclick="tabComite('reportes',this)">📝 Reportes</button>
-      <button class="tab-btn" onclick="tabComite('mudanzas',this)">📦 Mudanzas</button>
-      <button class="tab-btn" onclick="tabComite('multas',this)">⚠️ Multas</button>
-      <button class="tab-btn" onclick="tabComite('prestamos',this)">🔑 Préstamos</button>
-      <button class="tab-btn" onclick="tabComite('bitacora',this)">📋 Bitácora</button>
-      <button class="tab-btn" onclick="tabComite('finanzas',this)">💰 Finanzas</button>
-      <button class="tab-btn" onclick="tabComite('propietarios',this)">👤 Verificar</button>
+      <button class="tab-btn activo" data-tab="bitacora"     onclick="tabComite('bitacora',this)">📋 Bitácora</button>
+      <button class="tab-btn"        data-tab="finanzas"     onclick="tabComite('finanzas',this)">💰 Finanzas</button>
+      <button class="tab-btn"        data-tab="mudanzas"     onclick="tabComite('mudanzas',this)">📦 Mudanzas</button>
+      <button class="tab-btn"        data-tab="multas"       onclick="tabComite('multas',this)">⚠️ Multas</button>
+      <button class="tab-btn"        data-tab="prestamos"    onclick="tabComite('prestamos',this)">🔑 Préstamos</button>
+      <button class="tab-btn"        data-tab="reportes"     onclick="tabComite('reportes',this)">📝 Reportes</button>
+      <button class="tab-btn"        data-tab="propietarios" onclick="tabComite('propietarios',this)">👤 Verificar</button>
     </div>
-    <div id="cp-reportes"     class="panel-seccion activa"><div class="loader">Cargando...</div></div>
+    <div id="cp-bitacora"     class="panel-seccion activa"><div class="loader">Cargando...</div></div>
+    <div id="cp-finanzas"     class="panel-seccion"><div class="loader">Cargando...</div></div>
     <div id="cp-mudanzas"     class="panel-seccion"><div class="loader">Cargando...</div></div>
     <div id="cp-multas"       class="panel-seccion"><div class="loader">Cargando...</div></div>
     <div id="cp-prestamos"    class="panel-seccion"><div class="loader">Cargando...</div></div>
-    <div id="cp-bitacora"     class="panel-seccion"><div class="loader">Cargando...</div></div>
-    <div id="cp-finanzas"     class="panel-seccion"><div class="loader">Cargando...</div></div>
+    <div id="cp-reportes"     class="panel-seccion"><div class="loader">Cargando...</div></div>
     <div id="cp-propietarios" class="panel-seccion"><div class="loader">Cargando...</div></div>
   </div>
 </div>
@@ -2027,7 +2173,7 @@ async function aceptarReglamento() {
 async function cargarMenuPrincipal() {
   if (!sesion) return;
 
-  document.getElementById('menu-depto').textContent  = `Departamento ${sesion.casa}`;
+  document.getElementById('menu-depto').textContent  = `${sesion.nombre || ''} · Depto ${sesion.casa}`;
   document.getElementById('menu-depto2').textContent = `Departamento ${sesion.casa}`;
 
   // Saludo personalizado por género y rol
@@ -2056,6 +2202,10 @@ async function cargarMenuPrincipal() {
   // Multas: solo Propietario y Administrador
   const btnMultas = document.getElementById('btn-mis-multas');
   if (btnMultas) btnMultas.style.display = prop ? '' : 'none';
+  // Sección propietarios
+  const secProp = document.getElementById('seccion-propietarios');
+  if (secProp) secProp.style.display = prop ? '' : 'none';
+  // Ids heredados — ahora dentro de seccion-propietarios
   const btnPagos = document.getElementById('btn-mis-pagos');
   if (btnPagos) btnPagos.style.display = prop ? '' : 'none';
   const btnDocs = document.getElementById('btn-documentos');
@@ -4218,18 +4368,104 @@ async function cargarDocumentos() {
   }
 }
 
+// ── MODAL ALERTAS COMITÉ ─────────────────────────────────────
+
+async function mostrarAlertasComite() {
+  try {
+    const [resR, resM, resP, resProp] = await Promise.all([
+      fetch(`${API}?accion=getTodosReportes`),
+      fetch(`${API}?accion=getMultas`),
+      fetch(`${API}?accion=getTodosPrestamos`),
+      fetch(`${API}?accion=getPropietariosPend`)
+    ]);
+    const reportes    = await resR.json();
+    const multas      = await resM.json();
+    const prestamos   = await resP.json();
+    const propietarios= await resProp.json();
+
+    const pendReportes = Array.isArray(reportes)    ? reportes.filter(r    => String(r.Estatus||'').toLowerCase().includes('pendiente')).length : 0;
+    const pendMultas   = Array.isArray(multas)      ? multas.filter(m      => String(m.Estatus||'').toLowerCase().includes('pendiente')).length : 0;
+    const pendPrest    = Array.isArray(prestamos)   ? prestamos.filter(p   => String(p.Estatus||'').toLowerCase().includes('vencid')).length : 0;
+    const pendProp     = Array.isArray(propietarios)? propietarios.length : 0;
+
+    const alertas = [];
+    if (pendReportes > 0) alertas.push({ icon:'📝', txt:`${pendReportes} reporte(s) pendiente(s)`, tab:'reportes' });
+    if (pendMultas   > 0) alertas.push({ icon:'⚠️', txt:`${pendMultas} multa(s) pendiente(s) de aprobación`, tab:'multas' });
+    if (pendPrest    > 0) alertas.push({ icon:'🔑', txt:`${pendPrest} préstamo(s) vencido(s)`, tab:'prestamos' });
+    if (pendProp     > 0) alertas.push({ icon:'👤', txt:`${pendProp} propietario(s) por verificar`, tab:'propietarios' });
+
+    if (alertas.length === 0) return;
+
+    const modal = document.createElement('div');
+    modal.id = 'modal-alertas-comite';
+    modal.style.cssText = `
+      position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;
+      display:flex;align-items:center;justify-content:center;padding:20px`;
+    modal.innerHTML = `
+    <div style="background:#0d2347;border:1.5px solid rgba(212,175,55,.4);
+      border-radius:20px;padding:22px;width:100%;max-width:360px;
+      box-shadow:0 20px 60px rgba(0,0,0,.5)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <span style="font-size:22px;filter:saturate(.5)">⭐</span>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#d4af37">Alertas del Comité</div>
+          <div style="font-size:10px;color:rgba(212,175,55,.5);margin-top:1px">${alertas.length} asunto(s) requieren atención</div>
+        </div>
+      </div>
+      <div style="margin-bottom:16px">
+        ${alertas.map(a => `
+        <div style="background:rgba(212,175,55,.07);border:1px solid rgba(212,175,55,.2);
+          border-radius:12px;padding:10px 12px;margin-bottom:8px;
+          display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:16px;filter:saturate(.5)">${a.icon}</span>
+            <span style="font-size:12px;color:#f5f0e8;font-weight:500">${a.txt}</span>
+          </div>
+          <button onclick="cerrarAlertasIrTab('${a.tab}')"
+            style="background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.4);
+              border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;
+              color:#d4af37;cursor:pointer;white-space:nowrap">Ver →</button>
+        </div>`).join('')}
+      </div>
+      <button onclick="cerrarAlertas()"
+        style="width:100%;padding:12px;background:rgba(212,175,55,.12);
+          border:1.5px solid rgba(212,175,55,.35);border-radius:12px;
+          font-size:13px;font-weight:700;color:#d4af37;cursor:pointer">
+        Entendido
+      </button>
+    </div>`;
+    document.body.appendChild(modal);
+  } catch(e) { console.log('Alertas comité:', e.message); }
+}
+
+function cerrarAlertas() {
+  const m = document.getElementById('modal-alertas-comite');
+  if (m) m.remove();
+}
+
+function cerrarAlertasIrTab(tab) {
+  cerrarAlertas();
+  setTimeout(() => {
+    const btn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
+    if (btn) { btn.click(); }
+  }, 100);
+}
+
 // ── PANEL COMITÉ ──────────────────────────────────────────────
 
 let tabComiteActual = 'reportes';
 let catalogoMultas  = [];
 
 async function cargarComite() {
+  // Mostrar alertas automáticamente al abrir
+  mostrarAlertasComite();
   // Cargar catálogo de multas para el panel
   try {
     const res = await fetch(`${API}?accion=getCatalogo`);
     catalogoMultas = await res.json();
     if (!Array.isArray(catalogoMultas)) catalogoMultas = [];
   } catch(e) { catalogoMultas = []; }
+  tabComiteActual = 'bitacora';
   renderTabComite(tabComiteActual);
 }
 
@@ -4246,12 +4482,12 @@ async function renderTabComite(tab) {
   const el = document.getElementById('cp-' + tab);
   el.innerHTML = '<div class="loader">Cargando...</div>';
   try {
-    if (tab === 'reportes')     await renderReportesComite(el);
+    if (tab === 'bitacora')     await renderBitacoraComite(el);
+    if (tab === 'finanzas')     await renderFinanzasComite(el);
     if (tab === 'mudanzas')     await renderMudanzasComite(el);
     if (tab === 'multas')       await renderMultasComite(el);
     if (tab === 'prestamos')    await renderPrestamosComite(el);
-    if (tab === 'bitacora')     await renderBitacoraComite(el);
-    if (tab === 'finanzas')     await renderFinanzasComite(el);
+    if (tab === 'reportes')     await renderReportesComite(el);
     if (tab === 'propietarios') await renderPropietariosComite(el);
   } catch(e) { el.innerHTML = '<p style="color:#c62828;text-align:center;padding:16px">Error al cargar</p>'; }
 }
