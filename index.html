@@ -428,68 +428,84 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
 .ec-tab.activo { background:#1565c0; color:#fff; border-color:#1565c0; }
 
 /* ── MÓDULO FINANCIERO ─────────────────────────────────────── */
-.fin-comparativo { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px; }
-.fin-comp-card   { border-radius:14px;padding:16px;color:#fff;text-align:center; }
-.fin-comp-label  { font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px; }
-.fin-comp-monto  { font-size:22px;font-weight:800; }
-.fin-balance     { border-radius:14px;padding:16px;color:#fff;text-align:center;margin-bottom:14px; }
-.fin-balance-label { font-size:12px;opacity:.8;margin-bottom:4px; }
-.fin-balance-monto { font-size:28px;font-weight:800; }
+.fin-comparativo { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px; }
+.fin-comp-card   { border-radius:14px;padding:14px;color:#f5f0e8;text-align:center;
+  border:1px solid rgba(212,175,55,.2); }
+.fin-comp-label  { font-size:10px;color:rgba(212,175,55,.6);text-transform:uppercase;
+  letter-spacing:.5px;margin-bottom:5px;font-weight:700; }
+.fin-comp-monto  { font-size:20px;font-weight:800;color:#f5f0e8; }
+.fin-balance     { border-radius:14px;padding:14px 16px;color:#f5f0e8;
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:12px;border:1px solid rgba(212,175,55,.2); }
+.fin-balance-label { font-size:11px;color:rgba(212,175,55,.7);font-weight:700; }
+.fin-balance-monto { font-size:24px;font-weight:800;color:#f5f0e8; }
 
-.fin-adeudo-card { border-radius:14px;padding:16px;margin-bottom:14px;
-  border:2px solid #eee;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.06); }
-.fin-adeudo-depto { font-size:13px;color:#888;margin-bottom:6px; }
-.fin-adeudo-estatus { font-size:18px;font-weight:800;margin-bottom:12px; }
-.fin-adeudo-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
-.fin-adeudo-item { background:#f8f9fa;border-radius:10px;padding:10px;text-align:center; }
-.fin-adeudo-item-l { font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.4px; }
-.fin-adeudo-item-v { font-size:15px;font-weight:800;color:#1a237e;margin-top:2px; }
+.fin-adeudo-card { border-radius:14px;padding:14px;margin-bottom:12px;
+  border:1px solid rgba(212,175,55,.2);background:rgba(255,255,255,.04); }
+.fin-adeudo-depto { font-size:12px;color:rgba(212,175,55,.5);margin-bottom:5px; }
+.fin-adeudo-estatus { font-size:17px;font-weight:800;color:#f5f0e8;margin-bottom:10px; }
+.fin-adeudo-grid { display:grid;grid-template-columns:1fr 1fr;gap:6px; }
+.fin-adeudo-item { background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.15);
+  border-radius:10px;padding:9px;text-align:center; }
+.fin-adeudo-item-l { font-size:9px;color:rgba(212,175,55,.5);text-transform:uppercase;letter-spacing:.4px; }
+.fin-adeudo-item-v { font-size:14px;font-weight:800;color:#f5f0e8;margin-top:2px; }
 
-.fin-mes-chip { display:inline-block;padding:6px 14px;border-radius:20px;
-  border:1.5px solid #ddd;font-size:13px;cursor:pointer;margin:3px;background:#fff; }
-.fin-mes-chip.activo { background:#1565c0;color:#fff;border-color:#1565c0; }
+.fin-mes-chip { display:inline-block;padding:5px 11px;border-radius:10px;
+  border:1px solid rgba(212,175,55,.25);font-size:11px;cursor:pointer;
+  margin:3px;background:transparent;color:rgba(212,175,55,.55);font-weight:700; }
+.fin-mes-chip.activo { background:rgba(212,175,55,.15);color:#d4af37;border-color:rgba(212,175,55,.6); }
 
-.dep-pago-card { background:#fff;border-radius:12px;padding:14px 16px;
-  margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,.06);
-  border-left:4px solid #1976d2; }
-.dep-pago-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; }
-.dep-pago-mes  { font-weight:700;font-size:14px;color:#1565c0; }
-.dep-pago-monto { font-size:20px;font-weight:800;color:#1a237e; }
-.dep-pago-meta { font-size:12px;color:#888;margin-bottom:8px; }
-.dep-pago-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px; }
-.dep-pago-item { background:#f0f7ff;border-radius:7px;padding:6px 4px;text-align:center; }
-.dep-pago-item-l { font-size:9px;color:#888;text-transform:uppercase; }
-.dep-pago-item-v { font-size:12px;font-weight:700;color:#1565c0;margin-top:1px; }
-.dep-conf-badge { font-size:11px;font-weight:600;padding:3px 8px;border-radius:12px;display:inline-block;margin-top:6px; }
-.dep-conf-ok   { background:#e8f5e9;color:#2e7d32; }
-.dep-conf-pend { background:#fff3e0;color:#e65100; }
+.dep-pago-card { background:rgba(255,255,255,.04);border-radius:12px;padding:12px 14px;
+  margin-bottom:8px;border:1px solid rgba(212,175,55,.2); }
+.dep-pago-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:6px; }
+.dep-pago-mes  { font-weight:700;font-size:13px;color:#f5f0e8; }
+.dep-pago-monto { font-size:17px;font-weight:800;color:#d4af37; }
+.dep-pago-meta { font-size:11px;color:rgba(212,175,55,.5);margin-bottom:6px; }
+.dep-pago-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:6px; }
+.dep-pago-item { background:rgba(212,175,55,.07);border-radius:7px;padding:6px 4px;text-align:center; }
+.dep-pago-item-l { font-size:9px;color:rgba(212,175,55,.5);text-transform:uppercase; }
+.dep-pago-item-v { font-size:12px;font-weight:700;color:#d4af37;margin-top:1px; }
+.dep-conf-badge { font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;display:inline-block;margin-top:5px; }
+.dep-conf-ok   { background:rgba(46,125,50,.2);color:#81c784;border:1px solid rgba(67,160,71,.3); }
+.dep-conf-pend { background:rgba(230,81,0,.15);color:#ffb74d;border:1px solid rgba(251,140,0,.3); }
 
 /* Edificios comité */
-.edif-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px; }
+.edif-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px; }
 .edif-card { border-radius:12px;padding:12px 6px;text-align:center;cursor:pointer;
-  transition:transform .15s;border:2px solid transparent; }
+  transition:transform .15s;border:1.5px solid rgba(212,175,55,.2);
+  background:rgba(255,255,255,.04); }
 .edif-card:active { transform:scale(.96); }
-.edif-card.verde  { background:#e8f5e9;border-color:#43a047; }
-.edif-card.amarillo { background:#fff8e1;border-color:#fdd835; }
-.edif-card.rojo   { background:#ffebee;border-color:#e53935; }
-.edif-card.selec  { box-shadow:0 0 0 3px #1565c0; }
-.edif-num  { font-size:18px;font-weight:800; }
-.edif-sub  { font-size:10px;color:#666;margin-top:2px; }
+.edif-card.verde    { background:rgba(46,125,50,.2); border-color:rgba(67,160,71,.4); }
+.edif-card.amarillo { background:rgba(245,127,23,.15); border-color:rgba(255,179,0,.35); }
+.edif-card.rojo     { background:rgba(198,40,40,.18); border-color:rgba(229,57,53,.4); }
+.edif-card.selec    { box-shadow:0 0 0 2px #d4af37;border-color:#d4af37; }
+.edif-num  { font-size:18px;font-weight:800;color:#f5f0e8; }
+.edif-sub  { font-size:9px;color:rgba(212,175,55,.5);margin-top:2px; }
 
 .gasto-item { display:flex;justify-content:space-between;align-items:center;
-  padding:10px 0;border-bottom:1px solid #f0f0f0; }
-.gasto-concepto { font-size:13px;color:#333;font-weight:500; }
-.gasto-fecha    { font-size:11px;color:#888;margin-top:2px; }
-.gasto-monto-val { font-size:15px;font-weight:800;color:#c62828; }
+  padding:10px 0;border-bottom:1px solid rgba(212,175,55,.1); }
+.gasto-concepto { font-size:13px;color:#f5f0e8;font-weight:500; }
+.gasto-fecha    { font-size:11px;color:rgba(212,175,55,.5);margin-top:2px; }
+.gasto-monto-val { font-size:15px;font-weight:800;color:#ef9a9a; }
 
 /* ── PANEL COMITÉ ──────────────────────────────────────────── */
-.tabs-comite { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px; }
-.tab-btn { padding:10px 16px; border:1.5px solid #e0e0e0; border-radius:12px;
-  background:#fff; font-size:13px; font-weight:600; cursor:pointer; color:#555;
-  transition:all .2s; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.tabs-comite {
+  display:flex; gap:5px; flex-wrap:wrap;
+  margin-bottom:14px; padding:10px 0 6px; }
+.tab-btn {
+  padding:8px 12px;
+  background:transparent;
+  border:1px solid rgba(212,175,55,.3);
+  border-radius:10px;
+  font-size:11px; font-weight:700;
+  cursor:pointer; color:rgba(212,175,55,.6);
+  transition:all .2s; white-space:nowrap; }
 .tab-btn:active { transform:scale(.96); }
-.tab-btn.activo { background:linear-gradient(135deg,#1a237e,#1565c0); color:#fff;
-  border-color:transparent; box-shadow:0 4px 12px rgba(21,101,192,.3); }
+.tab-btn.activo {
+  background:rgba(212,175,55,.15);
+  border-color:rgba(212,175,55,.6);
+  color:#d4af37;
+  box-shadow:0 0 10px rgba(212,175,55,.1); }
 .panel-seccion { display:none; }
 .panel-seccion.activa { display:block; }
 .item-comite { background:#fff; border-radius:12px; padding:14px 16px;
@@ -1377,11 +1393,20 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
      PANTALLA — PANEL DEL COMITÉ
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-comite" class="screen">
-  <div class="app-header">
-    <button class="back" onclick="ir('s-menu')">←</button>
-    <div class="header-title">
-      <h1>Privada Paamul</h1>
-      <p>⭐ Panel del Comité</p>
+  <div style="background:linear-gradient(135deg,#1a3f7a 0%,#0d2347 100%);
+    padding:14px 16px;display:flex;align-items:center;gap:12px;
+    border-bottom:1px solid rgba(212,175,55,.2);box-shadow:0 2px 16px rgba(0,0,0,.3)">
+    <button onclick="ir('s-menu')"
+      style="background:none;border:none;color:rgba(212,175,55,.7);
+        font-size:20px;cursor:pointer;padding:4px;line-height:1">←</button>
+    <img src="logoadministraciontransparente.png" alt="Logo"
+      style="width:36px;height:36px;border-radius:50%;
+        border:1.5px solid rgba(212,175,55,.4);object-fit:cover;flex-shrink:0">
+    <div>
+      <div style="font-family:'Playfair Display',serif;font-size:15px;
+        font-weight:700;color:#f5f0e8">Panel del Comité</div>
+      <div id="cargo-comite-sub" style="font-size:9px;color:rgba(212,175,55,.6);
+        margin-top:1px;letter-spacing:.3px">Privada Paamul · 2026</div>
     </div>
   </div>
   <div class="content" style="overflow-y:auto">
@@ -1675,11 +1700,20 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
      PANTALLA — PANEL DEL COMITÉ
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-comite" class="screen">
-  <div class="app-header">
-    <button class="back" onclick="ir('s-menu')">←</button>
-    <div class="header-title">
-      <h1>Privada Paamul</h1>
-      <p>⭐ Panel del Comité</p>
+  <div style="background:linear-gradient(135deg,#1a3f7a 0%,#0d2347 100%);
+    padding:14px 16px;display:flex;align-items:center;gap:12px;
+    border-bottom:1px solid rgba(212,175,55,.2);box-shadow:0 2px 16px rgba(0,0,0,.3)">
+    <button onclick="ir('s-menu')"
+      style="background:none;border:none;color:rgba(212,175,55,.7);
+        font-size:20px;cursor:pointer;padding:4px;line-height:1">←</button>
+    <img src="logoadministraciontransparente.png" alt="Logo"
+      style="width:36px;height:36px;border-radius:50%;
+        border:1.5px solid rgba(212,175,55,.4);object-fit:cover;flex-shrink:0">
+    <div>
+      <div style="font-family:'Playfair Display',serif;font-size:15px;
+        font-weight:700;color:#f5f0e8">Panel del Comité</div>
+      <div id="cargo-comite-sub" style="font-size:9px;color:rgba(212,175,55,.6);
+        margin-top:1px;letter-spacing:.3px">Privada Paamul · 2026</div>
     </div>
   </div>
   <div class="content" style="overflow-y:auto">
