@@ -177,28 +177,30 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
   transition:transform .15s, opacity .15s; margin-top:4px; }
 .btn-submit:active { transform:scale(0.98); }
 .btn-submit:disabled { opacity:.6; cursor:not-allowed; }
-.btn-link { background:none; border:none; color:#1976d2; font-size:14px;
-  cursor:pointer; text-decoration:underline; padding:8px 0; }
+.btn-link { background:none; border:none; color:rgba(212,175,55,.7); font-size:13px;
+  cursor:pointer; text-decoration:none; padding:8px 0; }
 
 /* ── MENSAJES ──────────────────────────────────────────────── */
-.msg { border-radius:10px; padding:12px 14px; margin-bottom:14px;
-  font-size:14px; display:none; }
+.msg { border-radius:10px; padding:10px 14px; margin-bottom:12px;
+  font-size:13px; display:none; }
 .msg.show { display:block; }
-.msg.ok    { background:#e8f5e9; color:#2e7d32; }
-.msg.error { background:#ffebee; color:#c62828; }
-.msg.info  { background:#e3f2fd; color:#1565c0; }
+.msg.ok    { background:rgba(46,125,50,.2); color:#81c784; border:1px solid rgba(67,160,71,.3); }
+.msg.error { background:rgba(198,40,40,.2); color:#ef9a9a; border:1px solid rgba(229,57,53,.3); }
+.msg.info  { background:rgba(212,175,55,.1); color:#d4af37; border:1px solid rgba(212,175,55,.25); }
 
 /* ── REGLAMENTO ───────────────────────────────────────────── */
-.reglamento-scroll { max-height:50vh; overflow-y:auto; background:#f9f9f9;
-  border-radius:10px; padding:14px; margin-bottom:16px; font-size:13px;
-  line-height:1.7; border:1.5px solid #eee; }
+.reglamento-scroll { max-height:50vh; overflow-y:auto;
+  background:rgba(255,255,255,.04);
+  border-radius:10px; padding:14px; margin-bottom:14px; font-size:13px;
+  line-height:1.7; border:1px solid rgba(212,175,55,.2); color:#f5f0e8; }
+.reglamento-scroll h3 { color:#d4af37; margin:12px 0 6px; font-size:13px; font-weight:700; }
 .check-item { display:flex; align-items:flex-start; gap:10px;
   margin-bottom:12px; cursor:pointer; }
 .check-item input[type=checkbox] { width:20px; height:20px; flex-shrink:0;
-  accent-color:#1976d2; margin-top:2px; cursor:pointer; }
-.check-item span { font-size:14px; line-height:1.5; color:#333; }
-.firma-text { font-weight:600; color:#1565c0; font-style:italic;
-  font-size:14px; margin:12px 0 16px; text-align:center; }
+  accent-color:#d4af37; margin-top:2px; cursor:pointer; }
+.check-item span { font-size:13px; line-height:1.5; color:#f5f0e8; }
+.firma-text { font-weight:600; color:#d4af37; font-style:italic;
+  font-size:13px; margin:12px 0 14px; text-align:center; }
 
 /* ── MENÚ PRINCIPAL ───────────────────────────────────────── */
 #s-menu { flex-direction:column; }
@@ -634,6 +636,45 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
       </div>
       <span style="margin-left:auto;font-size:16px;color:rgba(212,175,55,.35)">›</span>
     </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — LOGIN SEGURIDAD
+═══════════════════════════════════════════════════════════ -->
+<div id="s-login-seg" class="screen">
+  <div style="background:radial-gradient(ellipse at 30% 0%,#1a3f7a 0%,#0b1e3d 70%);
+    padding:20px 16px 22px;text-align:center;border-bottom:1px solid rgba(212,175,55,.15)">
+    <div style="background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);
+      border-radius:16px;width:56px;height:56px;display:flex;align-items:center;
+      justify-content:center;font-size:26px;margin:0 auto 12px;
+      box-shadow:0 0 20px rgba(212,175,55,.1)">🛡️</div>
+    <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#f5f0e8">Acceso Seguridad</div>
+    <div style="font-size:9px;color:#d4af37;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-top:3px">Solo personal autorizado</div>
+  </div>
+  <div class="content">
+    <div class="msg" id="seg-login-msg"></div>
+    <div class="card" style="margin-top:8px">
+      <div class="fg">
+        <label>Departamento o nombre</label>
+        <input type="text" id="seg-login-casa" placeholder="Ej: GUARDIA"
+          style="text-transform:uppercase"
+          oninput="this.value=this.value.replace(/\s+/g,' ').toUpperCase().trimStart()">
+      </div>
+      <div class="fg">
+        <label>Clave de acceso</label>
+        <input type="text" id="seg-login-clave" placeholder="••••••" maxlength="6"
+          style="text-transform:uppercase;letter-spacing:4px;font-size:20px;font-weight:700;text-align:center"
+          oninput="this.value=this.value.replace(/\s/g,'').toUpperCase()">
+      </div>
+      <button class="btn-submit" onclick="loginDesdeSeguridad()">🛡️ INGRESAR</button>
+    </div>
+    <div style="text-align:center;margin-top:10px">
+      <button onclick="ir('s-inicio')"
+        style="background:none;border:none;color:rgba(245,240,232,.3);font-size:12px;cursor:pointer">
+        ← Volver al inicio
+      </button>
+    </div>
   </div>
 </div>
 
@@ -2110,6 +2151,23 @@ async function registrar() {
 }
 
 // ── LOGIN ───────────────────────────────────────────────────
+async function loginDesdeSeguridad() {
+  const msg   = document.getElementById('seg-login-msg');
+  const casa  = String(document.getElementById('seg-login-casa')?.value || '').trim().toUpperCase();
+  const clave = String(document.getElementById('seg-login-clave')?.value || '').trim().toUpperCase();
+  if (!casa || !clave) { showMsg(msg,'error','Completa los campos'); return; }
+  try {
+    const res  = await post({ accion:'login', casa, clave });
+    if (res.ok) {
+      sesion = res;
+      ir('s-seguridad');
+      mostrarPantallaSeguridad();
+    } else {
+      showMsg(msg,'error', res.error || 'Credenciales incorrectas');
+    }
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
 async function login() {
   const msg   = document.getElementById('login-msg');
   const casa  = document.getElementById('login-casa').value.trim().toUpperCase();
@@ -5331,48 +5389,87 @@ async function cargarReglamentoVer() {
 
 // ── ANUNCIOS ─────────────────────────────────────────────────
 
+let _todosAnuncios = [];
+
 async function cargarAnuncios() {
   const contenedor = document.getElementById('banner-anuncios');
-  if (!contenedor) {
-    console.error('ANUNCIOS: No se encontró el elemento banner-anuncios');
-    return;
-  }
-  // Mostrar algo inmediatamente para confirmar que el elemento existe
-  contenedor.style.display = 'block';
-  contenedor.innerHTML = '<div style="background:#fce8e6;padding:8px;border-radius:8px;font-size:12px;color:#c62828">⏳ Cargando anuncios...</div>';
+  if (!contenedor) return;
   try {
     const res  = await fetch(`${API}?accion=getAnuncios`);
     const data = await res.json();
-    const activos = Array.isArray(data)
+    _todosAnuncios = Array.isArray(data)
       ? data.filter(a => {
           const id  = String(a.ID || '').trim().toUpperCase();
           const est = String(a.Estatus || '').trim().toLowerCase();
-          // Excluir los de seguridad del menú principal
           return est.includes('activ') && id !== 'SEGURIDAD';
         })
       : [];
-    if (activos.length === 0) {
+
+    if (_todosAnuncios.length === 0) {
       contenedor.style.display = 'none';
-      contenedor.innerHTML = '';
       return;
     }
-    contenedor.innerHTML = activos.map(a => {
-      const esDorado = String(a.ID || '').trim() === '1';
-      const icono    = esDorado ? '⭐' : '📢';
-      return `
-      <div class="anuncio-item ${esDorado ? 'dorado' : ''}">
-        <span class="anuncio-icon">${icono}</span>
-        <div style="flex:1">
-          <div class="anuncio-txt">${a.Texto_Anuncio || ''}</div>
-          <div class="anuncio-linea"></div>
-        </div>
-      </div>`;
-    }).join('');
+
+    const primero = _todosAnuncios[0];
+    const resto   = _todosAnuncios.length - 1;
+
     contenedor.style.display = 'block';
+    contenedor.innerHTML = `
+    <div onclick="abrirModalAnuncios()"
+      style="background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.25);
+        border-radius:12px;padding:10px 12px;margin-bottom:10px;
+        display:flex;align-items:center;gap:8px;cursor:pointer">
+      <span style="font-size:14px;filter:saturate(.5)">📢</span>
+      <div style="flex:1;font-size:11px;color:rgba(245,240,232,.8);line-height:1.4;
+        overflow:hidden;white-space:nowrap;text-overflow:ellipsis">
+        ${primero.Texto_Anuncio || ''}
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+        ${resto > 0 ? `<span style="background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.3);
+          color:#d4af37;font-size:8px;font-weight:700;padding:2px 6px;border-radius:8px">+${resto}</span>` : ''}
+        <span style="color:rgba(212,175,55,.4);font-size:14px">›</span>
+      </div>
+    </div>`;
   } catch(e) {
-    console.error('ANUNCIOS error:', e);
     contenedor.style.display = 'none';
   }
+}
+
+function abrirModalAnuncios() {
+  const modal = document.createElement('div');
+  modal.id = 'modal-anuncios';
+  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,.75);
+    z-index:9999;display:flex;align-items:flex-end;justify-content:center;padding:0`;
+  modal.innerHTML = `
+  <div style="background:#0d2347;border-top:2px solid rgba(212,175,55,.3);
+    border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:480px;
+    max-height:75vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:#d4af37">Avisos y Anuncios</div>
+        <div style="font-size:10px;color:rgba(212,175,55,.5);margin-top:1px">Privada Paamul</div>
+      </div>
+      <button onclick="cerrarModalAnuncios()"
+        style="background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);
+          border-radius:8px;padding:6px 12px;color:#d4af37;font-size:12px;
+          font-weight:700;cursor:pointer">✕ Cerrar</button>
+    </div>
+    ${_todosAnuncios.map((a, i) => `
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);
+      border-radius:12px;padding:12px 14px;margin-bottom:8px">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <span style="font-size:16px;filter:saturate(.5);flex-shrink:0">${i === 0 ? '📌' : '📢'}</span>
+        <div style="font-size:13px;color:#f5f0e8;line-height:1.6">${a.Texto_Anuncio || ''}</div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+  modal.addEventListener('click', e => { if (e.target === modal) cerrarModalAnuncios(); });
+  document.body.appendChild(modal);
+}
+
+function cerrarModalAnuncios() {
+  const m = document.getElementById('modal-anuncios');
+  if (m) m.remove();
 }
 
 // ── DIRECTORIO ────────────────────────────────────────────────
