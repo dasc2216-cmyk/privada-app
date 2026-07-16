@@ -534,18 +534,22 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
   border-radius:8px; font-size:13px; margin-bottom:6px; outline:none; }
 
 /* ── PANEL SEGURIDAD ───────────────────────────────────────── */
-.seg-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
-.seg-btn  { background:#fff; border:none; border-radius:16px; padding:20px 12px;
-  text-align:center; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,.1); }
+.seg-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+.seg-btn  {
+  background:rgba(212,175,55,.1); border:1.5px solid rgba(212,175,55,.55);
+  border-radius:14px; padding:16px 10px;
+  text-align:center; cursor:pointer; box-shadow:0 0 8px rgba(212,175,55,.08); }
 .seg-btn:active { transform:scale(.97); }
-.seg-btn .sb-icon  { font-size:36px; display:block; margin-bottom:8px; }
-.seg-btn .sb-label { font-size:13px; font-weight:700; color:#333; }
-.seg-panel { display:none; background:#fff; border-radius:14px; padding:16px;
-  margin-top:4px; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+.seg-btn .sb-icon  { font-size:28px; display:block; margin-bottom:6px; filter:saturate(.5) brightness(.85); }
+.seg-btn .sb-label { font-size:12px; font-weight:700; color:#f5f0e8; }
+.seg-panel { display:none; background:rgba(255,255,255,.05);
+  border:1px solid rgba(212,175,55,.2);
+  border-radius:14px; padding:14px;
+  margin-top:4px; }
 .seg-panel.activo { display:block; }
 .seg-sub { display:flex; gap:8px; margin-bottom:14px; }
-.seg-sub button { flex:1; padding:11px; border:2px solid #1976d2; border-radius:10px;
-  background:#fff; color:#1976d2; font-size:14px; font-weight:700; cursor:pointer; }
+.seg-sub button { flex:1; padding:11px; border:1.5px solid rgba(212,175,55,.4); border-radius:10px;
+  background:rgba(212,175,55,.08); color:#d4af37; font-size:13px; font-weight:700; cursor:pointer; }
 .seg-sub button.activo { background:#1976d2; color:#fff; }
 .bit-activa { background:#e8f5e9; border-radius:10px; padding:12px 14px;
   margin-bottom:8px; border-left:3px solid #43a047; }
@@ -991,6 +995,11 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
         <span class="m-icon">📜</span>
         <span class="m-title">Reglamento</span>
       </button>
+      <button class="modulo-btn" id="btn-morosidad" style="display:none"
+        onclick="ir('s-morosidad'); cargarMorosidad()">
+        <span class="m-icon">⚠️</span>
+        <span class="m-title">Morosidad</span>
+      </button>
     </div>
 
     <!-- PROPIETARIOS (solo propietario/admin) -->
@@ -1328,6 +1337,22 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
+     PANTALLA — MOROSIDAD
+═══════════════════════════════════════════════════════════ -->
+<div id="s-morosidad" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-menu')">←</button>
+    <div class="header-title">
+      <h1>Privada Paamul</h1>
+      <p>Reporte de Morosidad</p>
+    </div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="mor-contenido"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
      PANTALLA — ESTADO DE CUENTA (depto del usuario)
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-estado-cuenta" class="screen">
@@ -1479,15 +1504,36 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
      PANTALLA — PANEL DE SEGURIDAD
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-seguridad" class="screen">
-  <div class="app-header">
-    <div class="header-title">
-      <h1>🛡️ Paamul — Caseta</h1>
-      <p id="seg-nombre"></p>
-    </div>
+  <div style="background:radial-gradient(ellipse at 30% 0%,#1a3f7a 0%,#0b1e3d 70%);
+    padding:14px 16px 16px;text-align:center;position:relative;overflow:hidden;
+    border-bottom:1px solid rgba(212,175,55,.18)">
+    <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;
+      background:radial-gradient(circle,rgba(212,175,55,.07) 0%,transparent 70%)"></div>
+    <div style="background:rgba(212,175,55,.1);border:1.5px solid rgba(212,175,55,.35);
+      border-radius:14px;width:44px;height:44px;display:flex;align-items:center;
+      justify-content:center;font-size:20px;margin:0 auto 8px;
+      box-shadow:0 0 16px rgba(212,175,55,.1)">🛡️</div>
+    <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#f5f0e8">Caseta de Acceso</div>
+    <div style="font-size:8.5px;color:#d4af37;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-top:2px">Privada Paamul</div>
+    <div id="seg-nombre" style="font-size:10px;color:rgba(245,240,232,.5);margin-top:4px"></div>
   </div>
   <div class="content" style="overflow-y:auto">
     <div id="banner-seg-anuncios"></div>
     <div id="msg-seg" class="msg"></div>
+    <!-- Morosidad destacada -->
+    <div onclick="ir('s-morosidad'); cargarMorosidad()"
+      style="background:rgba(198,40,40,.15);border:1.5px solid rgba(229,57,53,.4);
+        border-radius:14px;padding:12px 14px;margin-bottom:12px;
+        display:flex;align-items:center;justify-content:space-between;cursor:pointer">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:22px;filter:saturate(.6)">⚠️</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#ef9a9a">Lista de Morosos</div>
+          <div style="font-size:10px;color:rgba(245,240,232,.4);margin-top:1px">Deptos con recargos pendientes</div>
+        </div>
+      </div>
+      <span style="font-size:18px;color:rgba(229,57,53,.5)">›</span>
+    </div>
     <div class="seg-grid">
       <button class="seg-btn" onclick="toggleSeg('paqueteria')">
         <span class="sb-icon">📦</span><span class="sb-label">Paquetería</span>
@@ -1786,15 +1832,36 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
      PANTALLA — PANEL DE SEGURIDAD
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-seguridad" class="screen">
-  <div class="app-header">
-    <div class="header-title">
-      <h1>🛡️ Paamul — Caseta</h1>
-      <p id="seg-nombre"></p>
-    </div>
+  <div style="background:radial-gradient(ellipse at 30% 0%,#1a3f7a 0%,#0b1e3d 70%);
+    padding:14px 16px 16px;text-align:center;position:relative;overflow:hidden;
+    border-bottom:1px solid rgba(212,175,55,.18)">
+    <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;
+      background:radial-gradient(circle,rgba(212,175,55,.07) 0%,transparent 70%)"></div>
+    <div style="background:rgba(212,175,55,.1);border:1.5px solid rgba(212,175,55,.35);
+      border-radius:14px;width:44px;height:44px;display:flex;align-items:center;
+      justify-content:center;font-size:20px;margin:0 auto 8px;
+      box-shadow:0 0 16px rgba(212,175,55,.1)">🛡️</div>
+    <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#f5f0e8">Caseta de Acceso</div>
+    <div style="font-size:8.5px;color:#d4af37;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-top:2px">Privada Paamul</div>
+    <div id="seg-nombre" style="font-size:10px;color:rgba(245,240,232,.5);margin-top:4px"></div>
   </div>
   <div class="content" style="overflow-y:auto">
     <div id="banner-seg-anuncios"></div>
     <div id="msg-seg" class="msg"></div>
+    <!-- Morosidad destacada -->
+    <div onclick="ir('s-morosidad'); cargarMorosidad()"
+      style="background:rgba(198,40,40,.15);border:1.5px solid rgba(229,57,53,.4);
+        border-radius:14px;padding:12px 14px;margin-bottom:12px;
+        display:flex;align-items:center;justify-content:space-between;cursor:pointer">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:22px;filter:saturate(.6)">⚠️</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#ef9a9a">Lista de Morosos</div>
+          <div style="font-size:10px;color:rgba(245,240,232,.4);margin-top:1px">Deptos con recargos pendientes</div>
+        </div>
+      </div>
+      <span style="font-size:18px;color:rgba(229,57,53,.5)">›</span>
+    </div>
     <div class="seg-grid">
       <button class="seg-btn" onclick="toggleSeg('paqueteria')">
         <span class="sb-icon">📦</span><span class="sb-label">Paquetería</span>
@@ -2042,7 +2109,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbxYnO1B9pZ_3qLsUZD-cQSKJv_IIWsBc3v6pfrxGShN-vHnKDgN6QWJidvISjW4Hdc2Kw/exec';
+const API = 'https://script.google.com/macros/s/AKfycbw8pta5xYM4LA5pdaFFPEyhAv88vGmdHTC-Qt1Mn-Fb3aPCp0N-JnzUhEy5QAIGlXMPQw/exec';
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -2301,11 +2368,13 @@ async function cargarMenuPrincipal() {
   // Sección propietarios
   const secProp = document.getElementById('seccion-propietarios');
   if (secProp) secProp.style.display = prop ? '' : 'none';
-  // Ids heredados — ahora dentro de seccion-propietarios
   const btnPagos = document.getElementById('btn-mis-pagos');
   if (btnPagos) btnPagos.style.display = prop ? '' : 'none';
   const btnDocs = document.getElementById('btn-documentos');
   if (btnDocs) btnDocs.style.display = prop ? '' : 'none';
+  // Morosidad visible para propietarios y comité
+  const btnMor = document.getElementById('btn-morosidad');
+  if (btnMor) btnMor.style.display = prop ? '' : 'none';
 
   // Finanzas: Residente solo ve estatus en home, no entra al detalle
   const chevron = document.getElementById('finanzas-chevron');
@@ -5391,7 +5460,167 @@ async function cargarReglamentoVer() {
   }
 }
 
+// ── MOROSIDAD ────────────────────────────────────────────────
+
+async function cargarMorosidad() {
+  const el = document.getElementById('mor-contenido');
+  if (!el) return;
+  el.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res  = await fetch(`${API}?accion=getMorosos`);
+    const data = await res.json();
+    if (!Array.isArray(data)) { el.innerHTML = '<p style="color:#ef9a9a;text-align:center;padding:20px">Error al cargar</p>'; return; }
+
+    const morosos    = data.filter(d => d.MOROSO);
+    const corriente  = data.filter(d => !d.MOROSO);
+
+    // Agrupar morosos por edificio
+    const mapaEdif = {};
+    morosos.forEach(d => {
+      const e = String(d.EDIFICIO || '—').trim();
+      if (!mapaEdif[e]) mapaEdif[e] = [];
+      mapaEdif[e].push(d);
+    });
+    const edificios = Object.keys(mapaEdif).sort((a,b) => parseInt(a)-parseInt(b));
+
+    el.innerHTML = `
+    <!-- Resumen -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <div style="background:rgba(198,40,40,.18);border:1.5px solid rgba(229,57,53,.4);
+        border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:28px;font-weight:900;color:#ef9a9a">${morosos.length}</div>
+        <div style="font-size:10px;color:rgba(245,240,232,.6);margin-top:2px">🔴 Morosos</div>
+      </div>
+      <div style="background:rgba(46,125,50,.18);border:1.5px solid rgba(67,160,71,.4);
+        border-radius:12px;padding:12px;text-align:center">
+        <div style="font-size:28px;font-weight:900;color:#81c784">${corriente.length}</div>
+        <div style="font-size:10px;color:rgba(245,240,232,.6);margin-top:2px">✅ Con servicios</div>
+      </div>
+    </div>
+    <div style="background:rgba(212,175,55,.07);border:1px solid rgba(212,175,55,.2);
+      border-radius:10px;padding:10px 12px;margin-bottom:14px">
+      <div style="font-size:10px;color:#d4af37;font-weight:700">📌 Criterio vigente</div>
+      <div style="font-size:10px;color:rgba(245,240,232,.65);margin-top:3px;line-height:1.5">
+        🔴 Moroso: Recargos 2026 > $100 MXN<br>
+        ✅ Con servicios: Recargos 2026 = $0
+      </div>
+    </div>
+
+    ${morosos.length === 0
+      ? '<div style="text-align:center;padding:30px"><div style="font-size:36px">🎉</div><div style="font-size:15px;font-weight:700;color:#81c784;margin-top:8px">¡Sin morosos!</div><div style="font-size:11px;color:rgba(245,240,232,.5);margin-top:4px">Todos los deptos al corriente</div></div>'
+      : `<div style="font-size:8.5px;font-weight:800;color:rgba(212,175,55,.6);
+          letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">
+          🔴 Deptos con morosidad
+        </div>
+        ${edificios.map(edif => `
+        <div style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <div style="background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.35);
+              border-radius:8px;padding:3px 10px;font-size:11px;font-weight:800;color:#d4af37">
+              Edificio ${edif}
+            </div>
+            <div style="height:1px;flex:1;background:rgba(212,175,55,.12)"></div>
+            <div style="font-size:10px;color:rgba(212,175,55,.5)">${mapaEdif[edif].length} depto(s)</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px">
+            ${mapaEdif[edif].map(d => `
+            <div style="background:rgba(198,40,40,.15);border:1px solid rgba(229,57,53,.35);
+              border-radius:10px;padding:10px 12px;
+              display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div style="font-size:14px;font-weight:800;color:#f5f0e8">Depto ${d.DEPTO}</div>
+                <div style="font-size:10px;color:#ef9a9a;margin-top:2px">🔴 Moroso</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:12px;font-weight:700;color:#ef9a9a">+${fmt$(d.RECARGOS_2026)}</div>
+                <div style="font-size:9px;color:rgba(245,240,232,.4)">recargos</div>
+              </div>
+            </div>`).join('')}
+          </div>
+        </div>`).join('')}`
+    }`;
+  } catch(e) {
+    el.innerHTML = `<p style="color:#ef9a9a;text-align:center;padding:20px">Error: ${e.message}</p>`;
+  }
+}
+
 // ── ANUNCIOS ─────────────────────────────────────────────────
+
+
+function abrirModalAnuncios() {
+  const modal = document.createElement('div');
+  modal.id = 'modal-anuncios';
+  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,.75);
+    z-index:9999;display:flex;align-items:flex-end;justify-content:center;padding:0`;
+  modal.innerHTML = `
+  <div style="background:#0d2347;border-top:2px solid rgba(212,175,55,.3);
+    border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:480px;
+    max-height:75vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:#d4af37">Avisos y Anuncios</div>
+        <div style="font-size:10px;color:rgba(212,175,55,.5);margin-top:1px">Privada Paamul</div>
+      </div>
+      <button onclick="cerrarModalAnuncios()"
+        style="background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);
+          border-radius:8px;padding:6px 12px;color:#d4af37;font-size:12px;
+          font-weight:700;cursor:pointer">✕ Cerrar</button>
+    </div>
+    ${_todosAnuncios.map((a, i) => {
+      const tieneDesc = String(a.Descripcion_Anuncio || '').trim() !== '';
+      return `
+      <div onclick="${tieneDesc ? `abrirDescAnuncio(${i})` : ''}"
+        style="background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);
+          border-radius:12px;padding:12px 14px;margin-bottom:8px;
+          ${tieneDesc ? 'cursor:pointer' : ''}">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <span style="font-size:16px;filter:saturate(.5);flex-shrink:0">${i === 0 ? '📌' : '📢'}</span>
+          <div style="flex:1">
+            <div style="font-size:13px;color:#f5f0e8;line-height:1.6">${a.Texto_Anuncio || ''}</div>
+            ${tieneDesc ? `<div style="font-size:10px;color:rgba(212,175,55,.5);margin-top:5px">Toca para leer más →</div>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+  modal.addEventListener('click', e => { if (e.target === modal) cerrarModalAnuncios(); });
+  document.body.appendChild(modal);
+}
+
+function abrirDescAnuncio(idx) {
+  const a = _todosAnuncios[idx];
+  if (!a) return;
+  const modal2 = document.createElement('div');
+  modal2.id = 'modal-desc-anuncio';
+  modal2.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,.82);
+    z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px`;
+  modal2.innerHTML = `
+  <div style="background:#0d2347;border:1.5px solid rgba(212,175,55,.35);
+    border-radius:20px;padding:22px;width:100%;max-width:400px;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);max-height:80vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <span style="font-size:20px;filter:saturate(.5)">📌</span>
+      <div style="font-size:14px;font-weight:700;color:#d4af37;flex:1">${a.Texto_Anuncio || ''}</div>
+    </div>
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.15);
+      border-radius:12px;padding:14px;margin-bottom:14px">
+      <div style="font-size:13px;color:#f5f0e8;line-height:1.7">${String(a.Descripcion_Anuncio || '').replace(/\n/g,'<br>')}</div>
+    </div>
+    <button onclick="document.getElementById('modal-desc-anuncio').remove()"
+      style="width:100%;padding:12px;background:rgba(212,175,55,.12);
+        border:1.5px solid rgba(212,175,55,.35);border-radius:12px;
+        font-size:13px;font-weight:700;color:#d4af37;cursor:pointer">
+      Entendido
+    </button>
+  </div>`;
+  modal2.addEventListener('click', e => { if (e.target === modal2) modal2.remove(); });
+  document.body.appendChild(modal2);
+}
+
+function cerrarModalAnuncios() {
+  const m = document.getElementById('modal-anuncios');
+  if (m) m.remove();
+}
 
 let _todosAnuncios = [];
 
@@ -5439,42 +5668,7 @@ async function cargarAnuncios() {
   }
 }
 
-function abrirModalAnuncios() {
-  const modal = document.createElement('div');
-  modal.id = 'modal-anuncios';
-  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,.75);
-    z-index:9999;display:flex;align-items:flex-end;justify-content:center;padding:0`;
-  modal.innerHTML = `
-  <div style="background:#0d2347;border-top:2px solid rgba(212,175,55,.3);
-    border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:480px;
-    max-height:75vh;overflow-y:auto">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div>
-        <div style="font-size:14px;font-weight:700;color:#d4af37">Avisos y Anuncios</div>
-        <div style="font-size:10px;color:rgba(212,175,55,.5);margin-top:1px">Privada Paamul</div>
-      </div>
-      <button onclick="cerrarModalAnuncios()"
-        style="background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);
-          border-radius:8px;padding:6px 12px;color:#d4af37;font-size:12px;
-          font-weight:700;cursor:pointer">✕ Cerrar</button>
-    </div>
-    ${_todosAnuncios.map((a, i) => `
-    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);
-      border-radius:12px;padding:12px 14px;margin-bottom:8px">
-      <div style="display:flex;gap:10px;align-items:flex-start">
-        <span style="font-size:16px;filter:saturate(.5);flex-shrink:0">${i === 0 ? '📌' : '📢'}</span>
-        <div style="font-size:13px;color:#f5f0e8;line-height:1.6">${a.Texto_Anuncio || ''}</div>
-      </div>
-    </div>`).join('')}
-  </div>`;
-  modal.addEventListener('click', e => { if (e.target === modal) cerrarModalAnuncios(); });
-  document.body.appendChild(modal);
-}
 
-function cerrarModalAnuncios() {
-  const m = document.getElementById('modal-anuncios');
-  if (m) m.remove();
-}
 
 // ── DIRECTORIO ────────────────────────────────────────────────
 
