@@ -2109,7 +2109,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbw8pta5xYM4LA5pdaFFPEyhAv88vGmdHTC-Qt1Mn-Fb3aPCp0N-JnzUhEy5QAIGlXMPQw/exec';
+const API = 'https://script.google.com/macros/s/AKfycbxY8Is86nV-KIrQJduZvIQObB3djw0oErCU7PnEBQooiDyQTiqulZIVsfyr4MXGawUbCg/exec';
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -2354,10 +2354,12 @@ async function cargarMenuPrincipal() {
     badges.innerHTML += `<span class="verificado-badge">✔ Propietario verificado</span>`;
   }
 
-  // Cargar estatus de finanzas y banners
-  cargarEstatusHome();
-  cargarBannerPaquete();
-  await cargarAnuncios();
+  // Cargar estatus de finanzas y banners EN PARALELO para mayor velocidad
+  Promise.all([
+    cargarEstatusHome(),
+    cargarBannerPaquete(),
+    cargarAnuncios()
+  ]).catch(e => console.log('Menu load:', e));
 
   // Mostrar/ocultar módulos según rol
   const prop = esPropietario();
@@ -3049,6 +3051,21 @@ function renderConvenioCard(ad, esComite) {
   };
   const cfg = configs[estatus] || configs['ADEUDO_PENDIENTE'];
 
+  // Mensaje de deuda atrasada para deptos con servicios pero con saldo pendiente del comité anterior
+  const adeudoMtto  = parseFloat(ad.ADEUDO_HOY_MTTO_CAMBIO_COMITE||0);
+  const adeudoCuota = parseFloat(ad.TOTAL_HOY_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE||0);
+  const tieneDeudaAtrasada = (adeudoMtto > 0 || adeudoCuota > 0) &&
+    (estatus === 'AL_CORRIENTE' || estatus === 'CONVENIO_SERVICIOS');
+  const msgDeudaAtrasada = tieneDeudaAtrasada ? `
+  <div style="background:rgba(230,81,0,.1);border:1px solid rgba(230,81,0,.3);
+    border-radius:10px;padding:10px 12px;margin-top:10px">
+    <div style="font-size:12px;font-weight:700;color:#ffb74d;margin-bottom:4px">📋 Saldo pendiente del comité anterior</div>
+    <div style="font-size:11px;color:rgba(245,240,232,.7);line-height:1.5">
+      Para quedar completamente al corriente en todos tus saldos, acércate a la tesorera.
+      Si tienes alguna duda o requieres una aclaración, estamos para apoyarte.
+    </div>
+  </div>` : '';
+
   const mostrarBarra = estatus === 'CONVENIO_SERVICIOS' || estatus === 'CONVENIO_SIN_SERVICIOS';
   const colorBarra   = pct >= 50 ? '#1565c0' : '#e65100';
 
@@ -3106,7 +3123,8 @@ function renderConvenioCard(ad, esComite) {
     <div class="conv-pct">${fmt$(abonado)} abonado de ${fmt$(parseFloat(ad.ADEUDO_MTTO_CAMBIO_COMITE||0) + parseFloat(ad.ADEUDO_CUOTA_EXTRAORDINARIA_CAMBIO_COMITE||0))}</div>
     ` : ''}
     ${btnComite}
-  </div>`;
+  </div>
+  ${msgDeudaAtrasada}`;
 }
 
 async function abrirEstadoCuenta() {
@@ -3427,11 +3445,10 @@ function renderEcPagos(filtro) {
                    {l:'Adeudo',v:d.ADEUDO},{l:'Chip',v:d.CHIP}].filter(i => parseFloat(i.v||0)>0);
     const confComite = String(d.CONFIRMADO_COMITE||'').toUpperCase() === 'SI';
     const confTes    = String(d.CONFIRMADO_TESORERA||'').toUpperCase() === 'SI';
-    const checkmark = monto >= 1000 ? '✅✅' : monto >= 500 ? '✅' : '';
     return `
     <div class="dep-pago-card">
       <div class="dep-pago-header">
-        <span class="dep-pago-mes">${d.MES||'—'} ${checkmark}</span>
+        <span class="dep-pago-mes">${d.MES||'—'}</span>
         <span class="dep-pago-monto">${monto>0?fmt$(monto):'—'}</span>
       </div>
       <div class="dep-pago-meta">${d.FECHA||''} · ${d.METODO||''}</div>
@@ -4271,11 +4288,10 @@ function renderMisPagos() {
       {l:'Chip',    v:d.CHIP},    {l:'Control',v:d.CONTROL},
       {l:'Multas',  v:d.MULTAS},  {l:'Rentas', v:d.RENTAS},
     ].filter(i => parseFloat(i.v||0) > 0);
-    const checkmark = monto >= 1000 ? '✅✅' : monto >= 500 ? '✅' : '';
     return `
     <div class="dep-pago-card">
       <div class="dep-pago-header">
-        <span class="dep-pago-mes">${d.MES||'—'} ${checkmark}</span>
+        <span class="dep-pago-mes">${d.MES||'—'}</span>
         <span class="dep-pago-monto">${monto>0?fmt$(monto):'—'}</span>
       </div>
       <div class="dep-pago-meta">${d.FECHA||''} · ${d.METODO||''}</div>
@@ -5497,14 +5513,6 @@ async function cargarMorosidad() {
         <div style="font-size:10px;color:rgba(245,240,232,.6);margin-top:2px">✅ Con servicios</div>
       </div>
     </div>
-    <div style="background:rgba(212,175,55,.07);border:1px solid rgba(212,175,55,.2);
-      border-radius:10px;padding:10px 12px;margin-bottom:14px">
-      <div style="font-size:10px;color:#d4af37;font-weight:700">📌 Criterio vigente</div>
-      <div style="font-size:10px;color:rgba(245,240,232,.65);margin-top:3px;line-height:1.5">
-        🔴 Moroso: Recargos 2026 > $100 MXN<br>
-        ✅ Con servicios: Recargos 2026 = $0
-      </div>
-    </div>
 
     ${morosos.length === 0
       ? '<div style="text-align:center;padding:30px"><div style="font-size:36px">🎉</div><div style="font-size:15px;font-weight:700;color:#81c784;margin-top:8px">¡Sin morosos!</div><div style="font-size:11px;color:rgba(245,240,232,.5);margin-top:4px">Todos los deptos al corriente</div></div>'
@@ -5525,16 +5533,9 @@ async function cargarMorosidad() {
           <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px">
             ${mapaEdif[edif].map(d => `
             <div style="background:rgba(198,40,40,.15);border:1px solid rgba(229,57,53,.35);
-              border-radius:10px;padding:10px 12px;
-              display:flex;justify-content:space-between;align-items:center">
-              <div>
-                <div style="font-size:14px;font-weight:800;color:#f5f0e8">Depto ${d.DEPTO}</div>
-                <div style="font-size:10px;color:#ef9a9a;margin-top:2px">🔴 Moroso</div>
-              </div>
-              <div style="text-align:right">
-                <div style="font-size:12px;font-weight:700;color:#ef9a9a">+${fmt$(d.RECARGOS_2026)}</div>
-                <div style="font-size:9px;color:rgba(245,240,232,.4)">recargos</div>
-              </div>
+              border-radius:10px;padding:10px 12px">
+              <div style="font-size:14px;font-weight:800;color:#f5f0e8">Depto ${d.DEPTO}</div>
+              <div style="font-size:10px;color:#ef9a9a;margin-top:3px;font-weight:700">🔴 Moroso</div>
             </div>`).join('')}
           </div>
         </div>`).join('')}`
