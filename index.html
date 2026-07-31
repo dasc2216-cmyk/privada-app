@@ -658,25 +658,67 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
       justify-content:center;font-size:26px;margin:0 auto 12px;
       box-shadow:0 0 20px rgba(212,175,55,.1)">🛡️</div>
     <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#f5f0e8">Acceso Seguridad</div>
-    <div style="font-size:9px;color:#d4af37;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-top:3px">Solo personal autorizado</div>
+    <div style="font-size:9px;color:#d4af37;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-top:3px">Personal autorizado</div>
   </div>
   <div class="content">
     <div class="msg" id="seg-login-msg"></div>
-    <div class="card" style="margin-top:8px">
-      <div class="fg">
-        <label>Departamento o nombre</label>
-        <input type="text" id="seg-login-casa" placeholder="Ej: GUARDIA"
-          style="text-transform:uppercase"
-          oninput="this.value=this.value.replace(/\s+/g,' ').toUpperCase().trimStart()">
-      </div>
-      <div class="fg">
-        <label>Clave de acceso</label>
-        <input type="text" id="seg-login-clave" placeholder="••••••" maxlength="6"
-          style="text-transform:uppercase;letter-spacing:4px;font-size:20px;font-weight:700;text-align:center"
-          oninput="this.value=this.value.replace(/\s/g,'').toUpperCase()">
-      </div>
-      <button class="btn-submit" onclick="loginDesdeSeguridad()">🛡️ INGRESAR</button>
+
+    <!-- Sub-tabs: Ingresar | Registrarse -->
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button class="ec-tab activo" id="seg-tab-login" onclick="segSubTab('login',this)">🔐 Ingresar</button>
+      <button class="ec-tab" id="seg-tab-reg" onclick="segSubTab('registro',this)">✦ Registrarme</button>
     </div>
+
+    <!-- Panel Ingresar -->
+    <div id="seg-panel-login">
+      <div class="card">
+        <div class="fg">
+          <label>Turno / Nombre</label>
+          <input type="text" id="seg-login-casa" placeholder="Ej: DIURNO"
+            style="text-transform:uppercase"
+            oninput="this.value=this.value.replace(/\s+/g,' ').toUpperCase().trimStart()">
+        </div>
+        <div class="fg">
+          <label>Clave de acceso</label>
+          <input type="text" id="seg-login-clave" placeholder="••••••" maxlength="6"
+            style="text-transform:uppercase;letter-spacing:4px;font-size:20px;font-weight:700;text-align:center"
+            oninput="this.value=this.value.replace(/\s/g,'').toUpperCase()">
+        </div>
+        <button class="btn-submit" onclick="loginDesdeSeguridad()">🛡️ INGRESAR</button>
+      </div>
+    </div>
+
+    <!-- Panel Registro seguridad -->
+    <div id="seg-panel-registro" style="display:none">
+      <div class="card">
+        <div class="fg">
+          <label>Nombre completo</label>
+          <input type="text" id="seg-reg-nombre" placeholder="Tu nombre completo">
+        </div>
+        <div class="fg">
+          <label>Teléfono</label>
+          <input type="tel" id="seg-reg-tel" placeholder="10 dígitos"
+            oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+        </div>
+        <div class="fg">
+          <label>Turno / Función</label>
+          <select id="seg-reg-turno">
+            <option value="DIURNO">Guardia Diurno</option>
+            <option value="NOCTURNO">Guardia Nocturno</option>
+            <option value="CUBRETURNOS">Cubreturnos</option>
+            <option value="SUPERVISOR">Supervisor de Seguridad</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Crear clave de acceso (4-6 caracteres)</label>
+          <input type="text" id="seg-reg-clave" placeholder="Tu clave" maxlength="6"
+            style="text-transform:uppercase;letter-spacing:4px;font-size:20px;font-weight:700;text-align:center"
+            oninput="this.value=this.value.replace(/\s/g,'').toUpperCase()">
+        </div>
+        <button class="btn-submit" onclick="registrarSeguridad()">✦ REGISTRARME</button>
+      </div>
+    </div>
+
     <div style="text-align:center;margin-top:10px">
       <button onclick="ir('s-inicio')"
         style="background:none;border:none;color:rgba(245,240,232,.3);font-size:12px;cursor:pointer">
@@ -685,6 +727,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
     </div>
   </div>
 </div>
+
 
 <!-- ══════════════════════════════════════════════════════════
      PANTALLA 2 — REGISTRO
@@ -2109,7 +2152,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbxY8Is86nV-KIrQJduZvIQObB3djw0oErCU7PnEBQooiDyQTiqulZIVsfyr4MXGawUbCg/exec';
+const API = 'https://script.google.com/macros/s/AKfycbxYnO1B9pZ_3qLsUZD-cQSKJv_IIWsBc3v6pfrxGShN-vHnKDgN6QWJidvISjW4Hdc2Kw/exec';
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -2222,22 +2265,7 @@ async function registrar() {
 }
 
 // ── LOGIN ───────────────────────────────────────────────────
-async function loginDesdeSeguridad() {
-  const msg   = document.getElementById('seg-login-msg');
-  const casa  = String(document.getElementById('seg-login-casa')?.value || '').trim().toUpperCase();
-  const clave = String(document.getElementById('seg-login-clave')?.value || '').trim().toUpperCase();
-  if (!casa || !clave) { showMsg(msg,'error','Completa los campos'); return; }
-  try {
-    const res  = await post({ accion:'login', casa, clave });
-    if (res.ok) {
-      sesion = res;
-      ir('s-seguridad');
-      mostrarPantallaSeguridad();
-    } else {
-      showMsg(msg,'error', res.error || 'Credenciales incorrectas');
-    }
-  } catch(e) { showMsg(msg,'error','Error de conexión'); }
-}
+
 
 async function login() {
   const msg   = document.getElementById('login-msg');
@@ -4965,48 +4993,297 @@ async function registrarRiegoComite() {
 }
 
 async function renderPropietariosComite(el) {
-  const res  = await fetch(`${API}?accion=getPropietariosPend`);
-  const data = await res.json();
-  const items = Array.isArray(data) ? data : [];
-  if (items.length === 0) { el.innerHTML = '<p style="color:#888;text-align:center;padding:16px">Sin propietarios pendientes ✅</p>'; return; }
-  const msg = document.getElementById('msg-comite');
-  el.innerHTML = items.map(u => `
-    <div class="item-comite">
-      <div class="ic-header">
-        <span class="ic-titulo">👤 ${u.Nombre}</span>
-        <span class="hc-badge abierto">Pendiente</span>
-      </div>
-      <div class="ic-meta">Depto ${u.Casa} · ${u.Telefono}</div>
-      <div class="fg" style="margin-top:8px">
-        <input class="respuesta-input" type="text" id="cargo-${u.Casa}-${u.Nombre.split(' ')[0]}"
-          placeholder="Cargo en comité (opcional, ej: Vocal)">
-      </div>
-      <div class="ic-acciones">
-        <button class="btn-resolver" onclick="verificarComite('${u.Casa}','${u.Nombre}','cargo-${u.Casa}-${u.Nombre.split(' ')[0]}')">✅ Verificar</button>
-        <button class="btn-rechazar" onclick="rechazarPropietario('${u.Casa}','${u.Nombre}')">❌ Rechazar</button>
-      </div>
-    </div>`).join('');
+  el.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const res  = await fetch(`${API}?accion=getPendientesVerif`);
+    const data = await res.json();
+    const items = Array.isArray(data) ? data : [];
+
+    // Config de badges por rol
+    const badgeCfg = {
+      'propietario':    { color:'#d4af37',   bg:'rgba(212,175,55,.15)',  borde:'rgba(212,175,55,.4)',  label:'Propietario' },
+      'residente':      { color:'#64b5f6',   bg:'rgba(100,181,246,.15)', borde:'rgba(100,181,246,.4)', label:'Residente' },
+      'administrador':  { color:'#ce93d8',   bg:'rgba(206,147,216,.15)', borde:'rgba(206,147,216,.4)', label:'Administrador' },
+    };
+
+    const msg = document.getElementById('msg-comite');
+
+    // Sub-tabs: Pendientes | Directorio
+    el.innerHTML = `
+    <div style="display:flex;gap:6px;margin-bottom:14px" id="verif-subtabs">
+      <button class="ec-tab activo" onclick="verifSubTab('pendientes',this)">
+        🔔 Pendientes ${items.length > 0 ? `<span style="background:rgba(212,175,55,.2);border-radius:10px;padding:1px 7px;font-size:10px;margin-left:4px;color:#d4af37">${items.length}</span>` : ''}
+      </button>
+      <button class="ec-tab" onclick="verifSubTab('directorio',this)">📋 Directorio</button>
+    </div>
+    <div id="verif-panel-pendientes">
+      ${items.length === 0
+        ? '<p style="text-align:center;padding:20px;color:rgba(245,240,232,.5)">✅ Sin pendientes de verificación</p>'
+        : items.map(u => {
+            const rol = String(u.rol||'').toLowerCase();
+            const cfg = badgeCfg[rol] || { color:'#f5f0e8', bg:'rgba(255,255,255,.08)', borde:'rgba(255,255,255,.2)', label: u.rol || 'Usuario' };
+            const uid = `cargo-${String(u.casa||'').replace(/\s/g,'')}-${String(u.nombre||'').split(' ')[0]}`;
+            return `
+            <div style="background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);
+              border-radius:12px;padding:14px;margin-bottom:10px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="font-size:15px;font-weight:700;color:#f5f0e8">👤 ${u.nombre}</span>
+                </div>
+                <span style="background:${cfg.bg};color:${cfg.color};border:1px solid ${cfg.borde};
+                  font-size:10px;font-weight:700;padding:3px 10px;border-radius:10px">
+                  ${cfg.label}
+                </span>
+              </div>
+              <div style="font-size:11px;color:rgba(212,175,55,.5);margin-bottom:10px">
+                🏠 ${u.casa || '—'} &nbsp;·&nbsp; 📱 ${u.tel || '—'}
+                ${u.fecha ? `&nbsp;·&nbsp; 📅 ${u.fecha}` : ''}
+              </div>
+              ${rol === 'propietario' ? `
+              <div class="fg" style="margin-bottom:8px">
+                <label style="font-size:10px">Cargo en comité (opcional)</label>
+                <input type="text" id="${uid}" placeholder="Ej: Vocal, Tesorera...">
+              </div>` : ''}
+              <div style="display:flex;gap:8px">
+                <button onclick="verificarUsuario('${u.casa}','${u.nombre}','${uid}','${u.rol}')"
+                  style="flex:1;padding:10px;background:rgba(46,125,50,.2);border:1px solid rgba(67,160,71,.4);
+                    border-radius:10px;color:#81c784;font-size:12px;font-weight:700;cursor:pointer">
+                  ✅ Verificar
+                </button>
+                <button onclick="rechazarUsuario('${u.casa}','${u.nombre}')"
+                  style="flex:1;padding:10px;background:rgba(198,40,40,.15);border:1px solid rgba(229,57,53,.3);
+                    border-radius:10px;color:#ef9a9a;font-size:12px;font-weight:700;cursor:pointer">
+                  ❌ Rechazar
+                </button>
+              </div>
+            </div>`;
+          }).join('')}
+    </div>
+    <div id="verif-panel-directorio" style="display:none">
+      <div class="loader" id="dir-loader">Cargando directorio...</div>
+    </div>`;
+
+  } catch(e) {
+    el.innerHTML = `<p style="color:#ef9a9a;text-align:center;padding:16px">Error: ${e.message}</p>`;
+  }
 }
 
-async function verificarComite(casa, nombre, cargoId) {
+function verifSubTab(tab, btn) {
+  document.querySelectorAll('#verif-subtabs .ec-tab').forEach(b => b.classList.remove('activo'));
+  if (btn) btn.classList.add('activo');
+  document.getElementById('verif-panel-pendientes').style.display = tab === 'pendientes' ? '' : 'none';
+  const dirPanel = document.getElementById('verif-panel-directorio');
+  dirPanel.style.display = tab === 'directorio' ? '' : 'none';
+  if (tab === 'directorio') cargarDirectorioComite();
+}
+
+async function cargarDirectorioComite() {
+  const el = document.getElementById('dir-loader');
+  if (!el) return;
+  try {
+    const res  = await fetch(`${API}?accion=getDirectorio&rol=todos`);
+    const data = await res.json();
+    const usuarios = Array.isArray(data) ? data : [];
+    const badgeCfg = {
+      'propietario':   { color:'#d4af37', bg:'rgba(212,175,55,.15)', borde:'rgba(212,175,55,.4)', label:'Propietario' },
+      'residente':     { color:'#64b5f6', bg:'rgba(100,181,246,.15)', borde:'rgba(100,181,246,.4)', label:'Residente' },
+      'administrador': { color:'#ce93d8', bg:'rgba(206,147,216,.15)', borde:'rgba(206,147,216,.4)', label:'Admin' },
+      'seguridad':     { color:'#80cbc4', bg:'rgba(128,203,196,.15)', borde:'rgba(128,203,196,.4)', label:'Seguridad' },
+    };
+    // Agrupar por rol
+    const grupos = {};
+    usuarios.forEach(u => {
+      const r = String(u.rol||'otro').toLowerCase();
+      if (!grupos[r]) grupos[r] = [];
+      grupos[r].push(u);
+    });
+    const orden = ['administrador','propietario','residente','seguridad'];
+    const dirEl = document.getElementById('verif-panel-directorio');
+    if (!dirEl) return;
+    dirEl.innerHTML = orden.filter(r => grupos[r]?.length).map(r => {
+      const cfg = badgeCfg[r] || { color:'#f5f0e8', bg:'rgba(255,255,255,.08)', borde:'rgba(255,255,255,.2)', label: r };
+      return `
+      <div style="margin-bottom:16px">
+        <div style="font-size:9px;font-weight:800;color:${cfg.color};letter-spacing:2px;
+          text-transform:uppercase;margin-bottom:8px">${cfg.label}s (${grupos[r].length})</div>
+        ${grupos[r].map(u => `
+        <div style="background:rgba(255,255,255,.04);border:1px solid ${cfg.borde};
+          border-radius:10px;padding:10px 12px;margin-bottom:6px;
+          display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#f5f0e8">${u.nombre}</div>
+            <div style="font-size:10px;color:rgba(212,175,55,.5);margin-top:2px">
+              🏠 ${u.casa||'—'} ${u.cargo ? `· ${u.cargo}` : ''} ${u.tel ? `· 📱 ${u.tel}` : ''}
+            </div>
+          </div>
+          <span style="background:${cfg.bg};color:${cfg.color};border:1px solid ${cfg.borde};
+            font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px">${cfg.label}</span>
+        </div>`).join('')}
+      </div>`;
+    }).join('') || '<p style="color:rgba(245,240,232,.5);text-align:center;padding:20px">Sin usuarios verificados</p>';
+  } catch(e) {
+    const dirEl = document.getElementById('verif-panel-directorio');
+    if (dirEl) dirEl.innerHTML = `<p style="color:#ef9a9a;text-align:center;padding:16px">Error: ${e.message}</p>`;
+  }
+}
+
+async function verificarUsuario(casa, nombre, cargoId, rol) {
   const cargo = document.getElementById(cargoId)?.value || '';
   const msg   = document.getElementById('msg-comite');
   try {
     const res = await post({ accion:'verificarPropietario', casa, nombre, cargo });
-    if (res.ok) { showMsg(msg,'ok',`✅ ${nombre} verificado`); renderTabComite('propietarios'); }
-    else showMsg(msg,'error', res.error || 'Error');
+    if (res.ok) {
+      showMsg(msg,'ok',`✅ ${nombre} verificado correctamente`);
+      renderTabComite('propietarios');
+    } else showMsg(msg,'error', res.error || 'Error');
   } catch(e) { showMsg(msg,'error','Error de conexión'); }
 }
 
-async function rechazarPropietario(casa, nombre) {
-  // Por ahora solo elimina visualmente — en el Sheet el comité lo borrará manualmente
+async function rechazarUsuario(casa, nombre) {
   const msg = document.getElementById('msg-comite');
-  showMsg(msg, 'info', `Para rechazar a ${nombre} del depto ${casa}, borra su fila del Sheet manualmente.`);
+  showMsg(msg, 'info', `Para rechazar a ${nombre} del depto ${casa}, elimina su fila del Sheet manualmente.`);
+}
+
+// ── SEGURIDAD — REGISTRO Y REGLAMENTO ────────────────────────
+
+function segSubTab(tab, btn) {
+  document.querySelectorAll('#s-login-seg .ec-tab').forEach(b => b.classList.remove('activo'));
+  if (btn) btn.classList.add('activo');
+  document.getElementById('seg-panel-login').style.display    = tab === 'login'    ? '' : 'none';
+  document.getElementById('seg-panel-registro').style.display = tab === 'registro' ? '' : 'none';
+}
+
+async function registrarSeguridad() {
+  const msg    = document.getElementById('seg-login-msg');
+  const nombre = document.getElementById('seg-reg-nombre')?.value.trim();
+  const tel    = document.getElementById('seg-reg-tel')?.value.trim();
+  const turno  = document.getElementById('seg-reg-turno')?.value;
+  const clave  = document.getElementById('seg-reg-clave')?.value.trim();
+  if (!nombre || !tel || !clave) { showMsg(msg,'error','Completa todos los campos'); return; }
+  if (tel.length < 10)           { showMsg(msg,'error','Teléfono debe tener 10 dígitos'); return; }
+  if (clave.length < 4)          { showMsg(msg,'error','La clave debe tener mínimo 4 caracteres'); return; }
+  try {
+    const res = await post({ accion:'registrarSeguridad', nombre, tel, turno, clave });
+    if (res.ok) {
+      showMsg(msg,'ok','✅ Registro exitoso. Ahora ingresa con tu turno y clave.');
+      segSubTab('login', document.getElementById('seg-tab-login'));
+      document.getElementById('seg-login-casa').value  = turno;
+      document.getElementById('seg-login-clave').value = '';
+    } else showMsg(msg,'error', res.error || 'Error al registrar');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
+async function loginDesdeSeguridad() {
+  const msg   = document.getElementById('seg-login-msg');
+  const casa  = String(document.getElementById('seg-login-casa')?.value || '').trim().toUpperCase();
+  const clave = String(document.getElementById('seg-login-clave')?.value || '').trim().toUpperCase();
+  if (!casa || !clave) { showMsg(msg,'error','Completa los campos'); return; }
+  try {
+    const res = await post({ accion:'login', casa, clave });
+    if (res.ok) {
+      sesion = res;
+      // Verificar si debe mostrar reglamento de seguridad (primer turno del día)
+      const hoy     = new Date().toDateString();
+      const keyReg  = `seg_reglamento_${sesion.casa}_${hoy}`;
+      if (!sessionStorage.getItem(keyReg)) {
+        await mostrarReglamentoSeg(keyReg);
+      } else {
+        ir('s-seguridad');
+        mostrarPantallaSeguridad();
+      }
+    } else showMsg(msg,'error', res.error || 'Credenciales incorrectas');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
+async function mostrarReglamentoSeg(storageKey) {
+  // Cargar reglamento de la pestaña Reglas donde Amenidad = Seguridad
+  let reglas = [];
+  try {
+    const res = await fetch(`${API}?accion=getReglamentoSeg`);
+    reglas = await res.json();
+    if (!Array.isArray(reglas)) reglas = [];
+  } catch(e) {}
+
+  const modal = document.createElement('div');
+  modal.id = 'modal-reg-seg';
+  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,.85);
+    z-index:10000;display:flex;align-items:flex-end;justify-content:center;padding:0`;
+  modal.innerHTML = `
+  <div style="background:#0d2347;border-top:2px solid rgba(212,175,55,.4);
+    border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:480px;max-height:85vh;
+    display:flex;flex-direction:column">
+    <div style="text-align:center;margin-bottom:14px">
+      <div style="font-size:24px;margin-bottom:6px">🛡️</div>
+      <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#f5f0e8">
+        Protocolo Operativo de Vigilancia
+      </div>
+      <div style="font-size:10px;color:rgba(212,175,55,.6);margin-top:3px;letter-spacing:1px">
+        Privada Paamul · Paseos de Xcacel
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto;margin-bottom:14px">
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.15);
+        border-radius:12px;padding:14px">
+        ${reglas.length > 0
+          ? reglas.map((r,i) => `
+            <div style="display:flex;gap:10px;margin-bottom:12px;padding-bottom:12px;
+              ${i < reglas.length-1 ? 'border-bottom:1px solid rgba(212,175,55,.1)' : ''}">
+              <div style="background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.3);
+                border-radius:8px;width:22px;height:22px;display:flex;align-items:center;
+                justify-content:center;font-size:10px;font-weight:800;color:#d4af37;flex-shrink:0;margin-top:1px">
+                ${i+1}
+              </div>
+              <div style="font-size:12px;color:#f5f0e8;line-height:1.6">${r.texto}</div>
+            </div>`).join('')
+          : `<p style="color:rgba(245,240,232,.6);font-size:13px;line-height:1.7;text-align:center">
+              Al ingresar a tu turno confirmas que conoces y cumplirás el reglamento
+              y protocolo operativo de Privada Paamul. Cualquier duda, consulta con el Supervisor.
+            </p>`}
+      </div>
+    </div>
+    <div style="font-size:10px;color:rgba(212,175,55,.5);text-align:center;margin-bottom:10px">
+      Al aceptar confirmas tu conformidad con el protocolo del turno de hoy
+    </div>
+    <button onclick="aceptarReglamentoSeg('${storageKey}')"
+      style="width:100%;padding:14px;background:linear-gradient(135deg,rgba(212,175,55,.4),rgba(180,145,35,.3));
+        border:1.5px solid rgba(212,175,55,.5);border-radius:12px;
+        font-size:14px;font-weight:700;color:#f5f0e8;cursor:pointer;letter-spacing:.5px">
+      ✅ Acepto y Entro al Turno
+    </button>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+function aceptarReglamentoSeg(storageKey) {
+  sessionStorage.setItem(storageKey, '1');
+  const m = document.getElementById('modal-reg-seg');
+  if (m) m.remove();
+  ir('s-seguridad');
+  mostrarPantallaSeguridad();
+}
+
+// ── B5 OPTIMIZACIÓN — CACHÉ EN MEMORIA ───────────────────────
+
+const _cache = {};
+const _cacheTTL = 5 * 60 * 1000; // 5 minutos
+
+async function fetchCached(url) {
+  const now = Date.now();
+  if (_cache[url] && (now - _cache[url].ts) < _cacheTTL) {
+    return _cache[url].data;
+  }
+  const res  = await fetch(url);
+  const data = await res.json();
+  _cache[url] = { data, ts: now };
+  return data;
+}
+
+function invalidarCache(patron) {
+  Object.keys(_cache).forEach(k => { if (k.includes(patron)) delete _cache[k]; });
 }
 
 // ── PANEL SEGURIDAD ───────────────────────────────────────────
 
-// ── PANEL SEGURIDAD ───────────────────────────────────────────
 
 async function cargarAnunciosSeg() {
   const contenedor = document.getElementById('banner-seg-anuncios');
