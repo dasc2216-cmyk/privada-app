@@ -5360,33 +5360,53 @@ async function iniciarRondin() {
   if (!sesion) return;
   const seccion = document.getElementById('ron-seccion')?.value || 'Inicio';
   const notas   = document.getElementById('ron-notas-ini')?.value || '';
-  // Obtener GPS
-  if (!navigator.geolocation) { alert('GPS no disponible en este dispositivo'); return; }
-  navigator.geolocation.getCurrentPosition(async pos => {
-    const lat = pos.coords.latitude;
-    const lng = pos.coords.longitude;
+  const btnIni  = document.querySelector('#rondines-contenido .btn-submit');
+  if (btnIni) { btnIni.textContent = '📍 Obteniendo ubicación...'; btnIni.disabled = true; }
+
+  const iniciarConCoords = async (lat, lng) => {
     try {
       const res = await post({
-        accion:'registrarRondin',
-        guardia: sesion.nombre || sesion.casa,
-        turno:   sesion.cargo  || sesion.casa,
+        accion:   'registrarRondin',
+        guardia:  sesion.nombre || sesion.casa,
+        turno:    sesion.cargo  || sesion.casa,
         lat, lng, seccion, notas,
-        estatus: 'En curso'
+        estatus:  'En curso'
       });
       if (res.ok) {
         rondinActivo = {
-          id:       res.id,
-          inicio:   Date.now(),
-          puntos:   [{lat, lng, ts: Date.now()}],
+          id:     res.id,
+          inicio: Date.now(),
+          puntos: [{lat, lng, ts: Date.now()}],
         };
-        // Iniciar tracking cada 2 minutos
         rondinInterval = setInterval(() => actualizarGPSRondin(), 2 * 60 * 1000);
-        // Timer visual
         iniciarTimerRondin();
         renderRondinesPanel();
+      } else {
+        alert('Error al guardar rondín: ' + (res.error || 'Sin respuesta'));
+        if (btnIni) { btnIni.textContent = '🗺️ Iniciar Rondín'; btnIni.disabled = false; }
       }
-    } catch(e) { alert('Error al iniciar rondín: ' + e.message); }
-  }, err => alert('No se pudo obtener ubicación: ' + err.message));
+    } catch(e) {
+      alert('Error de conexión: ' + e.message);
+      if (btnIni) { btnIni.textContent = '🗺️ Iniciar Rondín'; btnIni.disabled = false; }
+    }
+  };
+
+  if (!navigator.geolocation) {
+    // Sin GPS — registrar sin coordenadas
+    await iniciarConCoords(0, 0);
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    pos => iniciarConCoords(pos.coords.latitude, pos.coords.longitude),
+    async err => {
+      // GPS falló — preguntar si quiere continuar sin ubicación
+      const sinGps = confirm("GPS no disponible. Iniciar rondín sin ubicación?");
+      if (sinGps) await iniciarConCoords(0, 0);
+      else if (btnIni) { btnIni.textContent = '🗺️ Iniciar Rondín'; btnIni.disabled = false; }
+    },
+    { timeout: 10000, enableHighAccuracy: true }
+  );
 }
 
 function iniciarTimerRondin() {
