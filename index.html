@@ -6,6 +6,8 @@
 <title>Privada Paamul</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 /* ── PALETA PREMIUM ────────────────────────────────────────── */
 :root {
@@ -1380,6 +1382,32 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
+     PANTALLA — RONDINES GPS
+═══════════════════════════════════════════════════════════ -->
+<div id="s-rondines" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="irAtras()">←</button>
+    <div class="header-title"><h1>Privada Paamul</h1><p>Rondines GPS</p></div>
+  </div>
+  <div class="content" style="overflow-y:auto;padding:0">
+    <div id="rondines-contenido"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — VISOR HISTORIAL RONDINES
+═══════════════════════════════════════════════════════════ -->
+<div id="s-historial-rondines" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-rondines')">←</button>
+    <div class="header-title"><h1>Privada Paamul</h1><p>Historial de Rondines</p></div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="historial-rondines-contenido"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
      PANTALLA — MOROSIDAD
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-morosidad" class="screen">
@@ -1601,6 +1629,9 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
       </button>
       <button class="seg-btn" onclick="toggleSeg('visitas')" style="grid-column:span 2">
         <span class="sb-icon">🚗</span><span class="sb-label">Visitas del Día</span>
+      </button>
+      <button class="seg-btn" onclick="ir('s-rondines')" style="grid-column:span 2">
+        <span class="sb-icon">🗺️</span><span class="sb-label">Rondines GPS</span>
       </button>
     </div>
 
@@ -1929,6 +1960,9 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
       </button>
       <button class="seg-btn" onclick="toggleSeg('visitas')" style="grid-column:span 2">
         <span class="sb-icon">🚗</span><span class="sb-label">Visitas del Día</span>
+      </button>
+      <button class="seg-btn" onclick="ir('s-rondines')" style="grid-column:span 2">
+        <span class="sb-icon">🗺️</span><span class="sb-label">Rondines GPS</span>
       </button>
     </div>
 
@@ -2191,6 +2225,7 @@ window.onload = async () => {
         await cargarReglamento(); ir('s-reglamento');
       } else {
         await cargarMenuPrincipal(); ir('s-menu');
+      verificarMultiPropiedades(); // B4: detectar múltiples propiedades
       }
       return;
     }
@@ -5116,8 +5151,16 @@ async function cargarDirectorioComite() {
               🏠 ${u.casa||'—'} ${u.cargo ? `· ${u.cargo}` : ''} ${u.tel ? `· 📱 ${u.tel}` : ''}
             </div>
           </div>
-          <span style="background:${cfg.bg};color:${cfg.color};border:1px solid ${cfg.borde};
-            font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px">${cfg.label}</span>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            <span style="background:${cfg.bg};color:${cfg.color};border:1px solid ${cfg.borde};
+              font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px">${cfg.label}</span>
+            <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:7px;
+              ${u.reglamento_ok
+                ? 'background:rgba(46,125,50,.15);color:#81c784;border:1px solid rgba(67,160,71,.3)'
+                : 'background:rgba(230,81,0,.12);color:#ffb74d;border:1px solid rgba(255,152,0,.3)'}">
+              ${u.reglamento_ok ? '✅ Reglamento' : '⚠️ Pendiente'}
+            </span>
+          </div>
         </div>`).join('')}
       </div>`;
     }).join('') || '<p style="color:rgba(245,240,232,.5);text-align:center;padding:20px">Sin usuarios verificados</p>';
@@ -5144,7 +5187,389 @@ async function rechazarUsuario(casa, nombre) {
   showMsg(msg, 'info', `Para rechazar a ${nombre} del depto ${casa}, elimina su fila del Sheet manualmente.`);
 }
 
-// ── SEGURIDAD — REGISTRO Y REGLAMENTO ────────────────────────
+// ══════════════════════════════════════════════════════════════
+// B3 — RONDINES GPS
+// ══════════════════════════════════════════════════════════════
+
+let rondinActivo   = null;   // { id, puntos: [{lat,lng,ts}], mapa, layer }
+let rondinWatchId  = null;
+let rondinInterval = null;
+let _pantallaAnterior = 's-seguridad';
+
+function irAtras() {
+  ir(_pantallaAnterior);
+}
+
+function irARondines() {
+  _pantallaAnterior = document.querySelector('.screen.active')?.id || 's-seguridad';
+  ir('s-rondines');
+  renderRondinesPanel();
+}
+
+// Sobrescribir el onclick del botón
+document.addEventListener('DOMContentLoaded', () => {
+  const btnRon = document.querySelector('.seg-btn[onclick="ir(\'s-rondines\')"]');
+  if (btnRon) btnRon.onclick = irARondines;
+});
+
+function renderRondinesPanel() {
+  const el = document.getElementById('rondines-contenido');
+  if (!el) return;
+  const activo = !!rondinActivo;
+  el.innerHTML = `
+  <!-- Header azul -->
+  <div style="background:radial-gradient(ellipse at 30% 0%,#1a3f7a,#0b1e3d);
+    padding:16px;border-bottom:1px solid rgba(212,175,55,.15)">
+    <div style="font-size:9px;font-weight:800;color:rgba(212,175,55,.6);
+      letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Estado del rondín</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:10px;height:10px;border-radius:50%;
+        background:${activo ? '#81c784' : 'rgba(245,240,232,.3)'};
+        ${activo ? 'box-shadow:0 0 8px #81c784' : ''}"></div>
+      <span style="font-size:15px;font-weight:700;color:#f5f0e8">
+        ${activo ? '🗺️ Rondín en curso' : 'Sin rondín activo'}
+      </span>
+    </div>
+    ${activo ? `<div style="font-size:11px;color:rgba(212,175,55,.5);margin-top:6px">
+      ${rondinActivo.puntos.length} punto(s) registrado(s)
+    </div>` : ''}
+  </div>
+
+  <!-- Mapa -->
+  <div id="mapa-rondin" style="height:280px;width:100%;background:#0b1e3d"></div>
+
+  <div style="padding:14px">
+    ${!activo ? `
+    <!-- Iniciar rondín -->
+    <div class="card">
+      <div class="fg">
+        <label>Sección / Punto de inicio</label>
+        <select id="ron-seccion">
+          <option>Entrada principal</option>
+          <option>Zona de albercas</option>
+          <option>Edificios 1-4</option>
+          <option>Edificios 5-8</option>
+          <option>Edificios 9-11</option>
+          <option>Edificios 12-13</option>
+          <option>Estacionamiento</option>
+          <option>Perímetro completo</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Notas de inicio (opcional)</label>
+        <input type="text" id="ron-notas-ini" placeholder="Condiciones al iniciar...">
+      </div>
+      <button class="btn-submit" onclick="iniciarRondin()">🗺️ Iniciar Rondín</button>
+    </div>` : `
+    <!-- Rondín activo -->
+    <div style="background:rgba(46,125,50,.15);border:1px solid rgba(67,160,71,.3);
+      border-radius:12px;padding:12px;margin-bottom:12px;text-align:center">
+      <div style="font-size:13px;font-weight:700;color:#81c784;margin-bottom:4px">🟢 Rondín Activo</div>
+      <div id="ron-timer" style="font-size:22px;font-weight:900;color:#f5f0e8;font-family:monospace">00:00</div>
+      <div style="font-size:10px;color:rgba(245,240,232,.5);margin-top:2px">GPS cada 2 min · ID: ${rondinActivo.id}</div>
+    </div>
+
+    <!-- Añadir incidencia -->
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;color:#d4af37;margin-bottom:10px">📸 Registrar incidencia</div>
+      <div class="fg">
+        <label>Descripción</label>
+        <input type="text" id="ron-inc-nota" placeholder="¿Qué encontraste?">
+      </div>
+      <input type="file" id="ron-foto" accept="image/*" capture="environment"
+        style="display:none" onchange="procesarFotoRondin(this)">
+      <button onclick="document.getElementById('ron-foto').click()"
+        style="width:100%;padding:11px;background:rgba(212,175,55,.1);
+          border:1.5px solid rgba(212,175,55,.4);border-radius:10px;
+          color:#d4af37;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px">
+        📷 Tomar Foto de Evidencia
+      </button>
+      <div id="ron-foto-preview" style="display:none;margin-bottom:8px">
+        <img id="ron-foto-img" style="width:100%;border-radius:8px;border:1px solid rgba(212,175,55,.3)">
+        <div style="font-size:10px;color:#81c784;margin-top:4px;text-align:center">📸 Foto lista para subir</div>
+      </div>
+    </div>
+
+    <!-- Finalizar -->
+    <div class="fg">
+      <label>Notas de cierre (opcional)</label>
+      <input type="text" id="ron-notas-fin" placeholder="Sin novedad / observaciones finales...">
+    </div>
+    <button onclick="finalizarRondin()"
+      style="width:100%;padding:13px;background:rgba(198,40,40,.2);
+        border:1.5px solid rgba(229,57,53,.4);border-radius:12px;
+        color:#ef9a9a;font-size:14px;font-weight:700;cursor:pointer">
+      ✅ Finalizar Rondín
+    </button>`}
+
+    <button onclick="ir('s-historial-rondines'); cargarHistorialRondines()"
+      style="width:100%;padding:11px;margin-top:10px;background:transparent;
+        border:1px solid rgba(212,175,55,.3);border-radius:10px;
+        color:rgba(212,175,55,.6);font-size:12px;font-weight:600;cursor:pointer">
+      📋 Ver historial de rondines
+    </button>
+  </div>`;
+
+  // Inicializar mapa Leaflet con tema oscuro
+  setTimeout(() => inicializarMapaLeaflet(activo), 100);
+}
+
+let _leafletMap = null;
+let _leafletLayer = null;
+
+function inicializarMapaLeaflet(conPuntos) {
+  if (_leafletMap) { _leafletMap.remove(); _leafletMap = null; }
+  const mapEl = document.getElementById('mapa-rondin');
+  if (!mapEl || typeof L === 'undefined') return;
+
+  // Centro en Privada Paamul (coordenadas aproximadas de Playa del Carmen)
+  const centro = rondinActivo?.puntos?.length > 0
+    ? [rondinActivo.puntos[0].lat, rondinActivo.puntos[0].lng]
+    : [20.6296, -87.0739];
+
+  _leafletMap = L.map('mapa-rondin', { zoomControl: true }).setView(centro, 17);
+
+  // Tile oscuro tipo CartoDB Dark
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap © CARTO',
+    subdomains: 'abcd', maxZoom: 20
+  }).addTo(_leafletMap);
+
+  if (rondinActivo?.puntos?.length > 0) {
+    const coords = rondinActivo.puntos.map(p => [p.lat, p.lng]);
+    // Trazar la ruta
+    L.polyline(coords, { color:'#d4af37', weight:3, opacity:.8 }).addTo(_leafletMap);
+    // Marcador de inicio
+    L.circleMarker(coords[0], { radius:8, fillColor:'#81c784', color:'#fff', weight:2, fillOpacity:1 })
+      .bindPopup('🟢 Inicio').addTo(_leafletMap);
+    // Marcador actual
+    const ultimo = coords[coords.length-1];
+    L.circleMarker(ultimo, { radius:8, fillColor:'#d4af37', color:'#fff', weight:2, fillOpacity:1 })
+      .bindPopup('📍 Posición actual').addTo(_leafletMap);
+    _leafletMap.fitBounds(coords, { padding:[20,20] });
+  }
+}
+
+async function iniciarRondin() {
+  if (!sesion) return;
+  const seccion = document.getElementById('ron-seccion')?.value || 'Inicio';
+  const notas   = document.getElementById('ron-notas-ini')?.value || '';
+  // Obtener GPS
+  if (!navigator.geolocation) { alert('GPS no disponible en este dispositivo'); return; }
+  navigator.geolocation.getCurrentPosition(async pos => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    try {
+      const res = await post({
+        accion:'registrarRondin',
+        guardia: sesion.nombre || sesion.casa,
+        turno:   sesion.cargo  || sesion.casa,
+        lat, lng, seccion, notas,
+        estatus: 'En curso'
+      });
+      if (res.ok) {
+        rondinActivo = {
+          id:       res.id,
+          inicio:   Date.now(),
+          puntos:   [{lat, lng, ts: Date.now()}],
+        };
+        // Iniciar tracking cada 2 minutos
+        rondinInterval = setInterval(() => actualizarGPSRondin(), 2 * 60 * 1000);
+        // Timer visual
+        iniciarTimerRondin();
+        renderRondinesPanel();
+      }
+    } catch(e) { alert('Error al iniciar rondín: ' + e.message); }
+  }, err => alert('No se pudo obtener ubicación: ' + err.message));
+}
+
+function iniciarTimerRondin() {
+  clearInterval(window._timerRondin);
+  window._timerRondin = setInterval(() => {
+    const el = document.getElementById('ron-timer');
+    if (!el || !rondinActivo) return;
+    const diff = Math.floor((Date.now() - rondinActivo.inicio) / 1000);
+    const m = String(Math.floor(diff/60)).padStart(2,'0');
+    const s = String(diff%60).padStart(2,'0');
+    el.textContent = `${m}:${s}`;
+  }, 1000);
+}
+
+function actualizarGPSRondin() {
+  if (!rondinActivo || !navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    rondinActivo.puntos.push({lat, lng, ts: Date.now()});
+    // Actualizar mapa
+    if (_leafletMap) {
+      const coords = rondinActivo.puntos.map(p => [p.lat, p.lng]);
+      if (_leafletLayer) _leafletMap.removeLayer(_leafletLayer);
+      _leafletLayer = L.polyline(coords, {color:'#d4af37',weight:3}).addTo(_leafletMap);
+      _leafletMap.setView([lat, lng]);
+    }
+  });
+}
+
+function procesarFotoRondin(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('ron-foto-preview');
+    const img     = document.getElementById('ron-foto-img');
+    if (preview) preview.style.display = 'block';
+    if (img)     img.src = e.target.result;
+    // Guardar base64 en el rondín activo para subir al finalizar
+    if (rondinActivo) rondinActivo.fotoBase64 = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function finalizarRondin() {
+  if (!rondinActivo) return;
+  clearInterval(rondinInterval);
+  clearInterval(window._timerRondin);
+  const notasFin  = document.getElementById('ron-notas-fin')?.value || 'Sin novedad';
+  const gpsStr    = rondinActivo.puntos.map(p => `${p.lat},${p.lng}`).join(' | ');
+
+  // Subir foto si hay
+  if (rondinActivo.fotoBase64) {
+    const nota = document.getElementById('ron-inc-nota')?.value || 'Incidencia';
+    try {
+      await post({
+        accion:'subirFotoRondin',
+        base64:    rondinActivo.fotoBase64,
+        nombre:    `rondin_${rondinActivo.id}_${Date.now()}.jpg`,
+        rondin_id: rondinActivo.id,
+        nota
+      });
+    } catch(e) { console.log('Error subir foto:', e); }
+  }
+
+  // Cerrar rondín
+  try {
+    await post({ accion:'cerrarRondin', id: rondinActivo.id, gps_completo: gpsStr, notas_fin: notasFin });
+  } catch(e) { console.log('Error cerrar rondin:', e); }
+
+  rondinActivo  = null;
+  rondinInterval = null;
+  renderRondinesPanel();
+}
+
+async function cargarHistorialRondines() {
+  const el = document.getElementById('historial-rondines-contenido');
+  if (!el) return;
+  el.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const hoy  = new Date().toISOString().slice(0,10);
+    const res  = await fetch(`${API}?accion=getRondines&fecha=${hoy}`);
+    const data = await res.json();
+    const items = Array.isArray(data) ? data : [];
+    if (items.length === 0) {
+      el.innerHTML = '<p style="text-align:center;color:rgba(245,240,232,.5);padding:24px">Sin rondines hoy</p>';
+      return;
+    }
+    el.innerHTML = items.map((r,i) => {
+      const puntos = String(r.Ubicacion_GPS||'').split('\n').filter(Boolean);
+      const fotos  = String(r.URL_Foto_Evidencia||'').split('\n').filter(Boolean);
+      const uid    = `mapa-hist-${i}`;
+      return `
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);
+        border-radius:12px;padding:14px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#f5f0e8">🛡️ ${r.Guardia_Nombre||'—'}</div>
+            <div style="font-size:11px;color:rgba(212,175,55,.5);margin-top:2px">
+              ${r.Turno_Funcion||'—'} · ${r.Fecha_Hora||''}
+            </div>
+          </div>
+          <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:8px;
+            ${r.Estatus === 'Completado'
+              ? 'background:rgba(46,125,50,.2);color:#81c784;border:1px solid rgba(67,160,71,.3)'
+              : 'background:rgba(212,175,55,.1);color:#d4af37;border:1px solid rgba(212,175,55,.3)'}">
+            ${r.Estatus||'—'}
+          </span>
+        </div>
+        ${r.Notas_Observaciones ? `<div style="font-size:11px;color:rgba(245,240,232,.6);margin-bottom:8px">${r.Notas_Observaciones}</div>` : ''}
+        ${puntos.length > 1 ? `
+        <div id="${uid}" style="height:180px;border-radius:8px;margin-bottom:8px;overflow:hidden"></div>
+        <script>
+          (function(){
+            var pts = ${JSON.stringify(puntos.map(p => p.split(',').map(Number)))};
+            if (pts.length && typeof L !== 'undefined') {
+              setTimeout(function(){
+                var m = L.map('${uid}').setView(pts[0],17);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OSM © CARTO',subdomains:'abcd'}).addTo(m);
+                L.polyline(pts,{color:'#d4af37',weight:3}).addTo(m);
+                L.circleMarker(pts[0],{radius:6,fillColor:'#81c784',color:'#fff',weight:2,fillOpacity:1}).addTo(m);
+                if (pts.length>1) L.circleMarker(pts[pts.length-1],{radius:6,fillColor:'#ef9a9a',color:'#fff',weight:2,fillOpacity:1}).addTo(m);
+                m.fitBounds(pts,{padding:[10,10]});
+              },200);
+            }
+          })();
+        </script>` : ''}
+        ${fotos.length > 0 ? `
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${fotos.map(f => `<img src="${f}" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid rgba(212,175,55,.3)" onclick="window.open('${f}','_blank')">`).join('')}
+        </div>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<p style="color:#ef9a9a;text-align:center;padding:16px">Error: ${e.message}</p>`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// B4 — MULTI-PROPIEDADES
+// ══════════════════════════════════════════════════════════════
+
+let _multiPropiedades = [];
+
+async function verificarMultiPropiedades() {
+  if (!sesion?.telefono) return;
+  try {
+    const res  = await fetch(`${API}?accion=getMultiPropiedades&tel=${encodeURIComponent(sesion.telefono)}`);
+    const data = await res.json();
+    _multiPropiedades = Array.isArray(data) ? data : [];
+    if (_multiPropiedades.length > 1) mostrarSelectorPropiedades();
+  } catch(e) { console.log('MultiProp:', e); }
+}
+
+function mostrarSelectorPropiedades() {
+  const headerDepto = document.getElementById('menu-depto');
+  if (!headerDepto) return;
+  // Reemplazar el texto estático por un select elegante
+  const selectEl = document.createElement('select');
+  selectEl.id = 'select-propiedad';
+  selectEl.style.cssText = `
+    background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.25);
+    border-radius:8px;color:#f5f0e8;font-size:11px;font-weight:600;
+    padding:4px 8px;cursor:pointer;max-width:200px;`;
+  _multiPropiedades.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.casa;
+    opt.textContent = `${p.nombre} · Depto ${p.casa}`;
+    if (p.casa === sesion.casa) opt.selected = true;
+    selectEl.appendChild(opt);
+  });
+  selectEl.addEventListener('change', async () => {
+    const casaElegida = selectEl.value;
+    const prop = _multiPropiedades.find(p => p.casa === casaElegida);
+    if (!prop) return;
+    // Cambiar contexto de sesión
+    sesion.casa  = prop.casa;
+    sesion.nombre = prop.nombre;
+    sesion.rol   = prop.rol;
+    // Invalidar caché y recargar estado
+    invalidarCache(prop.casa);
+    await cargarMenuPrincipal();
+    mostrarSelectorPropiedades(); // re-renderizar con nueva selección
+  });
+  headerDepto.parentNode.replaceChild(selectEl, headerDepto);
+}
+
+// ── PANEL SEGURIDAD ───────────────────────────────────────────
 
 function segSubTab(tab, btn) {
   document.querySelectorAll('#s-login-seg .ec-tab').forEach(b => b.classList.remove('activo'));
