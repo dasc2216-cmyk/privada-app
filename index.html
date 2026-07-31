@@ -1512,20 +1512,26 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
 <div id="s-bitacora" class="screen">
   <div class="app-header">
     <button class="back" onclick="ir('s-menu')">←</button>
-    <div class="header-title">
-      <h1>Privada Paamul</h1>
-      <p>Bitácora de Mantenimiento</p>
-    </div>
+    <div class="header-title"><h1>Privada Paamul</h1><p>Bitácora</p></div>
   </div>
   <div class="content" style="overflow-y:auto">
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
-      <button class="tipo-chip selected" onclick="filtrarBitacora('todos',this)">Todos</button>
-      <button class="tipo-chip" onclick="filtrarBitacora('Limpieza Áreas Comunes',this)">🧹 Limpieza</button>
-      <button class="tipo-chip" onclick="filtrarBitacora('Mantenimiento Alberca',this)">🏊 Alberca</button>
-      <button class="tipo-chip" onclick="filtrarBitacora('Riego Jardines',this)">🌿 Riego</button>
-      <button class="tipo-chip" onclick="filtrarBitacora('Poda',this)">✂️ Poda</button>
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button class="ec-tab activo" onclick="bitTab('mantenimiento',this)">🔧 Mantenimiento</button>
+      <button class="ec-tab" onclick="bitTab('rondines',this)">🗺️ Rondines</button>
     </div>
-    <div id="bitacora-lista"><div class="loader">Cargando...</div></div>
+    <div id="bit-panel-mantenimiento">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <button class="tipo-chip selected" onclick="filtrarBitacora('todos',this)">Todos</button>
+        <button class="tipo-chip" onclick="filtrarBitacora('Limpieza Áreas Comunes',this)">🧹 Limpieza</button>
+        <button class="tipo-chip" onclick="filtrarBitacora('Mantenimiento Alberca',this)">🏊 Alberca</button>
+        <button class="tipo-chip" onclick="filtrarBitacora('Riego Jardines',this)">🌿 Riego</button>
+        <button class="tipo-chip" onclick="filtrarBitacora('Poda',this)">✂️ Poda</button>
+      </div>
+      <div id="bitacora-lista"><div class="loader">Cargando...</div></div>
+    </div>
+    <div id="bit-panel-rondines" style="display:none">
+      <div id="bit-rondines-contenido"><div class="loader">Cargando...</div></div>
+    </div>
   </div>
 </div>
 
@@ -1843,20 +1849,26 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
 <div id="s-bitacora" class="screen">
   <div class="app-header">
     <button class="back" onclick="ir('s-menu')">←</button>
-    <div class="header-title">
-      <h1>Privada Paamul</h1>
-      <p>Bitácora de Mantenimiento</p>
-    </div>
+    <div class="header-title"><h1>Privada Paamul</h1><p>Bitácora</p></div>
   </div>
   <div class="content" style="overflow-y:auto">
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
-      <button class="tipo-chip selected" onclick="filtrarBitacora('todos',this)">Todos</button>
-      <button class="tipo-chip" onclick="filtrarBitacora('Limpieza Áreas Comunes',this)">🧹 Limpieza</button>
-      <button class="tipo-chip" onclick="filtrarBitacora('Mantenimiento Alberca',this)">🏊 Alberca</button>
-      <button class="tipo-chip" onclick="filtrarBitacora('Riego Jardines',this)">🌿 Riego</button>
-      <button class="tipo-chip" onclick="filtrarBitacora('Poda',this)">✂️ Poda</button>
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button class="ec-tab activo" onclick="bitTab('mantenimiento',this)">🔧 Mantenimiento</button>
+      <button class="ec-tab" onclick="bitTab('rondines',this)">🗺️ Rondines</button>
     </div>
-    <div id="bitacora-lista"><div class="loader">Cargando...</div></div>
+    <div id="bit-panel-mantenimiento">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <button class="tipo-chip selected" onclick="filtrarBitacora('todos',this)">Todos</button>
+        <button class="tipo-chip" onclick="filtrarBitacora('Limpieza Áreas Comunes',this)">🧹 Limpieza</button>
+        <button class="tipo-chip" onclick="filtrarBitacora('Mantenimiento Alberca',this)">🏊 Alberca</button>
+        <button class="tipo-chip" onclick="filtrarBitacora('Riego Jardines',this)">🌿 Riego</button>
+        <button class="tipo-chip" onclick="filtrarBitacora('Poda',this)">✂️ Poda</button>
+      </div>
+      <div id="bitacora-lista"><div class="loader">Cargando...</div></div>
+    </div>
+    <div id="bit-panel-rondines" style="display:none">
+      <div id="bit-rondines-contenido"><div class="loader">Cargando...</div></div>
+    </div>
   </div>
 </div>
 
@@ -2249,7 +2261,7 @@ function selRol(r) {
     document.getElementById('r-' + x).classList.remove('selected')
   );
   document.getElementById('r-' + r.toLowerCase()).classList.add('selected');
-  document.getElementById('aviso-prop').classList.toggle('show', r === 'Propietario');
+  document.getElementById('aviso-prop').classList.toggle('show', true);
 }
 
 async function registrar() {
@@ -3014,6 +3026,86 @@ async function cargarTodosPrestamosActivosSeg() {
 
 let bitacoraCache = [];
 let filtroActualBit = 'todos';
+
+// ── BITÁCORA — SUB-TABS ───────────────────────────────────────
+
+function bitTab(tab, btn) {
+  document.querySelectorAll('#s-bitacora .ec-tab').forEach(b => b.classList.remove('activo'));
+  if (btn) btn.classList.add('activo');
+  document.getElementById('bit-panel-mantenimiento').style.display = tab === 'mantenimiento' ? '' : 'none';
+  document.getElementById('bit-panel-rondines').style.display      = tab === 'rondines'      ? '' : 'none';
+  if (tab === 'rondines') cargarRondinesBitacora();
+}
+
+async function cargarRondinesBitacora() {
+  const el = document.getElementById('bit-rondines-contenido');
+  if (!el) return;
+  el.innerHTML = '<div class="loader">Cargando rondines...</div>';
+  try {
+    const hoy  = new Date().toISOString().slice(0,10);
+    const res  = await fetch(`${API}?accion=getRondines&fecha=${hoy}`);
+    const data = await res.json();
+    const items = Array.isArray(data) ? data : [];
+
+    if (items.length === 0) {
+      el.innerHTML = '<p style="text-align:center;color:rgba(245,240,232,.5);padding:24px">Sin rondines registrados hoy</p>';
+      return;
+    }
+
+    el.innerHTML = `
+    <div style="font-size:8.5px;font-weight:800;color:rgba(212,175,55,.6);
+      letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">
+      Rondines del día · ${items.length} registro(s)
+    </div>
+    ${items.map((r,i) => {
+      const puntos = String(r.Ubicacion_GPS||'').split('\n').filter(p => p.includes(','));
+      const fotos  = String(r.URL_Foto_Evidencia||'').split('\n').filter(Boolean);
+      const uid    = `bit-map-${i}`;
+      return `
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);
+        border-radius:12px;padding:14px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#f5f0e8">🛡️ ${r.Guardia_Nombre||'—'}</div>
+            <div style="font-size:11px;color:rgba(212,175,55,.5);margin-top:2px">
+              ${r.Turno_Funcion||'—'} · ${r.Fecha_Hora||''}
+            </div>
+          </div>
+          <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:8px;
+            ${r.Estatus==='Completado'
+              ? 'background:rgba(46,125,50,.2);color:#81c784;border:1px solid rgba(67,160,71,.3)'
+              : 'background:rgba(212,175,55,.1);color:#d4af37;border:1px solid rgba(212,175,55,.3)'}">
+            ${r.Estatus||'En curso'}
+          </span>
+        </div>
+        ${r.Notas_Observaciones ? `
+        <div style="font-size:11px;color:rgba(245,240,232,.6);margin-bottom:8px;
+          background:rgba(255,255,255,.03);border-radius:8px;padding:8px">
+          ${r.Notas_Observaciones}
+        </div>` : ''}
+        ${puntos.length > 1 ? `
+        <div id="${uid}" style="height:160px;border-radius:8px;margin-bottom:8px;overflow:hidden"
+          data-puntos="${encodeURIComponent(JSON.stringify(puntos.map(p=>p.split(',').map(Number))))}">
+        </div>` : ''}
+        ${fotos.length > 0 ? `
+        <div style="font-size:10px;color:rgba(212,175,55,.5);margin-bottom:6px;font-weight:700">
+          📸 ${fotos.length} foto(s) de evidencia
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${fotos.map(f => `
+          <img src="${f}" onclick="window.open('${f}','_blank')"
+            style="width:72px;height:72px;object-fit:cover;border-radius:8px;
+              border:1px solid rgba(212,175,55,.3);cursor:pointer">`).join('')}
+        </div>` : ''}
+      </div>`;
+    }).join('')}`;
+
+    // Inicializar mapas
+    setTimeout(inicializarMapasHistorial, 300);
+  } catch(e) {
+    el.innerHTML = `<p style="color:#ef9a9a;text-align:center;padding:16px">Error: ${e.message}</p>`;
+  }
+}
 
 async function cargarBitacoraResidente() {
   const lista = document.getElementById('bitacora-lista');
@@ -5115,7 +5207,7 @@ async function cargarDirectorioComite() {
   const el = document.getElementById('dir-loader');
   if (!el) return;
   try {
-    const res  = await fetch(`${API}?accion=getDirectorio&rol=todos`);
+    const res  = await fetch(`${API}?accion=getDirectorioUsuarios&rol=todos`);
     const data = await res.json();
     const usuarios = Array.isArray(data) ? data : [];
     const badgeCfg = {
@@ -5277,17 +5369,14 @@ function renderRondinesPanel() {
         <input type="text" id="ron-inc-nota" placeholder="¿Qué encontraste?">
       </div>
       <input type="file" id="ron-foto" accept="image/*" capture="environment"
-        style="display:none" onchange="procesarFotoRondin(this)">
+        style="display:none" onchange="agregarFotoRondin(this)">
       <button onclick="document.getElementById('ron-foto').click()"
         style="width:100%;padding:11px;background:rgba(212,175,55,.1);
           border:1.5px solid rgba(212,175,55,.4);border-radius:10px;
           color:#d4af37;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px">
-        📷 Tomar Foto de Evidencia
+        📷 Añadir foto de evidencia
       </button>
-      <div id="ron-foto-preview" style="display:none;margin-bottom:8px">
-        <img id="ron-foto-img" style="width:100%;border-radius:8px;border:1px solid rgba(212,175,55,.3)">
-        <div style="font-size:10px;color:#81c784;margin-top:4px;text-align:center">📸 Foto lista para subir</div>
-      </div>
+      <div id="ron-fotos-lista" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>
     </div>
 
     <!-- Finalizar -->
@@ -5437,17 +5526,38 @@ function actualizarGPSRondin() {
   });
 }
 
-function procesarFotoRondin(input) {
+// Fotos múltiples en rondín
+function agregarFotoRondin(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
-    const preview = document.getElementById('ron-foto-preview');
-    const img     = document.getElementById('ron-foto-img');
-    if (preview) preview.style.display = 'block';
-    if (img)     img.src = e.target.result;
-    // Guardar base64 en el rondín activo para subir al finalizar
-    if (rondinActivo) rondinActivo.fotoBase64 = e.target.result;
+    if (!rondinActivo) return;
+    if (!rondinActivo.fotos) rondinActivo.fotos = [];
+    const nota = document.getElementById('ron-inc-nota')?.value.trim() || 'Incidencia';
+    rondinActivo.fotos.push({ base64: e.target.result, nota });
+    // Limpiar campo de nota
+    const notaEl = document.getElementById('ron-inc-nota');
+    if (notaEl) notaEl.value = '';
+    // Mostrar preview
+    const lista = document.getElementById('ron-fotos-lista');
+    if (lista) {
+      const idx = rondinActivo.fotos.length - 1;
+      const div = document.createElement('div');
+      div.style.cssText = 'position:relative;flex-shrink:0';
+      div.innerHTML = `
+        <img src="${e.target.result}"
+          style="width:72px;height:72px;object-fit:cover;border-radius:8px;
+            border:1.5px solid rgba(212,175,55,.4)">
+        <div style="position:absolute;bottom:2px;left:0;right:0;
+          font-size:8px;color:#d4af37;text-align:center;
+          background:rgba(0,0,0,.5);border-radius:0 0 6px 6px;padding:1px">
+          📸 ${idx+1}
+        </div>`;
+      lista.appendChild(div);
+    }
+    // Resetear input para permitir otra foto
+    input.value = '';
   };
   reader.readAsDataURL(file);
 }
@@ -5456,29 +5566,35 @@ async function finalizarRondin() {
   if (!rondinActivo) return;
   clearInterval(rondinInterval);
   clearInterval(window._timerRondin);
-  const notasFin  = document.getElementById('ron-notas-fin')?.value || 'Sin novedad';
-  const gpsStr    = rondinActivo.puntos.map(p => `${p.lat},${p.lng}`).join(' | ');
+  const notasFin = document.getElementById('ron-notas-fin')?.value || 'Sin novedad';
+  const gpsStr   = rondinActivo.puntos.filter(p => p.lat && p.lng)
+                     .map(p => `${p.lat},${p.lng}`).join(' | ');
 
-  // Subir foto si hay
-  if (rondinActivo.fotoBase64) {
-    const nota = document.getElementById('ron-inc-nota')?.value || 'Incidencia';
+  // Subir todas las fotos
+  const fotos = rondinActivo.fotos || [];
+  for (const foto of fotos) {
     try {
       await post({
-        accion:'subirFotoRondin',
-        base64:    rondinActivo.fotoBase64,
+        accion:    'subirFotoRondin',
+        base64:    foto.base64,
         nombre:    `rondin_${rondinActivo.id}_${Date.now()}.jpg`,
         rondin_id: rondinActivo.id,
-        nota
+        nota:      foto.nota
       });
     } catch(e) { console.log('Error subir foto:', e); }
   }
 
   // Cerrar rondín
   try {
-    await post({ accion:'cerrarRondin', id: rondinActivo.id, gps_completo: gpsStr, notas_fin: notasFin });
+    await post({
+      accion:       'cerrarRondin',
+      id:           rondinActivo.id,
+      gps_completo: gpsStr,
+      notas_fin:    notasFin
+    });
   } catch(e) { console.log('Error cerrar rondin:', e); }
 
-  rondinActivo  = null;
+  rondinActivo   = null;
   rondinInterval = null;
   renderRondinesPanel();
 }
