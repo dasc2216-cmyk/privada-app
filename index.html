@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 /* ── PALETA PREMIUM ────────────────────────────────────────── */
 :root {
@@ -1399,7 +1398,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-historial-rondines" class="screen">
   <div class="app-header">
-    <button class="back" onclick="ir('s-rondines')">←</button>
+    <button class="back" onclick="irARondines()">←</button>
     <div class="header-title"><h1>Privada Paamul</h1><p>Historial de Rondines</p></div>
   </div>
   <div class="content" style="overflow-y:auto">
@@ -1630,7 +1629,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
       <button class="seg-btn" onclick="toggleSeg('visitas')" style="grid-column:span 2">
         <span class="sb-icon">🚗</span><span class="sb-label">Visitas del Día</span>
       </button>
-      <button class="seg-btn" onclick="ir('s-rondines')" style="grid-column:span 2">
+      <button class="seg-btn" onclick="irARondines()" style="grid-column:span 2">
         <span class="sb-icon">🗺️</span><span class="sb-label">Rondines GPS</span>
       </button>
     </div>
@@ -1961,7 +1960,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
       <button class="seg-btn" onclick="toggleSeg('visitas')" style="grid-column:span 2">
         <span class="sb-icon">🚗</span><span class="sb-label">Visitas del Día</span>
       </button>
-      <button class="seg-btn" onclick="ir('s-rondines')" style="grid-column:span 2">
+      <button class="seg-btn" onclick="irARondines()" style="grid-column:span 2">
         <span class="sb-icon">🗺️</span><span class="sb-label">Rondines GPS</span>
       </button>
     </div>
@@ -5493,22 +5492,9 @@ async function cargarHistorialRondines() {
         </div>
         ${r.Notas_Observaciones ? `<div style="font-size:11px;color:rgba(245,240,232,.6);margin-bottom:8px">${r.Notas_Observaciones}</div>` : ''}
         ${puntos.length > 1 ? `
-        <div id="${uid}" style="height:180px;border-radius:8px;margin-bottom:8px;overflow:hidden"></div>
-        <script>
-          (function(){
-            var pts = ${JSON.stringify(puntos.map(p => p.split(',').map(Number)))};
-            if (pts.length && typeof L !== 'undefined') {
-              setTimeout(function(){
-                var m = L.map('${uid}').setView(pts[0],17);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OSM © CARTO',subdomains:'abcd'}).addTo(m);
-                L.polyline(pts,{color:'#d4af37',weight:3}).addTo(m);
-                L.circleMarker(pts[0],{radius:6,fillColor:'#81c784',color:'#fff',weight:2,fillOpacity:1}).addTo(m);
-                if (pts.length>1) L.circleMarker(pts[pts.length-1],{radius:6,fillColor:'#ef9a9a',color:'#fff',weight:2,fillOpacity:1}).addTo(m);
-                m.fitBounds(pts,{padding:[10,10]});
-              },200);
-            }
-          })();
-        </script>` : ''}
+        <div id="${uid}" style="height:180px;border-radius:8px;margin-bottom:8px;overflow:hidden"
+          data-puntos="${encodeURIComponent(JSON.stringify(puntos.map(p => p.split(',').map(Number))))}">
+        </div>` : ''}
         ${fotos.length > 0 ? `
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           ${fotos.map(f => `<img src="${f}" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid rgba(212,175,55,.3)" onclick="window.open('${f}','_blank')">`).join('')}
@@ -5518,6 +5504,28 @@ async function cargarHistorialRondines() {
   } catch(e) {
     el.innerHTML = `<p style="color:#ef9a9a;text-align:center;padding:16px">Error: ${e.message}</p>`;
   }
+  // Inicializar mapas del historial después de renderizar
+  setTimeout(inicializarMapasHistorial, 300);
+}
+
+function inicializarMapasHistorial() {
+  if (typeof L === 'undefined') return;
+  document.querySelectorAll('[data-puntos]').forEach(el => {
+    if (el._mapInit) return;
+    el._mapInit = true;
+    try {
+      const pts = JSON.parse(decodeURIComponent(el.getAttribute('data-puntos')));
+      if (!pts.length) return;
+      const m = L.map(el).setView(pts[0], 17);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        {attribution:'© OSM © CARTO', subdomains:'abcd'}).addTo(m);
+      L.polyline(pts, {color:'#d4af37', weight:3}).addTo(m);
+      L.circleMarker(pts[0], {radius:6, fillColor:'#81c784', color:'#fff', weight:2, fillOpacity:1}).addTo(m);
+      if (pts.length > 1)
+        L.circleMarker(pts[pts.length-1], {radius:6, fillColor:'#ef9a9a', color:'#fff', weight:2, fillOpacity:1}).addTo(m);
+      m.fitBounds(pts, {padding:[10,10]});
+    } catch(e) {}
+  });
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -7190,5 +7198,6 @@ async function post(datos) {
   return res.json();
 }
 </script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 </body>
 </html>
