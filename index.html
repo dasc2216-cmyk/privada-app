@@ -2197,7 +2197,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbwhVLGqpf8Sc04piSRoYw_cUCtLRTCkwnX08Qxa9olbL3fuk6VhBQ1ztmEh5wocUiPN3g/exec';
+const API = 'https://script.google.com/macros/s/AKfycbzi6Usru_cRtsRT9I0Kyeaah3vsGPwRJ4LFQkbwLX_kkT5ib_OXvMHRKiKBYWq-3FKMVA/exec';
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -3027,6 +3027,75 @@ async function cargarTodosPrestamosActivosSeg() {
 let bitacoraCache = [];
 let filtroActualBit = 'todos';
 
+// ── MAPA FULLSCREEN ───────────────────────────────────────────
+
+let _mapaFull = null;
+
+function abrirMapaFull(puntosStr, titulo, sub, fotosStr) {
+  const modal = document.getElementById('modal-mapa-full');
+  if (!modal) return;
+  modal.style.display = 'flex';
+
+  document.getElementById('mapa-full-titulo').textContent = titulo || 'Rondín';
+  document.getElementById('mapa-full-sub').textContent    = sub    || '';
+
+  // Fotos
+  const fotosEl = document.getElementById('mapa-full-fotos');
+  const fotos   = fotosStr ? fotosStr.split('|||').filter(Boolean) : [];
+  fotosEl.innerHTML = fotos.length
+    ? fotos.map(f => `<img src="${f}" onclick="window.open('${f}','_blank')"
+        style="height:60px;border-radius:6px;border:1px solid rgba(212,175,55,.3);
+          cursor:pointer;flex-shrink:0">`).join('')
+    : '<span style="font-size:11px;color:rgba(245,240,232,.3);padding:8px">Sin fotos de evidencia</span>';
+  fotosEl.parentElement.style.display = fotos.length ? '' : 'none';
+
+  // Inicializar mapa después de que el modal sea visible
+  setTimeout(() => {
+    if (_mapaFull) { _mapaFull.remove(); _mapaFull = null; }
+    const container = document.getElementById('mapa-full-container');
+    if (!container || typeof L === 'undefined') return;
+
+    const pts = puntosStr
+      ? puntosStr.split('|||').map(p => p.split(',').map(Number)).filter(p => p[0] && p[1])
+      : [];
+
+    const centro = pts.length ? pts[0] : [20.6296, -87.0739];
+    _mapaFull = L.map(container).setView(centro, 17);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap © CARTO',
+      subdomains: 'abcd', maxZoom: 20
+    }).addTo(_mapaFull);
+
+    if (pts.length > 0) {
+      L.polyline(pts, { color:'#d4af37', weight:4, opacity:.9 }).addTo(_mapaFull);
+      // Inicio
+      L.circleMarker(pts[0], {
+        radius:10, fillColor:'#81c784', color:'#fff', weight:2, fillOpacity:1
+      }).bindPopup('🟢 Inicio del rondín').openPopup().addTo(_mapaFull);
+      // Fin
+      if (pts.length > 1) {
+        L.circleMarker(pts[pts.length-1], {
+          radius:10, fillColor:'#ef9a9a', color:'#fff', weight:2, fillOpacity:1
+        }).bindPopup('🔴 Fin del rondín').addTo(_mapaFull);
+      }
+      // Puntos intermedios
+      pts.slice(1,-1).forEach((p,i) => {
+        L.circleMarker(p, {
+          radius:5, fillColor:'#d4af37', color:'#fff', weight:1, fillOpacity:.8
+        }).bindPopup(`📍 Punto ${i+2}`).addTo(_mapaFull);
+      });
+      _mapaFull.fitBounds(pts, { padding:[30,30] });
+    }
+  }, 100);
+}
+
+function cerrarMapaFull() {
+  const modal = document.getElementById('modal-mapa-full');
+  if (modal) modal.style.display = 'none';
+  if (_mapaFull) { _mapaFull.remove(); _mapaFull = null; }
+}
+
 // ── BITÁCORA — SUB-TABS ───────────────────────────────────────
 
 function bitTab(tab, btn) {
@@ -3060,7 +3129,9 @@ async function cargarRondinesBitacora() {
     ${items.map((r,i) => {
       const puntos = String(r.Ubicacion_GPS||'').split('\n').filter(p => p.includes(','));
       const fotos  = String(r.URL_Foto_Evidencia||'').split('\n').filter(Boolean);
-      const uid    = `bit-map-${i}`;
+      const uid       = `bit-map-${i}`;
+      const ptsStr    = puntos.join('|||');
+      const fotStr    = fotos.join('|||');
       return `
       <div style="background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);
         border-radius:12px;padding:14px;margin-bottom:10px">
@@ -3083,10 +3154,13 @@ async function cargarRondinesBitacora() {
           background:rgba(255,255,255,.03);border-radius:8px;padding:8px">
           ${r.Notas_Observaciones}
         </div>` : ''}
-        ${puntos.length > 1 ? `
-        <div id="${uid}" style="height:160px;border-radius:8px;margin-bottom:8px;overflow:hidden"
-          data-puntos="${encodeURIComponent(JSON.stringify(puntos.map(p=>p.split(',').map(Number))))}">
-        </div>` : ''}
+        ${puntos.length > 0 ? `
+        <button onclick="abrirMapaFull('${ptsStr}','Rondín ${r.Guardia_Nombre||''}','${r.Fecha_Hora||''} · ${r.Turno_Funcion||''}','${fotStr}')"
+          style="width:100%;padding:10px;margin-bottom:8px;
+            background:rgba(212,175,55,.1);border:1.5px solid rgba(212,175,55,.35);
+            border-radius:10px;color:#d4af37;font-size:12px;font-weight:700;cursor:pointer">
+          🗺️ Ver recorrido en mapa · ${puntos.length} punto(s)
+        </button>` : ''}
         ${fotos.length > 0 ? `
         <div style="font-size:10px;color:rgba(212,175,55,.5);margin-bottom:6px;font-weight:700">
           📸 ${fotos.length} foto(s) de evidencia
@@ -7341,6 +7415,27 @@ async function post(datos) {
   return res.json();
 }
 </script>
+<!-- Modal mapa fullscreen -->
+<div id="modal-mapa-full" style="display:none;position:fixed;inset:0;
+  background:#0b1e3d;z-index:10000;flex-direction:column">
+  <div style="background:linear-gradient(135deg,#1a3f7a,#0d2347);
+    padding:12px 16px;display:flex;align-items:center;justify-content:space-between;
+    border-bottom:1px solid rgba(212,175,55,.2)">
+    <div>
+      <div style="font-size:14px;font-weight:700;color:#f5f0e8" id="mapa-full-titulo">Rondín</div>
+      <div style="font-size:10px;color:rgba(212,175,55,.5);margin-top:2px" id="mapa-full-sub"></div>
+    </div>
+    <button onclick="cerrarMapaFull()"
+      style="background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);
+        border-radius:8px;padding:6px 14px;color:#d4af37;font-size:13px;
+        font-weight:700;cursor:pointer">✕ Cerrar</button>
+  </div>
+  <div id="mapa-full-container" style="flex:1;width:100%"></div>
+  <div style="background:#0d2347;padding:10px 16px;border-top:1px solid rgba(212,175,55,.1)">
+    <div id="mapa-full-fotos" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px"></div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 </body>
 </html>
