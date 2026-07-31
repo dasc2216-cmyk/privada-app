@@ -5612,7 +5612,8 @@ function agregarFotoRondin(input) {
   reader.onload = e => {
     img.onload = () => {
       // Redimensionar a máx 800px manteniendo proporción
-      const MAX = 800;
+      // Comprimir agresivamente para Apps Script (< 200KB)
+      const MAX = 600;
       let w = img.width, h = img.height;
       if (w > MAX || h > MAX) {
         if (w > h) { h = Math.round(h * MAX/w); w = MAX; }
@@ -5621,8 +5622,8 @@ function agregarFotoRondin(input) {
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      // Calidad 0.7 — buen balance tamaño/calidad
-      const base64 = canvas.toDataURL('image/jpeg', 0.7);
+      // Calidad 0.5 — garantiza < 150KB por foto
+      const base64 = canvas.toDataURL('image/jpeg', 0.5);
 
       if (!rondinActivo) return;
       if (!rondinActivo.fotos) rondinActivo.fotos = [];
@@ -5664,54 +5665,137 @@ function agregarFotoRondin(input) {
 
 async function finalizarRondin() {
   if (!rondinActivo) return;
-  clearInterval(rondinInterval);
-  clearInterval(window._timerRondin);
 
+  const fotos    = rondinActivo.fotos || [];
   const notasFin = document.getElementById('ron-notas-fin')?.value || 'Sin novedad';
   const gpsStr   = rondinActivo.puntos.filter(p => p.lat && p.lng)
                      .map(p => `${p.lat},${p.lng}`).join(' | ');
+  const rondinId = String(rondinActivo.id);
+
+  // Mostrar pantalla de revisión antes de subir
+  mostrarRevisionRondin(fotos, notasFin, gpsStr, rondinId);
+}
+
+function mostrarRevisionRondin(fotos, notasFin, gpsStr, rondinId) {
+  const el = document.getElementById('rondines-contenido');
+  if (!el) return;
+
+  el.innerHTML = `
+  <div style="padding:16px">
+    <div style="font-size:14px;font-weight:700;color:#f5f0e8;margin-bottom:4px">📋 Revisión del Rondín</div>
+    <div style="font-size:11px;color:rgba(212,175,55,.6);margin-bottom:16px">
+      Verifica las fotos y notas antes de guardar
+    </div>
+
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);
+      border-radius:12px;padding:12px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:#d4af37;margin-bottom:6px">📝 Notas de cierre</div>
+      <div style="font-size:12px;color:#f5f0e8">${notasFin || 'Sin novedad'}</div>
+    </div>
+
+    ${fotos.length > 0 ? `
+    <div style="font-size:11px;font-weight:700;color:#d4af37;margin-bottom:8px">
+      📸 ${fotos.length} foto(s) de evidencia
+    </div>
+    ${fotos.map((f,i) => `
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.15);
+      border-radius:10px;padding:10px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start">
+      <img src="${f.base64}"
+        style="width:80px;height:80px;object-fit:cover;border-radius:8px;
+          border:1px solid rgba(212,175,55,.3);flex-shrink:0">
+      <div style="flex:1">
+        <div style="font-size:10px;color:rgba(212,175,55,.5);margin-bottom:3px">Foto ${i+1}</div>
+        <div style="font-size:12px;color:#f5f0e8">${f.nota || 'Sin descripción'}</div>
+      </div>
+    </div>`).join('')}` : `
+    <div style="text-align:center;padding:16px;color:rgba(245,240,232,.4);font-size:12px">
+      Sin fotos en este rondín
+    </div>`}
+
+    <div id="ron-upload-progress" style="display:none;margin-bottom:10px">
+      <div style="font-size:11px;color:#d4af37;margin-bottom:6px" id="ron-progress-txt">Subiendo...</div>
+      <div style="background:rgba(255,255,255,.1);border-radius:8px;height:6px;overflow:hidden">
+        <div id="ron-progress-bar"
+          style="height:100%;background:#d4af37;border-radius:8px;width:0%;transition:width .3s"></div>
+      </div>
+    </div>
+
+    <button id="btn-confirmar-rondin" onclick="confirmarFinalizarRondin('${rondinId}','${encodeURIComponent(notasFin)}','${encodeURIComponent(gpsStr)}')"
+      style="width:100%;padding:14px;background:rgba(46,125,50,.2);
+        border:1.5px solid rgba(67,160,71,.4);border-radius:12px;
+        color:#81c784;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px">
+      ✅ Confirmar y Guardar Rondín
+    </button>
+    <button onclick="renderRondinesPanel()"
+      style="width:100%;padding:11px;background:transparent;
+        border:1px solid rgba(245,240,232,.15);border-radius:10px;
+        color:rgba(245,240,232,.4);font-size:12px;cursor:pointer">
+      ← Volver y seguir editando
+    </button>
+  </div>`;
+}
+
+async function confirmarFinalizarRondin(rondinId, notasEnc, gpsEnc) {
+  if (!rondinActivo) return;
+  clearInterval(rondinInterval);
+  clearInterval(window._timerRondin);
+
   const fotos    = rondinActivo.fotos || [];
-  const rondinId = rondinActivo.id;
+  const notasFin = decodeURIComponent(notasEnc);
+  const gpsStr   = decodeURIComponent(gpsEnc);
 
-  // Mostrar progreso
-  const btn = document.querySelector('#rondines-contenido button[onclick*="finalizarRondin"]');
-  if (btn) btn.textContent = `Subiendo ${fotos.length} foto(s)...`;
+  const btn      = document.getElementById('btn-confirmar-rondin');
+  const progress = document.getElementById('ron-upload-progress');
+  const progTxt  = document.getElementById('ron-progress-txt');
+  const progBar  = document.getElementById('ron-progress-bar');
 
-  // 1. Subir fotos PRIMERO (antes de cerrar)
-  let fotasSubidas = 0;
-  for (const foto of fotos) {
+  if (btn) btn.disabled = true;
+  if (progress) progress.style.display = 'block';
+
+  // Subir fotos una por una con progreso visual
+  let ok = 0;
+  for (let i = 0; i < fotos.length; i++) {
+    if (progTxt) progTxt.textContent = `Subiendo foto ${i+1} de ${fotos.length}...`;
+    if (progBar) progBar.style.width = `${Math.round((i/fotos.length)*100)}%`;
     try {
-      const res = await post({
-        accion:    'subirFotoRondin',
-        base64:    foto.base64,
-        nombre:    `rondin_${rondinId}_${Date.now()}.jpg`,
-        rondin_id: String(rondinId),
-        nota:      foto.nota || 'Evidencia'
+      const r = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          accion:    'subirFotoRondin',
+          base64:    fotos[i].base64,
+          nombre:    `rondin_${rondinId}_foto${i+1}_${Date.now()}.jpg`,
+          rondin_id: rondinId,
+          nota:      fotos[i].nota || 'Evidencia'
+        })
       });
-      if (res.ok) fotasSubidas++;
-      else console.log('Error foto:', res.error);
-    } catch(e) { console.log('Error subir foto:', e.message); }
+      const res = await r.json();
+      if (res.ok) ok++;
+      else console.log(`Foto ${i+1} error:`, res.error);
+    } catch(e) { console.log(`Foto ${i+1} excepción:`, e.message); }
+    // Pequeña pausa entre fotos para no saturar Apps Script
+    await new Promise(resolve => setTimeout(resolve, 800));
   }
 
-  // 2. Cerrar rondín
+  if (progBar) progBar.style.width = '100%';
+  if (progTxt) progTxt.textContent = `${ok}/${fotos.length} fotos guardadas. Cerrando rondín...`;
+
+  // Cerrar rondín
   try {
-    await post({
-      accion:       'cerrarRondin',
-      id:           String(rondinId),
-      gps_completo: gpsStr,
-      notas_fin:    notasFin
-    });
+    await post({ accion:'cerrarRondin', id:rondinId, gps_completo:gpsStr, notas_fin:notasFin });
   } catch(e) { console.log('Error cerrar rondin:', e.message); }
 
   // Reset
   rondinActivo   = null;
   rondinInterval = null;
-  renderRondinesPanel();
 
-  // Mensaje final
-  const msg = document.getElementById('msg-seg');
-  if (msg) showMsg(msg, 'ok',
-    `✅ Rondín finalizado · ${fotasSubidas}/${fotos.length} foto(s) guardada(s) en Drive`);
+  // Mensaje final en panel seguridad
+  setTimeout(() => {
+    ir('s-seguridad');
+    const msg = document.getElementById('msg-seg');
+    if (msg) showMsg(msg, 'ok',
+      `✅ Rondín completado · ${ok}/${fotos.length} foto(s) guardada(s) en Drive`);
+  }, 500);
 }
 
 async function cargarHistorialRondines() {
