@@ -2197,7 +2197,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbz6U-6nAsd74CZrYKcDS-OR_N7w1DWMKO1fBwU3uPQXhhosy-CBivFdGOgg408UgpRuig/exec';
+const API = 'https://script.google.com/macros/s/AKfycbxWw1DUHVGgxXeex8TECwNplMYflkmrxkGSC8n7myI0RnN92aNf2u0RY4IHMnHC5QQSoQ/exec';
 
 // ── Estado global ──────────────────────────────────────────
 let sesion = null;
@@ -5754,6 +5754,7 @@ async function confirmarFinalizarRondin(rondinId, notasEnc, gpsEnc) {
 
   // Subir fotos una por una con progreso visual
   let ok = 0;
+  const errores = [];
   for (let i = 0; i < fotos.length; i++) {
     if (progTxt) progTxt.textContent = `Subiendo foto ${i+1} de ${fotos.length}...`;
     if (progBar) progBar.style.width = `${Math.round((i/fotos.length)*100)}%`;
@@ -5770,11 +5771,18 @@ async function confirmarFinalizarRondin(rondinId, notasEnc, gpsEnc) {
         })
       });
       const res = await r.json();
-      if (res.ok) ok++;
-      else console.log(`Foto ${i+1} error:`, res.error);
-    } catch(e) { console.log(`Foto ${i+1} excepción:`, e.message); }
-    // Pequeña pausa entre fotos para no saturar Apps Script
-    await new Promise(resolve => setTimeout(resolve, 800));
+      if (res.ok) {
+        ok++;
+        if (progTxt) progTxt.textContent = `✅ Foto ${i+1} guardada en Drive`;
+      } else {
+        errores.push(`Foto ${i+1}: ${res.error || 'Error desconocido'}`);
+        if (progTxt) progTxt.textContent = `⚠️ Foto ${i+1} falló: ${res.error}`;
+      }
+    } catch(e) {
+      errores.push(`Foto ${i+1}: ${e.message}`);
+      if (progTxt) progTxt.textContent = `⚠️ Foto ${i+1} error de red: ${e.message}`;
+    }
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
 
   if (progBar) progBar.style.width = '100%';
@@ -5793,8 +5801,14 @@ async function confirmarFinalizarRondin(rondinId, notasEnc, gpsEnc) {
   setTimeout(() => {
     ir('s-seguridad');
     const msg = document.getElementById('msg-seg');
-    if (msg) showMsg(msg, 'ok',
-      `✅ Rondín completado · ${ok}/${fotos.length} foto(s) guardada(s) en Drive`);
+    if (msg) {
+      if (ok === fotos.length || fotos.length === 0) {
+        showMsg(msg, 'ok', `✅ Rondín completado · ${ok}/${fotos.length} foto(s) guardada(s)`);
+      } else {
+        showMsg(msg, 'error',
+          `⚠️ Rondín guardado · ${ok}/${fotos.length} fotos OK · Error: ${errores[0]}`);
+      }
+    }
   }, 500);
 }
 
