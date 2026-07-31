@@ -1398,7 +1398,7 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-historial-rondines" class="screen">
   <div class="app-header">
-    <button class="back" onclick="irARondines()">←</button>
+    <button class="back" onclick="ir('s-seguridad')">←</button>
     <div class="header-title"><h1>Privada Paamul</h1><p>Historial de Rondines</p></div>
   </div>
   <div class="content" style="overflow-y:auto">
@@ -5200,7 +5200,8 @@ function irAtras() {
 }
 
 function irARondines() {
-  _pantallaAnterior = document.querySelector('.screen.active')?.id || 's-seguridad';
+  // Siempre guardar s-seguridad como destino de regreso
+  _pantallaAnterior = 's-seguridad';
   ir('s-rondines');
   renderRondinesPanel();
 }
@@ -5306,6 +5307,12 @@ function renderRondinesPanel() {
         border:1px solid rgba(212,175,55,.3);border-radius:10px;
         color:rgba(212,175,55,.6);font-size:12px;font-weight:600;cursor:pointer">
       📋 Ver historial de rondines
+    </button>
+    <button onclick="ir('s-seguridad')"
+      style="width:100%;padding:11px;margin-top:8px;background:transparent;
+        border:1px solid rgba(245,240,232,.15);border-radius:10px;
+        color:rgba(245,240,232,.4);font-size:12px;cursor:pointer">
+      ⬅ Regresar al Menú de Caseta
     </button>
   </div>`;
 
