@@ -3164,7 +3164,12 @@ async function cargarRondinesBitacora() {
     </div>
     ${items.map((r,i) => {
       const puntos = String(r.Ubicacion_GPS||'').split('\n').filter(p => p.includes(','));
-      const fotos  = String(r.URL_Foto_Evidencia||'').split('\n').filter(Boolean);
+      const fotos  = String(r.URL_Foto_Evidencia||'').split('\n').filter(Boolean)
+        .map(f => {
+          // Convertir URLs antiguas /uc?id= al formato lh3 que sí carga en <img>
+          const m = f.match(/[?&]id=([^&]+)/);
+          return m ? `https://lh3.googleusercontent.com/d/${m[1]}` : f;
+        });
       const uid       = `bit-map-${i}`;
       const ptsStr    = puntos.join('|||');
       const fotStr    = fotos.join('|||');
@@ -3204,7 +3209,7 @@ async function cargarRondinesBitacora() {
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           ${fotos.map(f => `
           <img src="${f}"
-            onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2272%22 height=%2272%22><rect fill=%22%230d2347%22 width=%2272%22 height=%2272%22/><text y=%2240%22 x=%2236%22 text-anchor=%22middle%22 fill=%22%23d4af37%22 font-size=%2224%22>📸</text></svg>'"
+            onerror="this.style.opacity='0.3'"
             onclick="window.open('${f}','_blank')"
             style="width:72px;height:72px;object-fit:cover;border-radius:8px;
               border:1px solid rgba(212,175,55,.3);cursor:pointer;background:#0d2347">`).join('')}
@@ -5732,7 +5737,7 @@ function mostrarRevisionRondin(fotos, notasFin, gpsStr, rondinId) {
 
     ${fotos.length > 0 ? `
     <div style="font-size:11px;font-weight:700;color:#d4af37;margin-bottom:8px">
-      📸 ${fotos.length} foto(s) de evidencia
+      📸 ${fotos.length} foto(s) de evidencia — toca la nota para editarla
     </div>
     ${fotos.map((f,i) => `
     <div style="background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.15);
@@ -5742,8 +5747,15 @@ function mostrarRevisionRondin(fotos, notasFin, gpsStr, rondinId) {
         style="width:80px;height:80px;object-fit:cover;border-radius:8px;
           border:1px solid rgba(212,175,55,.3);flex-shrink:0;cursor:pointer">
       <div style="flex:1">
-        <div style="font-size:10px;color:rgba(212,175,55,.5);margin-bottom:3px">Foto ${i+1}</div>
-        <div style="font-size:12px;color:#f5f0e8">${f.nota || 'Sin descripción'}</div>
+        <div style="font-size:10px;color:rgba(212,175,55,.5);margin-bottom:4px">
+          Foto ${i+1} · Toca para editar la nota
+        </div>
+        <input type="text" id="nota-foto-${i}"
+          value="${f.nota || ''}"
+          placeholder="Describe lo que muestra esta foto..."
+          style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(212,175,55,.3);
+            border-radius:8px;padding:8px 10px;color:#f5f0e8;font-size:12px;outline:none"
+          oninput="rondinActivo.fotos[${i}].nota = this.value">
       </div>
     </div>`).join('')}` : `
     <div style="text-align:center;padding:16px;color:rgba(245,240,232,.4);font-size:12px">
@@ -5871,7 +5883,12 @@ async function cargarHistorialRondines() {
     }
     el.innerHTML = items.map((r,i) => {
       const puntos = String(r.Ubicacion_GPS||'').split('\n').filter(Boolean);
-      const fotos  = String(r.URL_Foto_Evidencia||'').split('\n').filter(Boolean);
+      const fotos  = String(r.URL_Foto_Evidencia||'').split('\n').filter(Boolean)
+        .map(f => {
+          // Convertir URLs antiguas /uc?id= al formato lh3 que sí carga en <img>
+          const m = f.match(/[?&]id=([^&]+)/);
+          return m ? `https://lh3.googleusercontent.com/d/${m[1]}` : f;
+        });
       const uid    = `mapa-hist-${i}`;
       return `
       <div style="background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);
@@ -5897,7 +5914,11 @@ async function cargarHistorialRondines() {
         </div>` : ''}
         ${fotos.length > 0 ? `
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          ${fotos.map(f => `<img src="${f}" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid rgba(212,175,55,.3)" onclick="window.open('${f}','_blank')">`).join('')}
+          ${fotos.map(f => `<img src="${f}"
+            onerror="this.style.opacity='0.2'"
+            onclick="verFotoGrande('${f}')"
+            style="width:80px;height:60px;object-fit:cover;border-radius:6px;
+              border:1px solid rgba(212,175,55,.3);cursor:pointer">`).join('')}
         </div>` : ''}
       </div>`;
     }).join('');
