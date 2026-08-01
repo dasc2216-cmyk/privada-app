@@ -3027,6 +3027,28 @@ async function cargarTodosPrestamosActivosSeg() {
 let bitacoraCache = [];
 let filtroActualBit = 'todos';
 
+// ── VER FOTO GRANDE ───────────────────────────────────────────
+
+function verFotoGrande(src) {
+  const modal = document.createElement('div');
+  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,.92);
+    z-index:20000;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;padding:20px`;
+  modal.innerHTML = `
+    <img src="${src}"
+      onerror="this.style.display='none'"
+      style="max-width:100%;max-height:80vh;border-radius:12px;
+        object-fit:contain;border:1px solid rgba(212,175,55,.3)">
+    <button onclick="this.parentElement.remove()"
+      style="margin-top:16px;background:rgba(212,175,55,.15);
+        border:1.5px solid rgba(212,175,55,.4);border-radius:10px;
+        padding:10px 24px;color:#d4af37;font-size:14px;font-weight:700;cursor:pointer">
+      ✕ Cerrar
+    </button>`;
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
 // ── MAPA FULLSCREEN ───────────────────────────────────────────
 
 let _mapaFull = null;
@@ -3181,9 +3203,11 @@ async function cargarRondinesBitacora() {
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           ${fotos.map(f => `
-          <img src="${f}" onclick="window.open('${f}','_blank')"
+          <img src="${f}"
+            onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2272%22 height=%2272%22><rect fill=%22%230d2347%22 width=%2272%22 height=%2272%22/><text y=%2240%22 x=%2236%22 text-anchor=%22middle%22 fill=%22%23d4af37%22 font-size=%2224%22>📸</text></svg>'"
+            onclick="window.open('${f}','_blank')"
             style="width:72px;height:72px;object-fit:cover;border-radius:8px;
-              border:1px solid rgba(212,175,55,.3);cursor:pointer">`).join('')}
+              border:1px solid rgba(212,175,55,.3);cursor:pointer;background:#0d2347">`).join('')}
         </div>` : ''}
       </div>`;
     }).join('')}`;
@@ -5626,7 +5650,7 @@ function agregarFotoRondin(input) {
   reader.onload = e => {
     img.onload = () => {
       // Redimensionar a máx 800px manteniendo proporción
-      // Comprimir agresivamente para Apps Script (< 200KB)
+      // Comprimir para Apps Script — máx 600px, calidad 0.5 (~30KB)
       const MAX = 600;
       let w = img.width, h = img.height;
       if (w > MAX || h > MAX) {
@@ -5636,7 +5660,6 @@ function agregarFotoRondin(input) {
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      // Calidad 0.5 — garantiza < 150KB por foto
       const base64 = canvas.toDataURL('image/jpeg', 0.5);
 
       if (!rondinActivo) return;
@@ -5715,8 +5738,9 @@ function mostrarRevisionRondin(fotos, notasFin, gpsStr, rondinId) {
     <div style="background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.15);
       border-radius:10px;padding:10px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start">
       <img src="${f.base64}"
+        onclick="verFotoGrande('${f.base64}')"
         style="width:80px;height:80px;object-fit:cover;border-radius:8px;
-          border:1px solid rgba(212,175,55,.3);flex-shrink:0">
+          border:1px solid rgba(212,175,55,.3);flex-shrink:0;cursor:pointer">
       <div style="flex:1">
         <div style="font-size:10px;color:rgba(212,175,55,.5);margin-bottom:3px">Foto ${i+1}</div>
         <div style="font-size:12px;color:#f5f0e8">${f.nota || 'Sin descripción'}</div>
