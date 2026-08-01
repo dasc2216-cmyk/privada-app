@@ -3111,13 +3111,27 @@ async function cargarRondinesBitacora() {
   if (!el) return;
   el.innerHTML = '<div class="loader">Cargando rondines...</div>';
   try {
-    const hoy  = new Date().toISOString().slice(0,10);
-    const res  = await fetch(`${API}?accion=getRondines&fecha=${hoy}`);
+    const hoy  = hoyCanun();
+    // Traer TODOS y filtrar en frontend para evitar problemas de formato
+    const res  = await fetch(`${API}?accion=getRondines`);
     const data = await res.json();
-    const items = Array.isArray(data) ? data : [];
+    const todos = Array.isArray(data) ? data : [];
+
+    // Filtrar por hoy — el campo puede ser "2026-07-31 18:38" o Date
+    const items = todos.filter(r => {
+      const fh = String(r.Fecha_Hora || '').trim();
+      return fh.slice(0,10) === hoy;
+    });
 
     if (items.length === 0) {
-      el.innerHTML = '<p style="text-align:center;color:rgba(245,240,232,.5);padding:24px">Sin rondines registrados hoy</p>';
+      el.innerHTML = `
+      <div style="text-align:center;padding:24px">
+        <div style="font-size:32px;margin-bottom:8px">🗺️</div>
+        <div style="font-size:13px;font-weight:700;color:rgba(245,240,232,.5)">Sin rondines hoy</div>
+        <div style="font-size:10px;color:rgba(245,240,232,.3);margin-top:4px">${hoy}</div>
+        ${todos.length > 0 ? `<div style="font-size:10px;color:rgba(212,175,55,.4);margin-top:6px">
+          ${todos.length} rondín(es) en total en el sistema</div>` : ''}
+      </div>`;
       return;
     }
 
@@ -5817,12 +5831,18 @@ async function cargarHistorialRondines() {
   if (!el) return;
   el.innerHTML = '<div class="loader">Cargando...</div>';
   try {
-    const hoy  = new Date().toISOString().slice(0,10);
-    const res  = await fetch(`${API}?accion=getRondines&fecha=${hoy}`);
-    const data = await res.json();
-    const items = Array.isArray(data) ? data : [];
+    const hoy   = hoyCanun();
+    const res   = await fetch(`${API}?accion=getRondines`);
+    const data  = await res.json();
+    const todos = Array.isArray(data) ? data : [];
+    const items = todos.filter(r => String(r.Fecha_Hora||'').slice(0,10) === hoy);
     if (items.length === 0) {
-      el.innerHTML = '<p style="text-align:center;color:rgba(245,240,232,.5);padding:24px">Sin rondines hoy</p>';
+      el.innerHTML = `<div style="text-align:center;padding:24px">
+        <div style="font-size:32px;margin-bottom:8px">🗺️</div>
+        <div style="font-size:13px;color:rgba(245,240,232,.5)">Sin rondines hoy (${hoy})</div>
+        ${todos.length > 0 ? `<div style="font-size:10px;color:rgba(212,175,55,.4);margin-top:6px">
+          ${todos.length} rondín(es) registrado(s) en total</div>` : ''}
+      </div>`;
       return;
     }
     el.innerHTML = items.map((r,i) => {
