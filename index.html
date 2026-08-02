@@ -6528,14 +6528,6 @@ async function cargarAnunciosSeg() {
 
 let segPanelActivo = null;
 
-function mostrarPantallaSeguridad() {
-  document.getElementById('s-seguridad').classList.add('active');
-  document.getElementById('seg-nombre').textContent = sesion.nombre;
-  cargarCatalogoSeg();
-  cargarActivosSeg();
-  cargarAnunciosSeg();
-}
-
 function toggleSeg(panel) {
   ['paqueteria','agua','servicios','incidencia','mudanzas','amenidades','prestamos','visitas'].forEach(p => {
     const el = document.getElementById('seg-panel-' + p);
