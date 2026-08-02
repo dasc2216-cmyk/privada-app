@@ -1381,6 +1381,32 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
+     PANTALLA — VISITAS Y ENTRADAS (SEGURIDAD)
+═══════════════════════════════════════════════════════════ -->
+<div id="s-visitas-seg" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-seguridad')">←</button>
+    <div class="header-title"><h1>Privada Paamul</h1><p>Visitas y Entradas</p></div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="visitas-seg-contenido"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PANTALLA — PRÉSTAMOS Y AMENIDADES (SEGURIDAD)
+═══════════════════════════════════════════════════════════ -->
+<div id="s-prestamos-seg" class="screen">
+  <div class="app-header">
+    <button class="back" onclick="ir('s-seguridad')">←</button>
+    <div class="header-title"><h1>Privada Paamul</h1><p>Préstamos y Amenidades</p></div>
+  </div>
+  <div class="content" style="overflow-y:auto">
+    <div id="prestamos-seg-contenido"><div class="loader">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
      PANTALLA — RONDINES GPS
 ═══════════════════════════════════════════════════════════ -->
 <div id="s-rondines" class="screen">
@@ -1583,219 +1609,85 @@ body { font-family:'Segoe UI',Arial,sans-serif; background:var(--azul-deep); col
   <div style="background:radial-gradient(ellipse at 30% 0%,#1a3f7a 0%,#0b1e3d 70%);
     padding:14px 16px 16px;text-align:center;position:relative;overflow:hidden;
     border-bottom:1px solid rgba(212,175,55,.18)">
-    <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;
-      background:radial-gradient(circle,rgba(212,175,55,.07) 0%,transparent 70%)"></div>
     <div style="background:rgba(212,175,55,.1);border:1.5px solid rgba(212,175,55,.35);
       border-radius:14px;width:44px;height:44px;display:flex;align-items:center;
-      justify-content:center;font-size:20px;margin:0 auto 8px;
-      box-shadow:0 0 16px rgba(212,175,55,.1)">🛡️</div>
+      justify-content:center;font-size:20px;margin:0 auto 8px">🛡️</div>
     <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#f5f0e8">Caseta de Acceso</div>
-    <div style="font-size:8.5px;color:#d4af37;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-top:2px">Privada Paamul</div>
+    <div style="font-size:8.5px;color:#d4af37;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-top:2px">Privada Paamul · Grupo Cóndor</div>
     <div id="seg-nombre" style="font-size:10px;color:rgba(245,240,232,.5);margin-top:4px"></div>
   </div>
   <div class="content" style="overflow-y:auto">
     <div id="banner-seg-anuncios"></div>
     <div id="msg-seg" class="msg"></div>
-    <!-- Morosidad destacada -->
+    <!-- Agradecimiento Grupo Cóndor -->
+    <div style="background:linear-gradient(135deg,rgba(26,63,122,.6),rgba(13,35,71,.8));
+      border:1px solid rgba(212,175,55,.2);border-radius:12px;
+      padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">🤝</span>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#d4af37">Grupo Cóndor</div>
+        <div style="font-size:10px;color:rgba(245,240,232,.6);margin-top:1px">Gracias por proteger Privada Paamul · Paseos de Xcacel</div>
+      </div>
+    </div>
+    <!-- Morosos -->
     <div onclick="ir('s-morosidad'); cargarMorosidad()"
       style="background:rgba(198,40,40,.15);border:1.5px solid rgba(229,57,53,.4);
-        border-radius:14px;padding:12px 14px;margin-bottom:12px;
+        border-radius:12px;padding:10px 14px;margin-bottom:12px;
         display:flex;align-items:center;justify-content:space-between;cursor:pointer">
       <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:22px;filter:saturate(.6)">⚠️</span>
+        <span style="font-size:18px;filter:saturate(.6)">⚠️</span>
         <div>
-          <div style="font-size:13px;font-weight:700;color:#ef9a9a">Lista de Morosos</div>
-          <div style="font-size:10px;color:rgba(245,240,232,.4);margin-top:1px">Deptos con recargos pendientes</div>
+          <div style="font-size:12px;font-weight:700;color:#ef9a9a">Lista de Morosos</div>
+          <div id="seg-morosos-count" style="font-size:10px;color:rgba(245,240,232,.4);margin-top:1px">Toca para ver deptos con recargos</div>
         </div>
       </div>
-      <span style="font-size:18px;color:rgba(229,57,53,.5)">›</span>
+      <span style="font-size:16px;color:rgba(229,57,53,.5)">›</span>
     </div>
-    <div class="seg-grid">
-      <button class="seg-btn" onclick="toggleSeg('paqueteria')">
-        <span class="sb-icon">📦</span><span class="sb-label">Paquetería</span>
-      </button>
-      <button class="seg-btn" onclick="toggleSeg('agua')">
-        <span class="sb-icon">🚰</span><span class="sb-label">Llave de Agua</span>
-      </button>
-      <button class="seg-btn" onclick="toggleSeg('servicios')">
-        <span class="sb-icon">🛠️</span><span class="sb-label">Trabajadores</span>
-      </button>
-      <button class="seg-btn" onclick="toggleSeg('incidencia')">
-        <span class="sb-icon">⚠️</span><span class="sb-label">Incidencia</span>
-      </button>
-      <button class="seg-btn" onclick="toggleSeg('mudanzas')">
-        <span class="sb-icon">🚛</span><span class="sb-label">Mudanzas</span>
-      </button>
-      <button class="seg-btn" onclick="toggleSeg('amenidades')">
-        <span class="sb-icon">🏊</span><span class="sb-label">Amenidades</span>
-      </button>
-      <button class="seg-btn" onclick="toggleSeg('prestamos')" style="grid-column:span 2">
-        <span class="sb-icon">🔑</span><span class="sb-label">Préstamos Activos</span>
-      </button>
-      <button class="seg-btn" onclick="toggleSeg('visitas')" style="grid-column:span 2">
-        <span class="sb-icon">🚗</span><span class="sb-label">Visitas del Día</span>
-      </button>
-      <button class="seg-btn" onclick="irARondines()" style="grid-column:span 2">
-        <span class="sb-icon">🗺️</span><span class="sb-label">Rondines GPS</span>
-      </button>
-    </div>
-
-    <!-- Paquetería -->
-    <div id="seg-panel-paqueteria" class="seg-panel">
-      <h3 style="font-size:15px;margin-bottom:12px">📦 Recepción de Paquetes</h3>
-
-      <!-- Paso 1 -->
-      <div id="pkg-paso1">
-        <div class="fg"><label>Compañía que entrega</label>
-          <select id="seg-compania" style="font-size:15px">
-            <option>Mercado Libre</option><option>Amazon</option>
-            <option>J&amp;T Express</option><option>Estafeta</option>
-            <option>DHL</option><option>FedEx</option><option>Otro</option>
-          </select></div>
-        <div class="fg"><label>¿Cuántos paquetes?</label>
-          <div style="display:flex;align-items:center;gap:16px;padding:8px 0">
-            <button onclick="cambiarCantPkg(-1)" style="width:44px;height:44px;border-radius:50%;
-              border:2px solid #1976d2;background:#fff;font-size:22px;cursor:pointer;color:#1976d2">−</button>
-            <span id="pkg-cantidad" style="font-size:32px;font-weight:800;color:#1565c0;min-width:40px;text-align:center">1</span>
-            <button onclick="cambiarCantPkg(1)" style="width:44px;height:44px;border-radius:50%;
-              border:2px solid #1976d2;background:#1976d2;font-size:22px;cursor:pointer;color:#fff">+</button>
-          </div></div>
-        <div class="fg"><label>¿Son para el mismo departamento?</label>
-          <div class="seg-sub" style="margin-bottom:0">
-            <button id="pkg-mismo-si" class="activo" onclick="selMismoDepto(true)">📍 Mismo depto</button>
-            <button id="pkg-mismo-no" onclick="selMismoDepto(false)">🏘️ Varios deptos</button>
-          </div></div>
-        <button class="btn-submit" onclick="pkgPaso2()">Continuar →</button>
-      </div>
-
-      <!-- Paso 2 -->
-      <div id="pkg-paso2" style="display:none">
-        <div id="pkg-autorizacion-badge"></div>
-        <div id="pkg-formulario"></div>
-        <button class="btn-submit" style="background:#43a047;margin-top:8px"
-          onclick="registrarPaquetesFlujo()">📦 Registrar paquetes</button>
-        <button class="btn-modal-cancel" onclick="pkgReset()">← Volver</button>
-      </div>
-
-      <!-- Pendientes -->
-      <div style="margin-top:16px;border-top:1px solid #eee;padding-top:12px">
-        <p style="font-size:13px;color:#666;margin-bottom:8px">📋 Pendientes de entrega:</p>
-        <div id="seg-pkg-pendientes-lista"><p style="font-size:12px;color:#999">Cargando...</p></div>
-      </div>
-    </div>
-
-    <!-- Llave de Agua -->
-    <div id="seg-panel-agua" class="seg-panel">
-      <h3 style="font-size:15px;margin-bottom:12px">🚰 Control de Agua</h3>
-      <div id="agua-estado" style="border-radius:12px;padding:16px;text-align:center;margin-bottom:12px">
-        <div style="font-size:32px" id="agua-icono">🚰</div>
-        <div style="font-size:16px;font-weight:700;margin:6px 0" id="agua-txt">Verificando...</div>
-        <div style="font-size:12px;color:#666">Horario regular: 11:00 — 19:00 hrs</div>
-      </div>
-      <button class="btn-submit" id="agua-btn" onclick="toggleAgua()">Cargando...</button>
-      <p style="font-size:13px;color:#666;margin:12px 0 6px">Registros de hoy:</p>
-      <div id="agua-historial"><p style="font-size:12px;color:#999">Sin registros</p></div>
-    </div>
-
-    <!-- Servicios -->
-    <div id="seg-panel-servicios" class="seg-panel">
-      <h3 style="font-size:15px;margin-bottom:12px">🛠️ Servicios y Mantenimiento</h3>
-      <div class="fg"><label>Tipo de actividad</label>
-        <select id="seg-tipo">
-          <option>Limpieza Áreas Comunes</option>
-          <option>Mantenimiento Alberca</option>
-          <option>Riego Jardines</option>
-          <option>Poda</option>
-          <option>Proveedor Externo</option>
-        </select></div>
-      <div class="fg"><label>Zona / Área</label>
-        <select id="seg-zona">
-          <option>Área General</option><option>Alberca / Deck</option>
-          <option>Jardines</option><option>Acceso / Caseta</option>
-          <option>Edificio (ver notas)</option>
-        </select></div>
-      <div class="fg"><label>Nombre del trabajador</label>
-        <input type="text" id="seg-trabajador" placeholder="Nombre completo"></div>
-      <div class="fg"><label>Notas</label>
-        <input type="text" id="seg-notas" placeholder="Detalles adicionales..."></div>
-      <button class="btn-submit" onclick="registrarEntradaSeg()">Registrar Entrada</button>
-      <p style="font-size:13px;color:#666;margin:12px 0 6px">En curso:</p>
-      <div id="seg-activos"><p style="font-size:12px;color:#999">Sin actividades activas</p></div>
-      <p style="font-size:13px;color:#666;margin:12px 0 6px;border-top:1px solid #eee;padding-top:12px">🔑 Préstamos activos:</p>
-      <div id="seg-prestamos-activos"><p style="font-size:12px;color:#999">Cargando...</p></div>
-    </div>
-
-    <!-- Incidencia / Multa -->
-    <div id="seg-panel-incidencia" class="seg-panel">
-      <h3 style="font-size:15px;margin-bottom:12px">⚠️ Registrar Incidencia</h3>
-      <div class="fg"><label>Departamento</label>
-        <input type="text" id="seg-inc-casa" placeholder="Ej: 4A" style="text-transform:uppercase"></div>
-      <div class="fg"><label>Tipo</label>
-        <select id="seg-inc-tipo">
-          <option value="Llamada de Atención">Llamada de Atención (sin costo)</option>
-          <option value="Multa">Multa</option>
-        </select></div>
-      <div class="fg"><label>Concepto</label>
-        <select id="seg-inc-concepto"><option value="">Cargando...</option></select></div>
-      <div id="seg-inc-monto-wrap" style="display:none">
-        <div class="fg"><label>Monto</label>
-          <input type="number" id="seg-inc-monto" readonly style="background:#f5f5f5"></div>
-      </div>
-      <button class="btn-submit" onclick="registrarIncidenciaSeg()">Enviar al Comité</button>
-    </div>
-
-    <!-- Mudanzas Caseta -->
-    <div id="seg-panel-mudanzas" class="seg-panel">
-      <h3 style="font-size:15px;margin-bottom:12px">🚛 Registro de Mudanza</h3>
-      <div class="fg"><label>Departamento</label>
-        <input type="text" id="seg-mud-depto" placeholder="Ej: 4A" style="text-transform:uppercase"></div>
-      <div class="fg"><label>Tipo</label>
-        <div class="seg-sub" style="margin-bottom:0">
-          <button id="seg-mud-e" class="activo" onclick="subMud('Entrada')">📥 Entrada</button>
-          <button id="seg-mud-s" onclick="subMud('Salida')">📤 Salida</button>
+    <!-- Grid 4 botones -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <button onclick="abrirModalRegistrar()"
+        style="grid-column:span 2;background:linear-gradient(135deg,rgba(212,175,55,.25),rgba(180,145,35,.18));
+          border:1.5px solid rgba(212,175,55,.6);border-radius:14px;padding:16px;cursor:pointer;
+          display:flex;align-items:center;gap:12px;box-shadow:0 0 16px rgba(212,175,55,.12)">
+        <div style="background:rgba(212,175,55,.2);border:1px solid rgba(212,175,55,.4);
+          border-radius:10px;width:42px;height:42px;display:flex;align-items:center;
+          justify-content:center;font-size:22px;flex-shrink:0">➕</div>
+        <div style="text-align:left">
+          <div style="font-size:14px;font-weight:800;color:#d4af37;letter-spacing:.3px">REGISTRAR NUEVO EVENTO</div>
+          <div style="font-size:10px;color:rgba(212,175,55,.6);margin-top:2px">Visita · Colaborador · Paquete · Incidencia</div>
         </div>
-      </div>
-      <div class="fg"><label>Nombre del responsable</label>
-        <input type="text" id="seg-mud-nombre" placeholder="Nombre completo"></div>
-      <button class="btn-submit" onclick="registrarMudanzaSeg()">Registrar Mudanza</button>
-      <p style="font-size:13px;color:#666;margin:12px 0 6px">Mudanzas del día:</p>
-      <div id="seg-mud-lista"><p style="font-size:12px;color:#999">Cargando...</p></div>
+      </button>
+      <button onclick="irModuloSeg('visitas')"
+        style="background:rgba(212,175,55,.1);border:1.5px solid rgba(212,175,55,.45);
+          border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center">
+        <div style="font-size:26px;margin-bottom:6px;filter:saturate(.5)">🚗</div>
+        <div style="font-size:11px;font-weight:700;color:#f5f0e8">Visitas y Entradas</div>
+        <div id="seg-visitas-badge" style="font-size:9px;color:rgba(212,175,55,.5);margin-top:2px">del día</div>
+      </button>
+      <button onclick="irModuloSeg('prestamos')"
+        style="background:rgba(212,175,55,.1);border:1.5px solid rgba(212,175,55,.45);
+          border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center">
+        <div style="font-size:26px;margin-bottom:6px;filter:saturate(.5)">🔑</div>
+        <div style="font-size:11px;font-weight:700;color:#f5f0e8">Préstamos y</div>
+        <div style="font-size:11px;font-weight:700;color:#f5f0e8">Amenidades</div>
+      </button>
+      <button onclick="irARondines()"
+        style="grid-column:span 2;background:rgba(212,175,55,.1);border:1.5px solid rgba(212,175,55,.45);
+          border-radius:14px;padding:14px;cursor:pointer;
+          display:flex;align-items:center;justify-content:center;gap:10px">
+        <span style="font-size:22px;filter:saturate(.5)">🗺️</span>
+        <div style="text-align:left">
+          <div style="font-size:12px;font-weight:700;color:#f5f0e8">Rondines GPS</div>
+          <div id="seg-rondin-estado" style="font-size:10px;color:rgba(212,175,55,.5);margin-top:1px">Sin rondín activo</div>
+        </div>
+      </button>
     </div>
-
-    <!-- Amenidades Caseta -->
-    <div id="seg-panel-amenidades" class="seg-panel">
-      <h3 style="font-size:15px;margin-bottom:12px">🏊 Estado de Amenidades</h3>
-      <div id="seg-amenidades-lista"><div class="loader">Cargando...</div></div>
-      <p style="font-size:13px;color:#666;margin:12px 0 6px;border-top:1px solid #eee;padding-top:12px">Registrar ocupación manual:</p>
-      <div class="fg"><label>Amenidad</label>
-        <select id="seg-am-amenidad">
-          <option value="Mesa 1">🪑 Mesa 1</option>
-          <option value="Mesa 2">🪑 Mesa 2</option>
-          <option value="Mesa 3">🪑 Mesa 3</option>
-          <option value="Piscina">🏊 Piscina</option>
-          <option value="Palapa">🌴 Palapa</option>
-        </select></div>
-      <div class="fg"><label>Depto</label>
-        <input type="text" id="seg-am-depto" placeholder="Ej: 4A" style="text-transform:uppercase"></div>
-      <div class="fg"><label>Nombre</label>
-        <input type="text" id="seg-am-nombre" placeholder="Nombre del residente"></div>
-      <button class="btn-submit" onclick="ocuparAmenidadSeg()">Registrar Ocupación</button>
-    </div>
-
-    <!-- Préstamos Activos -->
-    <div id="seg-panel-prestamos" class="seg-panel">
-      <h3 style="font-size:15px;margin-bottom:12px">🔑 Préstamos Activos</h3>
-      <div id="seg-prestamos-lista"><div class="loader">Cargando...</div></div>
-    </div>
-
-    <!-- Visitas del Día -->
-    <div id="seg-panel-visitas" class="seg-panel">
-      <h3 style="font-size:15px;margin-bottom:12px">🚗 Visitas Programadas — Hoy</h3>
-      <div id="seg-visitas-lista"><div class="loader">Cargando...</div></div>
-    </div>
-
-    <button style="background:none;border:none;color:#999;font-size:13px;cursor:pointer;
-      padding:16px;width:100%;margin-top:8px" onclick="cerrarSesion()">Cerrar sesión</button>
+    <button onclick="cerrarTurnoSeg()"
+      style="width:100%;padding:12px;background:transparent;
+        border:1px solid rgba(245,240,232,.15);border-radius:12px;
+        color:rgba(245,240,232,.4);font-size:12px;cursor:pointer">
+      🚪 Cerrar Turno / Salir
+    </button>
   </div>
 </div>
 
@@ -5996,6 +5888,479 @@ function mostrarSelectorPropiedades() {
     mostrarSelectorPropiedades(); // re-renderizar con nueva selección
   });
   headerDepto.parentNode.replaceChild(selectEl, headerDepto);
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// PANEL SEGURIDAD — NUEVO DISEÑO
+// ══════════════════════════════════════════════════════════════
+
+const _segCache = { morosos: null, visitas: null, ts: 0 };
+const SEG_TTL = 3 * 60 * 1000;
+
+async function mostrarPantallaSeguridad() {
+  const nomEl = document.getElementById('seg-nombre');
+  if (nomEl && sesion) nomEl.textContent = `${sesion.nombre || ''} · ${sesion.cargo || sesion.casa || ''}`;
+  const ronEl = document.getElementById('seg-rondin-estado');
+  if (ronEl) ronEl.textContent = rondinActivo ? '🟢 Rondín en curso' : 'Sin rondín activo';
+  cargarBadgesSeg();
+  registrarInicioTurno();
+}
+
+async function cargarBadgesSeg() {
+  try {
+    let morosos;
+    if (_segCache.morosos && Date.now() - _segCache.ts < SEG_TTL) {
+      morosos = _segCache.morosos;
+    } else {
+      const r = await fetch(`${API}?accion=getMorosos`);
+      morosos = await r.json();
+      _segCache.morosos = morosos;
+      _segCache.ts = Date.now();
+    }
+    const count = Array.isArray(morosos) ? morosos.filter(m => m.MOROSO).length : 0;
+    const el = document.getElementById('seg-morosos-count');
+    if (el) el.textContent = count > 0 ? `⚠️ ${count} depto(s) con recargos pendientes` : '✅ Sin morosos activos';
+  } catch(e) {}
+  try {
+    const hoy = hoyCanun();
+    const r = await fetch(`${API}?accion=getVisitas&casa=todas`);
+    const data = await r.json();
+    _segCache.visitas = Array.isArray(data) ? data : [];
+    const hoyV = _segCache.visitas.filter(v => String(v.Fecha||'').slice(0,10) === hoy).length;
+    const el = document.getElementById('seg-visitas-badge');
+    if (el) el.textContent = hoyV > 0 ? `${hoyV} entrada(s) hoy` : 'del día';
+  } catch(e) {}
+}
+
+async function registrarInicioTurno() {
+  if (!sesion) return;
+  const clave = `turno_inicio_${sesion.casa}_${hoyCanun()}`;
+  if (sessionStorage.getItem(clave)) return;
+  try {
+    await post({ accion:'registrarBitacora', guardia: sesion.nombre||'Caseta',
+      tipo:'Inicio de Turno', zona:`Caseta · ${sesion.cargo||sesion.casa||''}`,
+      notas:`Inicio de turno — ${new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}` });
+    sessionStorage.setItem(clave, '1');
+  } catch(e) {}
+}
+
+function abrirModalRegistrar() {
+  const modal = document.createElement('div');
+  modal.id = 'modal-registrar-evento';
+  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;display:flex;align-items:flex-end;justify-content:center;padding:0`;
+  const tipos = [
+    {icon:'🚗',titulo:'Visita Exprés',desc:'Acceso no registrado previamente',accion:'visita'},
+    {icon:'👷',titulo:'Colaborador / Trabajador',desc:'Registro de entrada en bitácora',accion:'colaborador'},
+    {icon:'📦',titulo:'Paquetería / Mensajería',desc:'Recepción de paquetes',accion:'paquete'},
+    {icon:'⚠️',titulo:'Incidencia',desc:'Reporte de situación anormal',accion:'incidencia'},
+    {icon:'📅',titulo:'Registro Histórico',desc:'Capturar datos de fecha pasada',accion:'historico'},
+  ];
+  modal.innerHTML = `
+  <div style="background:#0d2347;border-top:2px solid rgba(212,175,55,.3);border-radius:20px 20px 0 0;
+    padding:20px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div>
+        <div style="font-size:15px;font-weight:700;color:#d4af37">➕ Registrar Evento</div>
+        <div style="font-size:10px;color:rgba(212,175,55,.5);margin-top:2px">¿Qué deseas registrar?</div>
+      </div>
+      <button onclick="document.getElementById('modal-registrar-evento').remove()"
+        style="background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);border-radius:8px;
+          padding:6px 12px;color:#d4af37;font-size:12px;font-weight:700;cursor:pointer">✕</button>
+    </div>
+    ${tipos.map(t => `
+    <button onclick="seleccionarTipoRegistro('${t.accion}')"
+      style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);
+        border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;
+        display:flex;align-items:center;gap:12px">
+      <span style="font-size:22px;filter:saturate(.5);flex-shrink:0">${t.icon}</span>
+      <div style="text-align:left;flex:1">
+        <div style="font-size:13px;font-weight:700;color:#f5f0e8">${t.titulo}</div>
+        <div style="font-size:10px;color:rgba(212,175,55,.5);margin-top:1px">${t.desc}</div>
+      </div>
+      <span style="color:rgba(212,175,55,.4);font-size:16px">›</span>
+    </button>`).join('')}
+  </div>`;
+  modal.addEventListener('click', e => { if (e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function seleccionarTipoRegistro(accion) {
+  document.getElementById('modal-registrar-evento')?.remove();
+  if (accion==='visita')      abrirFormRegistro('🚗 Visita Exprés', renderFormVisita);
+  else if (accion==='colaborador') abrirFormRegistro('👷 Colaborador', renderFormColaborador);
+  else if (accion==='paquete')  toggleSeg('paqueteria');
+  else if (accion==='incidencia') toggleSeg('incidencia');
+  else if (accion==='historico') abrirFormRegistro('📅 Registro Histórico', renderFormHistorico);
+}
+
+function abrirFormRegistro(titulo, renderFn) {
+  const modal = document.createElement('div');
+  modal.id = 'modal-form-registro';
+  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;display:flex;align-items:flex-end;justify-content:center;padding:0`;
+  modal.innerHTML = `
+  <div style="background:#0d2347;border-top:2px solid rgba(212,175,55,.3);border-radius:20px 20px 0 0;
+    padding:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:14px;font-weight:700;color:#d4af37">${titulo}</div>
+      <button onclick="document.getElementById('modal-form-registro').remove()"
+        style="background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.3);border-radius:8px;
+          padding:5px 10px;color:#d4af37;font-size:12px;cursor:pointer">✕</button>
+    </div>
+    <div id="form-registro-body">${renderFn()}</div>
+  </div>`;
+  modal.addEventListener('click', e => { if (e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function renderFormVisita() {
+  return `<div class="fg"><label>Nombre del visitante</label>
+    <input type="text" id="frv-nombre" placeholder="Nombre completo"></div>
+  <div class="fg"><label>Depto que visita</label>
+    <input type="text" id="frv-depto" placeholder="Ej: 4A" style="text-transform:uppercase"
+      oninput="this.value=this.value.replace(/\s/g,'').toUpperCase()"></div>
+  <div class="fg"><label>Placa (opcional)</label>
+    <input type="text" id="frv-placa" placeholder="Ej: ABC-123" style="text-transform:uppercase"></div>
+  <div class="msg" id="frv-msg"></div>
+  <button class="btn-submit" onclick="guardarVisitaExpres()">🚗 Registrar Entrada</button>`;
+}
+
+async function guardarVisitaExpres() {
+  const nombre = document.getElementById('frv-nombre')?.value.trim();
+  const depto  = document.getElementById('frv-depto')?.value.trim().toUpperCase();
+  const placa  = document.getElementById('frv-placa')?.value.trim().toUpperCase();
+  const msg    = document.getElementById('frv-msg');
+  if (!nombre||!depto) { showMsg(msg,'error','Nombre y depto son requeridos'); return; }
+  try {
+    const res = await post({ accion:'registrarVisita', nombre, depto, placa,
+      tipo:'Visita Exprés', fecha:hoyCanun(),
+      hora:new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) });
+    if (res.ok) {
+      document.getElementById('modal-form-registro')?.remove();
+      showMsg(document.getElementById('msg-seg'),'ok',`✅ Visita de ${nombre} registrada`);
+    } else showMsg(msg,'error',res.error||'Error');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
+function renderFormColaborador() {
+  return `<div class="fg"><label>Nombre del colaborador</label>
+    <input type="text" id="frc-nombre" placeholder="Nombre completo"></div>
+  <div class="fg"><label>Tipo de trabajo</label>
+    <select id="frc-tipo"><option>Mantenimiento</option><option>Limpieza</option>
+      <option>Jardinería</option><option>Plomería</option><option>Electricidad</option>
+      <option>Pintura</option><option>Otro</option></select></div>
+  <div class="fg"><label>Zona / Depto</label>
+    <input type="text" id="frc-zona" placeholder="Ej: Áreas comunes / Depto 4A"></div>
+  <div class="fg"><label>Fecha de registro</label>
+    <input type="date" id="frc-fecha" value="${hoyCanun()}"></div>
+  <div class="msg" id="frc-msg"></div>
+  <button class="btn-submit" onclick="guardarColaborador()">👷 Registrar Entrada</button>`;
+}
+
+async function guardarColaborador() {
+  const nombre = document.getElementById('frc-nombre')?.value.trim();
+  const tipo   = document.getElementById('frc-tipo')?.value;
+  const zona   = document.getElementById('frc-zona')?.value.trim();
+  const fecha  = document.getElementById('frc-fecha')?.value;
+  const msg    = document.getElementById('frc-msg');
+  if (!nombre) { showMsg(msg,'error','El nombre es requerido'); return; }
+  try {
+    const res = await post({ accion:'registrarBitacora', guardia:sesion?.nombre||'Caseta',
+      tipo, zona:zona||'Áreas comunes', notas:`Colaborador: ${nombre}`, fecha_override:fecha });
+    if (res.ok) {
+      document.getElementById('modal-form-registro')?.remove();
+      showMsg(document.getElementById('msg-seg'),'ok',`✅ ${nombre} registrado en bitácora`);
+    } else showMsg(msg,'error',res.error||'Error');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
+function renderFormHistorico() {
+  return `<div style="background:rgba(212,175,55,.07);border:1px solid rgba(212,175,55,.2);
+    border-radius:10px;padding:10px 12px;margin-bottom:12px">
+    <div style="font-size:11px;color:#d4af37;font-weight:700;margin-bottom:3px">📅 Registro extemporáneo</div>
+    <div style="font-size:10px;color:rgba(245,240,232,.6)">Para capturar asistencia de días anteriores</div>
+  </div>
+  <div class="fg"><label>Fecha a registrar</label>
+    <input type="date" id="frh-fecha" value="${hoyCanun()}"></div>
+  <div class="fg"><label>Nombre del colaborador</label>
+    <input type="text" id="frh-nombre" placeholder="Nombre completo"></div>
+  <div class="fg"><label>Tipo de actividad</label>
+    <select id="frh-tipo"><option>Mantenimiento</option><option>Limpieza</option>
+      <option>Jardinería</option><option>Servicio</option><option>Otro</option></select></div>
+  <div class="fg"><label>Notas</label>
+    <input type="text" id="frh-notas" placeholder="Descripción del trabajo realizado"></div>
+  <div class="msg" id="frh-msg"></div>
+  <button class="btn-submit" onclick="guardarHistorico()">📅 Guardar Registro</button>`;
+}
+
+async function guardarHistorico() {
+  const fecha  = document.getElementById('frh-fecha')?.value;
+  const nombre = document.getElementById('frh-nombre')?.value.trim();
+  const tipo   = document.getElementById('frh-tipo')?.value;
+  const notas  = document.getElementById('frh-notas')?.value.trim();
+  const msg    = document.getElementById('frh-msg');
+  if (!nombre) { showMsg(msg,'error','El nombre es requerido'); return; }
+  try {
+    const res = await post({ accion:'registrarBitacora', guardia:sesion?.nombre||'Caseta',
+      tipo, zona:'Registro histórico', notas:`${nombre} · ${notas||''}`, fecha_override:fecha });
+    if (res.ok) {
+      document.getElementById('modal-form-registro')?.remove();
+      showMsg(document.getElementById('msg-seg'),'ok',`✅ Registro guardado para ${fecha}`);
+    } else showMsg(msg,'error',res.error||'Error');
+  } catch(e) { showMsg(msg,'error','Error de conexión'); }
+}
+
+function irModuloSeg(modulo) {
+  if (modulo==='visitas')   { ir('s-visitas-seg');   cargarVisitasSeg(); }
+  if (modulo==='prestamos') { ir('s-prestamos-seg'); cargarPrestamosSeg(); }
+}
+
+function cerrarTurnoSeg() {
+  const modal = document.createElement('div');
+  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;
+    display:flex;align-items:center;justify-content:center;padding:20px`;
+  modal.innerHTML = `
+  <div style="background:#0d2347;border:1.5px solid rgba(212,175,55,.3);border-radius:20px;
+    padding:22px;width:100%;max-width:380px">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:28px;margin-bottom:8px">🚪</div>
+      <div style="font-size:15px;font-weight:700;color:#f5f0e8">Cerrar Turno</div>
+      <div style="font-size:10px;color:rgba(212,175,55,.5);margin-top:3px">Registra los pendientes antes de salir</div>
+    </div>
+    <div class="fg">
+      <label>Novedades y pendientes del turno</label>
+      <textarea id="turno-novedades" rows="4"
+        placeholder="Ej: Sin novedad / Pendiente: paquete en depto 4A..."
+        style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(212,175,55,.3);
+          border-radius:10px;padding:10px;color:#f5f0e8;font-size:13px;resize:none;outline:none"></textarea>
+    </div>
+    <button onclick="confirmarCierreTurno()"
+      style="width:100%;padding:13px;background:rgba(46,125,50,.2);border:1.5px solid rgba(67,160,71,.4);
+        border-radius:12px;color:#81c784;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px">
+      ✅ Guardar y Cerrar Turno
+    </button>
+    <button onclick="this.closest('[style*=fixed]').remove()"
+      style="width:100%;padding:11px;background:transparent;border:none;
+        color:rgba(245,240,232,.3);font-size:12px;cursor:pointer">← Volver al panel</button>
+  </div>`;
+  modal.addEventListener('click', e => { if (e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+async function confirmarCierreTurno() {
+  const novedades = document.getElementById('turno-novedades')?.value.trim()||'Sin novedad';
+  try {
+    await post({ accion:'registrarBitacora', guardia:sesion?.nombre||'Caseta',
+      tipo:'Cierre de Turno', zona:`Caseta · ${sesion?.cargo||sesion?.casa||''}`,
+      notas:`Cierre de turno — ${new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})} · Novedades: ${novedades}` });
+  } catch(e) {}
+  document.querySelector('[style*="z-index:9999"]')?.remove();
+  cerrarSesion();
+}
+
+async function cargarVisitasSeg() {
+  const el = document.getElementById('visitas-seg-contenido');
+  if (!el) return;
+  el.innerHTML = '<div class="loader">Cargando...</div>';
+  const personalFijo = [
+    {id:'alberquero',titulo:'Encargado Alberca',icon:'🏊',color:'rgba(100,181,246,.2)',borde:'rgba(100,181,246,.4)'},
+    {id:'limpieza',titulo:'Encargada Áreas Comunes',icon:'🧹',color:'rgba(129,199,132,.2)',borde:'rgba(129,199,132,.4)'},
+  ];
+  const estadoFijo = {};
+  personalFijo.forEach(p => {
+    estadoFijo[p.id] = JSON.parse(sessionStorage.getItem(`personal_${p.id}_${hoyCanun()}`)||'null');
+  });
+  el.innerHTML = `
+  <div style="font-size:8.5px;font-weight:800;color:rgba(212,175,55,.6);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Personal Fijo</div>
+  ${personalFijo.map(p => {
+    const est = estadoFijo[p.id];
+    return `<div style="background:${p.color};border:1px solid ${p.borde};border-radius:12px;
+      padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">${p.icon}</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#f5f0e8">${p.titulo}</div>
+          <div style="font-size:10px;color:rgba(245,240,232,.5);margin-top:2px">
+            ${est ? `🟢 En sitio desde ${est.hora} · ${est.nombre}` : '⚪ Sin registrar hoy'}
+          </div>
+        </div>
+      </div>
+      <button onclick="registrarPersonalFijo('${p.id}','${p.titulo}')"
+        style="background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.4);border-radius:8px;
+          padding:6px 10px;color:#d4af37;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">
+        ${est ? 'Salida' : 'Entrada'}
+      </button>
+    </div>`;
+  }).join('')}
+  <div style="font-size:8.5px;font-weight:800;color:rgba(212,175,55,.6);letter-spacing:2px;text-transform:uppercase;margin:14px 0 8px">Visitas del Día</div>
+  <div id="visitas-lista-seg"><div class="loader" style="padding:16px">Cargando...</div></div>`;
+
+  try {
+    const hoy = hoyCanun();
+    const r = await fetch(`${API}?accion=getVisitas&casa=todas`);
+    const data = await r.json();
+    const hoyV = Array.isArray(data) ? data.filter(v => String(v.Fecha||'').slice(0,10) === hoy) : [];
+    const listaEl = document.getElementById('visitas-lista-seg');
+    if (!listaEl) return;
+    if (hoyV.length===0) {
+      listaEl.innerHTML = '<p style="color:rgba(245,240,232,.4);text-align:center;padding:12px;font-size:12px">Sin visitas registradas hoy</p>';
+      return;
+    }
+    listaEl.innerHTML = hoyV.map(v => `
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.15);border-radius:10px;padding:10px 12px;margin-bottom:6px">
+      <div style="font-size:13px;font-weight:700;color:#f5f0e8">${v.Nombre_Visitante||v.nombre||'—'}</div>
+      <div style="font-size:10px;color:rgba(212,175,55,.5);margin-top:2px">
+        🏠 Depto ${v.Casa_Destino||v.depto||'—'} · ${v.Hora||v.hora||''} · ${v.Tipo||v.tipo||'Visita'}
+      </div>
+    </div>`).join('');
+  } catch(e) {
+    const listaEl = document.getElementById('visitas-lista-seg');
+    if (listaEl) listaEl.innerHTML = '<p style="color:#ef9a9a;padding:12px;font-size:12px">Error al cargar</p>';
+  }
+}
+
+function registrarPersonalFijo(id, titulo) {
+  const key = `personal_${id}_${hoyCanun()}`;
+  const actual = JSON.parse(sessionStorage.getItem(key)||'null');
+  if (actual) {
+    sessionStorage.removeItem(key);
+    post({ accion:'registrarBitacora', guardia:sesion?.nombre||'Caseta',
+      tipo:'Salida Personal Fijo', zona:titulo,
+      notas:`Salida: ${actual.nombre} · ${new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}` }).catch(()=>{});
+    cargarVisitasSeg(); return;
+  }
+  const modal = document.createElement('div');
+  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px`;
+  modal.innerHTML = `
+  <div style="background:#0d2347;border:1.5px solid rgba(212,175,55,.3);border-radius:16px;padding:20px;width:100%;max-width:360px">
+    <div style="font-size:14px;font-weight:700;color:#d4af37;margin-bottom:14px">${titulo} — Entrada</div>
+    <div class="fg"><label>Nombre</label>
+      <input type="text" id="pf-nombre" placeholder="Nombre completo"></div>
+    <input type="file" id="pf-foto" accept="image/*" capture="environment" style="display:none"
+      onchange="procesarFotoPersonalFijo(this)">
+    <button onclick="document.getElementById('pf-foto').click()"
+      style="width:100%;padding:10px;background:rgba(212,175,55,.1);border:1.5px solid rgba(212,175,55,.3);
+        border-radius:10px;color:#d4af37;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:10px">
+      📷 Tomar Foto de Ingreso
+    </button>
+    <div id="pf-foto-preview" style="display:none;margin-bottom:10px;text-align:center">
+      <img id="pf-foto-img" style="height:80px;border-radius:8px;border:1px solid rgba(212,175,55,.3)">
+    </div>
+    <div class="msg" id="pf-msg"></div>
+    <button onclick="confirmarEntradaPersonalFijo('${id}','${titulo}')"
+      style="width:100%;padding:12px;background:rgba(46,125,50,.2);border:1.5px solid rgba(67,160,71,.4);
+        border-radius:10px;color:#81c784;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px">
+      ✅ Registrar Entrada
+    </button>
+    <button onclick="this.closest('[style*=fixed]').remove()"
+      style="width:100%;padding:10px;background:transparent;border:none;color:rgba(245,240,232,.3);font-size:12px;cursor:pointer">← Cancelar</button>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+let _fotoPersonalFijo = null;
+function procesarFotoPersonalFijo(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX = 400; let w = img.width, h = img.height;
+      if (w>MAX||h>MAX) { if (w>h) {h=Math.round(h*MAX/w);w=MAX;} else {w=Math.round(w*MAX/h);h=MAX;} }
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      _fotoPersonalFijo = canvas.toDataURL('image/jpeg',0.6);
+      const prev = document.getElementById('pf-foto-preview');
+      const img2 = document.getElementById('pf-foto-img');
+      if (prev) prev.style.display='block';
+      if (img2) img2.src=_fotoPersonalFijo;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function confirmarEntradaPersonalFijo(id, titulo) {
+  const nombre = document.getElementById('pf-nombre')?.value.trim();
+  const msg    = document.getElementById('pf-msg');
+  if (!nombre) { showMsg(msg,'error','El nombre es requerido'); return; }
+  const hora = new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+  const key = `personal_${id}_${hoyCanun()}`;
+  sessionStorage.setItem(key, JSON.stringify({nombre, hora}));
+  let urlFoto = '';
+  if (_fotoPersonalFijo) {
+    try {
+      const r = await post({ accion:'subirFotoRondin', base64:_fotoPersonalFijo,
+        nombre:`personal_${id}_${Date.now()}.jpg`, rondin_id:'0', nota:`Ingreso ${titulo}: ${nombre}` });
+      if (r.ok) urlFoto = r.url||'';
+    } catch(e) {}
+    _fotoPersonalFijo = null;
+  }
+  try {
+    await post({ accion:'registrarBitacora', guardia:sesion?.nombre||'Caseta',
+      tipo:'Entrada Personal Fijo', zona:titulo,
+      notas:`Entrada: ${nombre} · ${hora}${urlFoto?' · Foto: '+urlFoto:''}` });
+  } catch(e) {}
+  document.querySelector('[style*="z-index:10000"]')?.remove();
+  cargarVisitasSeg();
+  showMsg(document.getElementById('msg-seg'),'ok',`✅ ${nombre} registrado en ${titulo}`);
+}
+
+async function cargarPrestamosSeg() {
+  const el = document.getElementById('prestamos-seg-contenido');
+  if (!el) return;
+  el.innerHTML = '<div class="loader">Cargando...</div>';
+  try {
+    const [resP, resA] = await Promise.all([
+      fetch(`${API}?accion=getTodosPrestamos`),
+      fetch(`${API}?accion=getAmenidades`)
+    ]);
+    const prestamos  = await resP.json();
+    const amenidades = await resA.json();
+    const activos = Array.isArray(prestamos)
+      ? prestamos.filter(p => String(p.Estatus||'').toLowerCase().includes('activ')||String(p.Estatus||'').toLowerCase().includes('prest'))
+      : [];
+    const amenActivas = Array.isArray(amenidades) ? amenidades.filter(a => parseFloat(a.Aforo_Actual||0)>0) : [];
+    el.innerHTML = `
+    <div style="font-size:8.5px;font-weight:800;color:rgba(212,175,55,.6);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Préstamos Activos (${activos.length})</div>
+    ${activos.length===0 ? '<p style="color:rgba(245,240,232,.4);font-size:12px;text-align:center;padding:12px">Sin préstamos activos</p>'
+      : activos.map(p => `
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);border-radius:10px;
+        padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#f5f0e8">${p.Articulo||p.articulo||'—'}</div>
+          <div style="font-size:10px;color:rgba(212,175,55,.5);margin-top:2px">🏠 ${p.Depto||p.depto||'—'} · ${p.Fecha_Prestamo||p.fecha||''}</div>
+        </div>
+        <button onclick="devolverArticuloSeg('${p.ID||p.id||''}')"
+          style="background:rgba(46,125,50,.2);border:1px solid rgba(67,160,71,.3);border-radius:8px;
+            padding:5px 10px;color:#81c784;font-size:10px;font-weight:700;cursor:pointer">✅ Devolver</button>
+      </div>`).join('')}
+    <div style="font-size:8.5px;font-weight:800;color:rgba(212,175,55,.6);letter-spacing:2px;text-transform:uppercase;margin:14px 0 8px">Amenidades Activas (${amenActivas.length})</div>
+    ${amenActivas.length===0 ? '<p style="color:rgba(245,240,232,.4);font-size:12px;text-align:center;padding:12px">Sin reservaciones activas</p>'
+      : amenActivas.map(a => `
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.15);border-radius:10px;padding:10px 12px;margin-bottom:6px">
+        <div style="font-size:12px;font-weight:700;color:#f5f0e8">${a.Amenidad||'—'}</div>
+        <div style="font-size:10px;color:rgba(212,175,55,.5);margin-top:2px">👥 ${a.Aforo_Actual||0} persona(s)</div>
+      </div>`).join('')}
+    <div style="margin-top:12px">
+      <button onclick="toggleSeg('agua')"
+        style="width:100%;padding:11px;background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.25);
+          border-radius:10px;color:#d4af37;font-size:12px;font-weight:600;cursor:pointer">
+        🚰 Control de Llave de Agua
+      </button>
+    </div>`;
+  } catch(e) {
+    el.innerHTML = `<p style="color:#ef9a9a;padding:16px;font-size:12px">Error: ${e.message}</p>`;
+  }
+}
+
+async function devolverArticuloSeg(id) {
+  if (!id) return;
+  try {
+    const res = await post({ accion:'devolverArticulo', id });
+    if (res.ok) { showMsg(document.getElementById('msg-seg'),'ok','✅ Artículo devuelto'); cargarPrestamosSeg(); }
+  } catch(e) {}
 }
 
 // ── PANEL SEGURIDAD ───────────────────────────────────────────
